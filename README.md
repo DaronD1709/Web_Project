@@ -1,31 +1,29 @@
 # Web Ecommerce — Đồ án
 
-Đồ án web ecommerce: Java servlet/JSP backend (NetBeans) + React frontend.
+Đồ án web ecommerce: Java Servlet/JSP (NetBeans) + Tomcat + PostgreSQL.
+
+## Tech stack (chốt)
+
+| Layer | Công nghệ |
+|---|---|
+| Backend / View | Java Servlet + JSP (NetBeans), Tomcat 10.1, PostgreSQL |
+| CSS | Tailwind CSS (CDN) |
+| Component có sẵn | daisyUI (CDN) |
+| Tương tác không reload trang | htmx (CDN) |
+
+Không tách frontend riêng, không REST API, không build pipeline (npm/Vite) — 1 codebase JSP duy nhất, cả team code chung, không ai cần học framework mới. Xem `webapp/sample-product-card.jsp` để biết cách nhúng 3 thư viện CDN trên vào 1 trang thật.
 
 ## Cấu trúc repo
 
 ```
 .
-├── backend/     Java servlet/JSP (NetBeans) — Admin (JSP) + REST API cho frontend
-├── frontend/    React + Vite + shadcn/ui — giao diện Customer-facing
+├── backend/     Project NetBeans (servlet/JSP) — move project hiện tại vào đây
 └── docs/        Tài liệu thiết kế: feature list, class diagram
 ```
 
-## Vì sao tách FE/BE như vậy
-
-Admin giữ nguyên JSP vì team có 2 bạn chưa biết React — không ai phải học công nghệ mới để làm phần Admin. Phần Customer-facing (trang chủ, sản phẩm, giỏ hàng...) chuyển sang React để giao diện đẹp và dễ làm UI hơn; backend expose thêm REST API cho phần này dùng (xem `backend/README.md`).
-
 ## Chạy thử
 
-### Backend
-Mở thư mục `backend/` bằng NetBeans như bình thường, deploy lên Tomcat.
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Mở `backend/` bằng NetBeans, deploy lên Tomcat như bình thường.
 
 ## Tài liệu
 - [Feature list](docs/feature-list.md)
