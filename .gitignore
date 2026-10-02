@@ -21,3 +21,7 @@ backend/nbproject/private/
 
 # OS
 .DS_Store
+
+# Cau hinh DB rieng moi may (mau: backend/src/main/resources/db.properties.example)
+backend/src/main/resources/db.properties
+backend/src/main/resources/mail.properties
