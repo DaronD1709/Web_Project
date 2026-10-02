@@ -152,3 +152,18 @@ onboard vào Cloudflare) chỉ là phương án thay thế, không dùng SMTP. D
 Việc cần làm khi tới bước deploy (sau khi xong Core): `Dockerfile` (Tomcat 10.1 + WAR), cho `JPAUtil`/`EmailService` đọc cấu hình từ biến môi trường,
 đổi `hibernate.hbm2ddl.auto` sang `validate`/`none` (hoặc giữ `update` có chủ đích), tắt/đổi tài khoản của `DataSeeder`, đặt `app.base.url` = https://tên-miền,
 bỏ `hibernate.show_sql`, cấu hình SMTP thật.
+
+## 9. Phân công (theo use case diagram; mỗi use case 1 nhánh `feat/<tên>` tách từ `dev`)
+
+| Người | Use case → nhánh |
+|---|---|
+| **Hữu Danh** (Admin + Chat) | Manage Product → `feat/admin-manage-product` · Manage Voucher → `feat/admin-manage-voucher` · Login/Logout (admin) → `feat/admin-login-logout` · Manage Order → `feat/admin-manage-order` · Manage Customer Account → `feat/admin-manage-customer-account` · Chat with Shop → `feat/chat-with-shop` |
+| **Lộc** (Registered Customer) | Login/Logout → `feat/login-logout` · Manage Profile → `feat/manage-profile` · View Order History → `feat/view-order-history` · Manage Shopping Cart → `feat/manage-shopping-cart` · Place Order & Pay → `feat/place-order-pay` · Track Order Status → `feat/track-order-status` |
+| **Thang** (Unregistered Customer) | Register → `feat/register` · View Products by Category → `feat/view-products-by-category` · Search Product → `feat/search-product` · View Product Detail → `feat/view-product-detail` · Manage Address Shipping → `feat/manage-address-shipping` |
+| *Chưa phân* | `feat/auth-filter` (AuthFilter/AdminFilter), `feat/product-review`, `feat/notifications`, `feat/admin-dashboard`, `feat/deploy-docker` |
+
+Lưu ý khi làm song song:
+- **Đã có sẵn trên `dev`:** Register, Login/Logout, quên mật khẩu, và `/products` (tìm kiếm/lọc/sắp xếp/phân trang). Nhánh `register`, `login-logout`, `search-product` chủ yếu là chỉnh sửa/bổ sung, không viết lại từ đầu.
+- **Phụ thuộc:** Place Order & Pay (Lộc) cần Address (Thang) và Cart (Lộc); Track Order Status cần Order từ Place Order & Pay. Thống nhất sớm tên method của `AddressService`/`CartService`.
+- **Dễ xung đột file:** `LoginServlet`/`AuthService` (login-logout của Lộc vs admin-login-logout của Danh); `OrderService` (place-order-pay, track-order-status, view-order-history, admin-manage-order). Commit nhỏ, merge `dev` vào nhánh mình thường xuyên.
+- Clone: `git clone -b dev https://github.com/DaronD1709/Web_Project.git`. Cập nhật `docs/api-spec.md` khi thêm/đổi Servlet.
