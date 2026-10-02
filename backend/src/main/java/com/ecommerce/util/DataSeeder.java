@@ -3,6 +3,7 @@ package com.ecommerce.util;
 import com.ecommerce.dao.CategoryDAO;
 import com.ecommerce.dao.ProductDAO;
 import com.ecommerce.dao.UserDAO;
+import com.ecommerce.entity.AIBot;
 import com.ecommerce.entity.Admin;
 import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.Category;
@@ -39,6 +40,15 @@ public class DataSeeder {
             admin.setFullName("Quản trị viên");
             admin.setCreatedAt(LocalDateTime.now());
             userDAO.save(admin);
+        }
+        if (userDAO.findByEmail("bot@nongviet.vn") == null) {
+            // Tai khoan he thong cho tro ly AI (Message.sender phai la User). Khong ai dang nhap duoc: mat khau la chuoi ngau nhien bi bo di.
+            AIBot bot = new AIBot();
+            bot.setEmail("bot@nongviet.vn");
+            bot.setPasswordHash(PasswordUtil.hash(java.util.UUID.randomUUID().toString()));
+            bot.setFullName("Trợ lý AI");
+            bot.setCreatedAt(LocalDateTime.now());
+            userDAO.save(bot);
         }
         if (userDAO.findByEmail("khach@nongviet.vn") == null) {
             Customer customer = new Customer();
