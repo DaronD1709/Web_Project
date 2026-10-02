@@ -1,0 +1,7 @@
+<footer class="bg-neutral text-neutral-content mt-16">
+  <div class="max-w-7xl mx-auto px-4 py-8 text-sm flex flex-wrap justify-between gap-4">
+    <div><div class="text-lg font-bold mb-1">🌾 NôngViệt</div><p class="opacity-70">Hạt giống, phân bón, dụng cụ và máy móc cho nhà nông.</p></div>
+    <div class="opacity-70">0900 000 000 · support@nongviet.vn</div>
+  </div>
+  <div class="text-center text-xs opacity-50 pb-6">© 2026 NôngViệt — đồ án môn học</div>
+</footer>

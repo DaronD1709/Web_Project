@@ -6,4 +6,14 @@
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+
+    <!-- Moi file JSP/JSPF doc bang UTF-8. Thieu muc nay thi file .jspf (header/footer) bi loi font tieng Viet
+         vi Tomcat doc no bang ISO-8859-1. -->
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <url-pattern>*.jspf</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
+        </jsp-property-group>
+    </jsp-config>
 </web-app>
