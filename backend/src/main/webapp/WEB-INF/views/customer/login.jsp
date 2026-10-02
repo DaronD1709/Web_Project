@@ -11,8 +11,14 @@
 <body class="bg-base-200 min-h-screen">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-md mx-auto px-4 py-12">
-  <form method="post" action="${ctx}/login" class="card bg-base-100 border border-base-300 p-8 space-y-4">
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl" aria-hidden="true">🌾</div>
+      <h2 class="text-3xl font-extrabold mt-4">Chào mừng trở lại!</h2>
+      <p class="text-white/80 mt-2">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ giao hàng và chat với shop.</p>
+    </div>
+  <form method="post" action="${ctx}/login" class="p-8 space-y-4">
     <h1 class="text-2xl font-bold">Đăng nhập</h1>
 
     <c:if test="${param.registered == '1'}"><div class="alert alert-success alert-soft text-sm">Đăng ký thành công! Hãy đăng nhập. Chúng tôi đã gửi email chào mừng tới hộp thư của bạn.</div></c:if>
@@ -29,6 +35,7 @@
     <button class="btn btn-primary btn-block">Đăng nhập</button>
     <div class="text-center text-sm">Chưa có tài khoản? <a href="${ctx}/register" class="link link-primary font-medium">Đăng ký</a></div>
   </form>
+  </div>
 </main>
 
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>

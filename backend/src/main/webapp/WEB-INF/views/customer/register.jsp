@@ -10,8 +10,14 @@
 <body class="bg-base-200 min-h-screen">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-md mx-auto px-4 py-12">
-  <form method="post" action="${ctx}/register" class="card bg-base-100 border border-base-300 p-8 space-y-3">
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl" aria-hidden="true">🌱</div>
+      <h2 class="text-3xl font-extrabold mt-4">Tạo tài khoản miễn phí</h2>
+      <ul class="text-white/80 mt-3 space-y-1 text-sm"><li>✔ Theo dõi trạng thái đơn hàng</li><li>✔ Lưu nhiều địa chỉ giao hàng</li><li>✔ Nhận mã giảm giá và thông báo</li></ul>
+    </div>
+  <form method="post" action="${ctx}/register" class="p-8 space-y-3">
     <h1 class="text-2xl font-bold">Đăng ký</h1>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Họ và tên</span></div>
@@ -36,6 +42,7 @@
     <button class="btn btn-primary btn-block">Tạo tài khoản</button>
     <div class="text-center text-sm">Đã có tài khoản? <a href="${ctx}/login" class="link link-primary font-medium">Đăng nhập</a></div>
   </form>
+  </div>
 </main>
 
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>

@@ -9,8 +9,14 @@
 <body class="bg-base-200 min-h-screen">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-md mx-auto px-4 py-12">
-  <form method="post" action="${ctx}/forgot-password" class="card bg-base-100 border border-base-300 p-8 space-y-4">
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl" aria-hidden="true">🔑</div>
+      <h2 class="text-3xl font-extrabold mt-4">Quên mật khẩu?</h2>
+      <p class="text-white/80 mt-2">Đừng lo, chỉ cần email đã đăng ký — chúng tôi sẽ gửi liên kết để bạn đặt lại mật khẩu trong vài giây.</p>
+    </div>
+  <form method="post" action="${ctx}/forgot-password" class="p-8 space-y-4">
     <h1 class="text-2xl font-bold">Quên mật khẩu</h1>
     <p class="text-sm text-base-content/70">Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt lại mật khẩu.</p>
 
@@ -24,6 +30,7 @@
     <button class="btn btn-primary btn-block">Gửi liên kết đặt lại</button>
     <div class="text-center text-sm"><a href="${ctx}/login" class="link link-primary">← Quay lại đăng nhập</a></div>
   </form>
+  </div>
 </main>
 
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>

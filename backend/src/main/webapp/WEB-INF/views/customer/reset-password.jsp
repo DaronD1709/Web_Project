@@ -10,10 +10,16 @@
 <body class="bg-base-200 min-h-screen">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-md mx-auto px-4 py-12">
-  <c:choose>
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl" aria-hidden="true">🔒</div>
+      <h2 class="text-3xl font-extrabold mt-4">Đặt mật khẩu mới</h2>
+      <p class="text-white/80 mt-2">Chọn mật khẩu mạnh, tối thiểu 6 ký tự, để bảo vệ tài khoản của bạn.</p>
+    </div>
+    <div class="p-8 flex items-center justify-center"><c:choose>
     <c:when test="${invalid}">
-      <div class="card bg-base-100 border border-base-300 p-8 space-y-4 text-center">
+      <div class="space-y-4 text-center">
         <div class="text-5xl">⏰</div>
         <h1 class="text-xl font-bold">Liên kết không hợp lệ hoặc đã hết hạn</h1>
         <p class="text-sm text-base-content/70">Liên kết đặt lại mật khẩu chỉ có hiệu lực 30 phút và dùng được một lần.</p>
@@ -21,7 +27,7 @@
       </div>
     </c:when>
     <c:otherwise>
-      <form method="post" action="${ctx}/reset-password" class="card bg-base-100 border border-base-300 p-8 space-y-4">
+      <form method="post" action="${ctx}/reset-password" class="space-y-4 w-full">
         <h1 class="text-2xl font-bold">Đặt mật khẩu mới</h1>
         <input type="hidden" name="token" value="<c:out value='${token}'/>">
         <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu mới</span></div>
@@ -33,7 +39,8 @@
         <button class="btn btn-primary btn-block">Đổi mật khẩu</button>
       </form>
     </c:otherwise>
-  </c:choose>
+    </c:choose></div>
+  </div>
 </main>
 
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>
