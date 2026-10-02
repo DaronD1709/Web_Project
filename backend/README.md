@@ -1,14 +1,56 @@
-# Backend (NetBeans / Java Servlet)
+# Backend — Java Servlet/JSP + JPA (Hibernate) + PostgreSQL
 
-Di chuyển project NetBeans hiện tại (servlet/JSP + PostgreSQL) vào thư mục này.
+Maven Web Application. Mo truc tiep thu muc nay bang NetBeans ("Open Project").
 
-## Cấu trúc đề xuất
+## Stack
 
-- Giữ nguyên toàn bộ phần Admin bằng JSP (CRUD sản phẩm, đơn hàng, danh mục...) — không cần sửa gì, 2 bạn chưa biết React vẫn code JSP bình thường cho Admin.
-- Thêm 1 nhóm servlet mới đóng vai trò REST API (ví dụ package `api/`), trả JSON thay vì forward sang JSP — dùng cho phần Customer-facing mà frontend React gọi vào (`/api/products`, `/api/cart`, `/api/orders`...).
-- DAO và business logic (theo class diagram đã thiết kế trong `docs/class-diagram.md`) dùng chung cho cả JSP lẫn REST — không viết lại logic 2 lần.
+- Jakarta Servlet 6.0 / JSP (chay tren Tomcat 10.1)
+- JPA (Jakarta Persistence 3.1) — Hibernate 6.5 lam provider
+- PostgreSQL
 
-## Thư viện cần thêm
+## Kien truc 3 lop
 
-- 1 JSON library, ví dụ `org.json` hoặc `Gson`, để serialize entity sang JSON trong các servlet REST.
-- CORS: nếu frontend chạy `localhost:5173` (Vite dev server) còn backend chạy `localhost:8080` (Tomcat) thì cần set header `Access-Control-Allow-Origin` khi dev local.
+```
+src/main/java/com/ecommerce/
+├── entity/        Model — 22 JPA entity + 4 enum, dung chung cho ca JSP lan service
+├── dao/           Data Access — AbstractDAO<T,ID> (CRUD chung) + DAO cu the
+├── service/       Business logic — goi DAO, xu ly rule (vd: check voucher con han)
+├── controller/    Servlet — nhan request, goi Service, forward sang JSP
+│   ├── admin/
+│   └── customer/
+└── util/
+    └── JPAUtil.java   lay EntityManagerFactory (tuong duong DBUtil trong slide)
+```
+
+**Luong 1 request:** `Servlet (controller)` → `Service` → `DAO` → `EntityManager` (JPA) → PostgreSQL.
+Servlet KHONG duoc goi thang DAO — luon qua Service, de sau nay them validate/business rule
+(vd: check Voucher.isValid() truoc khi cho ap dung) ma khong phai sua Servlet.
+
+## Cau hinh ket noi DB
+
+Sua `src/main/resources/META-INF/persistence.xml` — doi `jakarta.persistence.jdbc.user`
+va `jakarta.persistence.jdbc.password` theo PostgreSQL cua may ban. Co `hibernate.hbm2ddl.auto=update`
+nen KHONG can tu tao bang bang tay — chay app 1 lan, Hibernate tu doc 22 entity va tao bang.
+
+## Cach hoan thien phan con lai (theo dung mau da co)
+
+Moi nhom entity da co it nhat 1 vi du hoan chinh (Product → ProductDAO → ProductService → ProductServlet).
+Voi 21 entity con lai, lam dung mau nay:
+
+1. **DAO**: `public class XxxDAO extends AbstractDAO<Xxx, Integer> { public XxxDAO() { super(Xxx.class); } }`
+   — da co du CRUD, chi them method rieng neu can query dac thu (xem `ProductDAO.findByCategoryId` lam vi du).
+2. **Service**: 1 class goi DAO tuong ung, chua business rule (vd `OrderService.cancelOrder()` phai
+   goi ca `OrderDAO.update()` lan `ProductDAO.update()` de hoan kho — xem ghi chu trong `Order.cancelOrder()`).
+3. **Servlet**: `@WebServlet("/duong-dan")`, goi Service, `forward` sang JSP tuong ung.
+
+## Ghi chu JPA quan trong (khac voi slide mon hoc)
+
+- Dung `jakarta.persistence.*`, KHONG dung `javax.persistence.*` — bat buoc vi Tomcat 10.1.
+- `User` va `Payment` dung `@Inheritance(strategy = InheritanceType.SINGLE_TABLE)` —
+  Customer/Admin/AIBot gop chung bang `users`, CODPayment/VNPayPayment gop chung bang `payments`,
+  phan biet qua cot discriminator (`user_type`, `payment_type`). Chi dung trong slide neu co
+  phan ke thua — neu mon hoc chua day toi InheritanceType thi day la phan can tu doc them
+  (tu khoa de tra: "JPA single table inheritance").
+- Composition trong class diagram (vd `Order *-- OrderItem`) map thanh `cascade = CascadeType.ALL,
+  orphanRemoval = true`. Aggregation (vd `OrderItem o-- Product`) thi KHONG co cascade — xoa
+  OrderItem khong duoc dung lam Product bien mat.
