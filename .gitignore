@@ -6,6 +6,7 @@ frontend/.vite/
 # Java / NetBeans / backend
 backend/build/
 backend/dist/
+backend/target/
 backend/nbproject/private/
 *.class
 *.jar
