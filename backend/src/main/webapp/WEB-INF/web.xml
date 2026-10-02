@@ -7,6 +7,14 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
+    <!-- Session chi di qua cookie (HttpOnly): khong gan ";jsessionid=..." len URL, tranh lo ma session. -->
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
     <!-- Moi file JSP/JSPF doc bang UTF-8. Thieu muc nay thi file .jspf (header/footer) bi loi font tieng Viet
          vi Tomcat doc no bang ISO-8859-1. -->
     <jsp-config>
