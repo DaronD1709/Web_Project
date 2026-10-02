@@ -41,6 +41,9 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `ProductServlet` (đọc tham số → `ProductFilter` DTO) → `ProductService.search` → `ProductDAO.search/countSearch`
   (JPQL động, mọi giá trị qua `setParameter`) → `WEB-INF/views/customer/products.jsp` (JSTL, `<c:out>` chống XSS).
   Copy đúng mẫu này cho các chức năng khác. Contract URL ở `docs/api-spec.md`.
+- **Trang chủ thật:** `GET /` và `/home` → `HomeServlet` (map `""` + `/home`, không còn `welcome-file` trong `web.xml`) → `customer/home.jsp`
+  (chuyển từ `mockup/home.html`: hero, danh mục, 8 sản phẩm mới nhất qua `ProductService.getLatestProducts`). Thẻ sản phẩm dùng chung ở
+  `common/product-card.jspf` (include trong `<c:forEach var="p">`), dùng cho cả trang chủ và `/products`. Sau đăng nhập/đăng xuất, logo → về `/`.
 - `dto/` — chỉ tạo khi thật sự cần: `ProductFilter` (gom tham số request), `PageResult<T>` (kết quả phân trang).
   **Không** tạo DTO cho mọi entity; JSP dùng thẳng entity. Lưu ý `AbstractDAO` đóng `EntityManager` sau mỗi lần gọi
   → JSP chỉ đọc được field thường và `@ManyToOne` (eager); collection lazy (`order.items`, `product.reviews`)

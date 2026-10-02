@@ -1,0 +1,26 @@
+<%-- The san pham dung chung (trang chu, danh sach). Dung trong vong <c:forEach var="p" ...>: p = Product. Du lieu nhap tay luon qua <c:out>. --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<div class="card bg-base-100 border border-base-300 hover:shadow-lg transition">
+  <div class="relative">
+    <c:choose>
+      <c:when test="${not empty p.imageUrl}">
+        <img src="${ctx}/${p.imageUrl}" alt="<c:out value='${p.name}'/>" class="h-44 w-full object-cover rounded-t-[var(--radius-box)]">
+      </c:when>
+      <c:otherwise>
+        <div class="ph rounded-t-[var(--radius-box)] h-44">🌾</div>
+      </c:otherwise>
+    </c:choose>
+    <c:if test="${p.stockQuantity == 0}"><span class="badge badge-neutral absolute top-2 right-2">Hết hàng</span></c:if>
+    <c:if test="${p.stockQuantity > 0 && p.stockQuantity <= 5}"><span class="badge badge-warning absolute top-2 right-2">Chỉ còn ${p.stockQuantity}</span></c:if>
+  </div>
+  <div class="card-body p-4 gap-1">
+    <span class="text-xs text-base-content/60"><c:out value="${p.category.name}"/></span>
+    <span class="font-semibold leading-snug line-clamp-2 min-h-10"><c:out value="${p.name}"/></span>
+    <span class="text-lg font-bold text-primary"><fmt:formatNumber value="${p.price}" pattern="#,##0"/>₫</span>
+    <%-- TODO: khi co CartServlet -> hx-post="${ctx}/cart" hx-vals='{"action":"add","productId":"${p.id}","qty":"1"}' --%>
+    <button type="button" class="btn btn-primary btn-sm mt-2" ${p.stockQuantity == 0 ? 'disabled' : ''}>
+      ${p.stockQuantity == 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
+    </button>
+  </div>
+</div>

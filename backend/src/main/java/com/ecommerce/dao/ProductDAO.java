@@ -27,6 +27,18 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
         }
     }
 
+    /** Cac san pham moi nhat (id lon nhat truoc) - dung cho muc "noi bat" o trang chu. */
+    public List<Product> findLatest(int limit) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT p FROM Product p ORDER BY p.id DESC", Product.class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     /** Tim kiem + loc + sap xep + phan trang cho trang /products. */
     public List<Product> search(ProductFilter f) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();

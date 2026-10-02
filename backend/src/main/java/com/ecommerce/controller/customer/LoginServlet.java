@@ -34,7 +34,7 @@ public class LoginServlet extends HttpServlet {
                 req.changeSessionId(); // doi ma session luc dang nhap -> chong session fixation
             }
             req.getSession(true).setAttribute("currentUser", user);
-            resp.sendRedirect(req.getContextPath() + (isSafeInternalPath(next) ? next : "/products"));
+            resp.sendRedirect(req.getContextPath() + (isSafeInternalPath(next) ? next : "/"));
         } catch (BusinessException e) {
             req.setAttribute("error", e.getMessage());
             req.setAttribute("email", email);

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <header class="bg-base-100 border-b border-base-300 sticky top-0 z-30">
   <div class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
-    <a href="${ctx}/products" class="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">🌾 NôngViệt</a>
+    <a href="${ctx}/" class="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">🌾 NôngViệt</a>
 
     <form action="${ctx}/products" method="get" class="hidden sm:block flex-1 max-w-xl mx-auto">
       <label class="input w-full">

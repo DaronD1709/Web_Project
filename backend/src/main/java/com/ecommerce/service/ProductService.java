@@ -23,6 +23,10 @@ public class ProductService {
         return productDAO.findByCategoryId(categoryId);
     }
 
+    public List<Product> getLatestProducts(int limit) {
+        return productDAO.findLatest(limit);
+    }
+
     public Product createProduct(Product product) {
         return productDAO.save(product);
     }
