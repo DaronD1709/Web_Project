@@ -66,6 +66,8 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
+**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chưa có: checkout, phía Admin của chat, AI tự trả lời.
+
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
 Link trong email dùng `app.base.url` trong `mail.properties` (nếu có), nếu không thì suy từ request.

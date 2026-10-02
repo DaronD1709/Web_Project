@@ -41,6 +41,14 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `ProductServlet` (đọc tham số → `ProductFilter` DTO) → `ProductService.search` → `ProductDAO.search/countSearch`
   (JPQL động, mọi giá trị qua `setParameter`) → `WEB-INF/views/customer/products.jsp` (JSTL, `<c:out>` chống XSS).
   Copy đúng mẫu này cho các chức năng khác. Contract URL ở `docs/api-spec.md`.
+- **Giỏ hàng và Chat (đã làm, test 37 kiểm tra tự động + trình duyệt):** `/cart` (`CartServlet` → `CartService` → `CartDAO`, JOIN FETCH items+product),
+  `/chat`, `/chat/messages`, `/chat/send` (`ChatServlet` → `ChatService` → `ConversationDAO/MessageDAO`). Pattern htmx dùng cho mọi chức năng sau:
+  request có header `HX-Request` → Servlet trả **đoạn HTML** (`customer/fragments/*.jsp`), request thường → redirect (PRG). Badge giỏ (`#cart-count`) lưu ở
+  session `cartCount` (đặt lúc đăng nhập, cập nhật khi thêm/xoá), đổi tức thì không reload (htmx + `hx-swap-oob`). Toast: server gửi header `HX-Trigger`
+  (`util/HtmxUtil.toast`, tiếng Việt mã hoá `\uXXXX` vì header chỉ ASCII), listener ở `common/footer.jspf`. Chưa đăng nhập: `util/SessionUtil.requireCustomer`
+  → `/login?next=...` (htmx: `HX-Redirect`); Admin vào `/cart`,`/chat` → 403. Mọi thao tác giỏ kiểm tra dòng thuộc **đúng giỏ của khách** (không sửa được giỏ người khác).
+  Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản `AIBot` (bot@nongviet.vn) để gửi lời chào.
+  **Chưa làm:** nút "Thanh toán" (disabled, chờ `feat/place-order-pay`), AI tự trả lời và phía Admin của chat (`feat/chat-with-shop`).
 - **Trang chủ thật:** `GET /` và `/home` → `HomeServlet` (map `""` + `/home`, không còn `welcome-file` trong `web.xml`) → `customer/home.jsp`
   (chuyển từ `mockup/home.html`: hero, danh mục, 8 sản phẩm mới nhất qua `ProductService.getLatestProducts`). Thẻ sản phẩm dùng chung ở
   `common/product-card.jspf` (include trong `<c:forEach var="p">`), dùng cho cả trang chủ và `/products`. Sau đăng nhập/đăng xuất, logo → về `/`.
@@ -161,7 +169,7 @@ bỏ `hibernate.show_sql`, cấu hình SMTP thật.
 | Người | Use case → nhánh |
 |---|---|
 | **Hữu Danh** (Admin + Chat) | Manage Product → `feat/admin-manage-product` · Manage Voucher → `feat/admin-manage-voucher` · Login/Logout (admin) → `feat/admin-login-logout` · Manage Order → `feat/admin-manage-order` · Manage Customer Account → `feat/admin-manage-customer-account` · Chat with Shop → `feat/chat-with-shop` |
-| **Lộc** (Registered Customer) | Login/Logout → `feat/login-logout` · Manage Profile → `feat/manage-profile` · View Order History → `feat/view-order-history` · Manage Shopping Cart → `feat/manage-shopping-cart` · Place Order & Pay → `feat/place-order-pay` · Track Order Status → `feat/track-order-status` |
+| **Lộc** (Registered Customer; **giỏ hàng cơ bản đã có sẵn trên dev**) | Login/Logout → `feat/login-logout` · Manage Profile → `feat/manage-profile` · View Order History → `feat/view-order-history` · Manage Shopping Cart → `feat/manage-shopping-cart` · Place Order & Pay → `feat/place-order-pay` · Track Order Status → `feat/track-order-status` |
 | **Thang** (Unregistered Customer) | Register → `feat/register` · View Products by Category → `feat/view-products-by-category` · Search Product → `feat/search-product` · View Product Detail → `feat/view-product-detail` · Manage Address Shipping → `feat/manage-address-shipping` |
 | *Chưa phân* | `feat/auth-filter` (AuthFilter/AdminFilter), `feat/product-review`, `feat/notifications`, `feat/admin-dashboard`, `feat/deploy-docker` |
 
