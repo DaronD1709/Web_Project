@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mục lục giao diện quản trị — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="dashboard" data-title="Mục lục giao diện quản trị" data-shell="none">
+<div id="page">
+<div class="max-w-4xl mx-auto space-y-6">
+  <div><h1 class="text-3xl font-extrabold text-primary">🌾 NôngViệt — Giao diện quản trị (CMS)</h1>
+    <p class="text-base-content/70 mt-1">Mockup HTML tĩnh theo use case của Admin. Dữ liệu và thao tác chỉ là giả lập trên trình duyệt.</p></div>
+  <div class="grid md:grid-cols-2 gap-4" id="g"></div>
+  <a href="../index.html" class="link link-primary text-sm">← Mockup giao diện khách hàng</a>
+</div>
+</div>
+<script>
+const G = [
+  ['Đăng nhập / Đăng xuất', [['login', 'Đăng nhập quản trị']]],
+  ['Thống kê doanh thu', [['dashboard', 'Tổng quan (số liệu, biểu đồ, cần xử lý)'], ['statistics', 'Thống kê doanh thu chi tiết']]],
+  ['Manage Product', [['products', 'Danh sách sản phẩm (tìm, lọc, xoá)'], ['product-form', 'Thêm / sửa sản phẩm + upload ảnh'], ['categories', 'Danh mục sản phẩm']]],
+  ['Manage Order', [['orders', 'Danh sách đơn theo trạng thái'], ['order-detail', 'Chi tiết đơn: xác nhận / giao / huỷ / duyệt hoàn hàng']]],
+  ['Manage Voucher', [['vouchers', 'Danh sách voucher, bật/tắt'], ['voucher-form', 'Tạo / sửa voucher']]],
+  ['Manage Customer Account', [['customers', 'Danh sách khách, khoá / mở khoá'], ['reviews', 'Duyệt / ẩn / xoá đánh giá']]],
+  ['Chat with Shop', [['chat', 'Hộp thư chat, tiếp quản từ AI']]],
+];
+document.getElementById('g').innerHTML = G.map(([t, l]) => `<div class="card bg-base-100 border border-base-300 p-5"><div class="font-bold mb-2">${t}</div><ul class="space-y-1">${l.map(([f, n]) => `<li><a class="link link-hover hover:text-primary" href="${f}.html">${n}</a> <span class="text-xs text-base-content/40">${f}.html</span></li>`).join('')}</ul></div>`).join('');
+</script>
+</body>
+</html>

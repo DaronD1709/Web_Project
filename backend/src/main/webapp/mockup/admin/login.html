@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đăng nhập quản trị — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="" data-title="Đăng nhập quản trị" data-shell="none">
+<div id="page">
+<div class="min-h-screen grid lg:grid-cols-2">
+  <div class="hero-bg text-white hidden lg:flex flex-col justify-center p-14">
+    <div class="text-7xl">🌾</div>
+    <h1 class="text-4xl font-extrabold mt-4">NôngViệt CMS</h1>
+    <p class="text-white/80 mt-3 max-w-md">Quản lý sản phẩm, đơn hàng, voucher và khách hàng của cửa hàng nông nghiệp NôngViệt.</p>
+  </div>
+  <div class="flex items-center justify-center p-6">
+    <form class="w-full max-w-sm space-y-4" action="dashboard.html">
+      <div>
+        <div class="lg:hidden text-2xl font-extrabold text-primary mb-4">🌾 NôngViệt CMS</div>
+        <h2 class="text-2xl font-bold">Đăng nhập quản trị</h2>
+        <p class="text-sm text-base-content/60">Chỉ dành cho tài khoản có vai trò Admin.</p>
+      </div>
+      <!-- Hien khi sai thong tin hoac tai khoan khong phai Admin (403) -->
+      <div class="alert alert-error alert-soft text-sm hidden" id="err">Email hoặc mật khẩu không đúng.</div>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
+        <input type="email" class="input w-full" value="admin@nongviet.vn" required></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
+        <input type="password" class="input w-full" value="••••••••" required></label>
+      <button class="btn btn-primary btn-block">Đăng nhập</button>
+      <div class="text-center text-sm"><a href="../home.html" class="link link-hover text-base-content/60">← Về cửa hàng</a></div>
+    </form>
+  </div>
+</div>
+</div>
+<script>
+
+</script>
+</body>
+</html>

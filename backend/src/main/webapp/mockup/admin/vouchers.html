@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Voucher — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="vouchers" data-title="Voucher">
+<div id="page">
+<div class="max-w-7xl mx-auto space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div><h1 class="text-2xl font-bold">Voucher</h1><p class="text-sm text-base-content/60">Mã giảm giá áp dụng ở bước thanh toán</p></div>
+    <a href="voucher-form.html" class="btn btn-primary btn-sm">+ Tạo voucher</a>
+  </div>
+  <div role="tablist" class="tabs tabs-border bg-base-100 rounded-box border border-base-300 px-2 overflow-x-auto" id="tabs"></div>
+  <div class="card bg-base-100 border border-base-300 overflow-hidden"><div class="overflow-x-auto"><table class="table">
+    <thead><tr><th>Mã</th><th>Giảm</th><th class="text-right">Đơn tối thiểu</th><th>Đã dùng</th><th>Thời hạn</th><th>Trạng thái</th><th class="text-center">Bật/tắt</th><th class="text-right">Thao tác</th></tr></thead>
+    <tbody id="rows"></tbody></table></div>
+    <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">🎟️</div>Không có voucher.</div></div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id), d = s => s.split('-').reverse().join('/');
+let list = VOUCHERS.map(v => ({ ...v })), tab = 'all';
+const TABS = [['all', 'Tất cả'], ['active', 'Đang hoạt động'], ['soldout', 'Hết lượt'], ['expired', 'Hết hạn'], ['off', 'Đã tắt']];
+function draw() {
+  $('tabs').innerHTML = TABS.map(([k, t]) => `<a role="tab" class="tab gap-2 ${k === tab ? 'tab-active' : ''}" onclick="tab='${k}';draw()">${t}<span class="badge badge-sm badge-ghost">${list.filter(v => k === 'all' || voucherState(v) === k).length}</span></a>`).join('');
+  const l = list.filter(v => tab === 'all' || voucherState(v) === tab);
+  $('empty').classList.toggle('hidden', l.length > 0);
+  $('rows').innerHTML = l.map(v => { const s = voucherState(v), pct = Math.round(v.used / v.issued * 100); return `
+    <tr class="hover"><td><span class="font-mono font-semibold">${esc(v.code)}</span></td>
+    <td>${v.type === 'percent' ? v.value + '%' : fmt(v.value)}</td><td class="text-right tabular-nums">${fmt(v.min)}</td>
+    <td class="min-w-36"><div class="text-xs tabular-nums mb-1">${v.used} / ${v.issued} <span class="text-base-content/50">(${pct}%)</span></div><progress class="progress ${pct >= 100 ? 'progress-warning' : 'progress-primary'} w-full h-1.5" value="${v.used}" max="${v.issued}"></progress></td>
+    <td class="text-sm whitespace-nowrap">${d(v.start)} → ${d(v.end)}</td>
+    <td><span class="badge ${VOUCHER_STATE[s][1]} badge-sm whitespace-nowrap">${VOUCHER_STATE[s][0]}</span></td>
+    <td class="text-center"><input type="checkbox" class="toggle toggle-primary toggle-sm" ${v.active ? 'checked' : ''} onchange="flip(${v.id}, this.checked)" aria-label="Bật/tắt ${esc(v.code)}"></td>
+    <td class="text-right whitespace-nowrap"><a class="btn btn-ghost btn-xs" href="voucher-form.html?id=${v.id}">Sửa</a><button class="btn btn-ghost btn-xs text-error" onclick="del(${v.id})">Xoá</button></td></tr>`; }).join('');
+}
+function flip(id, on) { list.find(v => v.id === id).active = on; draw(); toast(on ? 'Đã bật voucher' : 'Đã tắt voucher'); }
+function del(id) { const v = list.find(x => x.id === id); confirmBox({ title: 'Xoá voucher?', message: `Xoá mã <b>${esc(v.code)}</b>? Các đơn đã áp dụng mã này vẫn giữ nguyên.`, okText: 'Xoá', okClass: 'btn-error', onOk() { list = list.filter(x => x.id !== id); draw(); toast('Đã xoá voucher'); } }); }
+draw();
+</script>
+</body>
+</html>

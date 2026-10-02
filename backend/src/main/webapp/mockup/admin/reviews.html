@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đánh giá — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="reviews" data-title="Đánh giá">
+<div id="page">
+<div class="max-w-5xl mx-auto space-y-4">
+  <div><h1 class="text-2xl font-bold">Đánh giá sản phẩm</h1><p class="text-sm text-base-content/60">Duyệt, ẩn hoặc xoá đánh giá vi phạm</p></div>
+  <div role="tablist" class="tabs tabs-border bg-base-100 rounded-box border border-base-300 px-2 overflow-x-auto" id="tabs"></div>
+  <div class="space-y-3" id="list"></div>
+  <div id="empty" class="hidden card bg-base-100 border border-dashed border-base-300 p-12 text-center text-base-content/60"><div class="text-4xl">⭐</div>Không có đánh giá.</div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let list = REVIEWS.map(r => ({ ...r })), tab = 'all';
+const TABS = [['all', 'Tất cả'], ['flagged', 'Bị báo cáo'], ['hidden', 'Đã ẩn']];
+const match = (r, k) => k === 'all' || (k === 'flagged' && r.flagged && !r.hidden) || (k === 'hidden' && r.hidden);
+function draw() {
+  $('tabs').innerHTML = TABS.map(([k, t]) => `<a role="tab" class="tab gap-2 ${k === tab ? 'tab-active' : ''}" onclick="tab='${k}';draw()">${t}<span class="badge badge-sm ${k === 'flagged' ? 'badge-warning' : 'badge-ghost'}">${list.filter(r => match(r, k)).length}</span></a>`).join('');
+  const l = list.filter(r => match(r, tab)); $('empty').classList.toggle('hidden', l.length > 0);
+  $('list').innerHTML = l.map(r => { const p = PRODUCTS.find(x => x.id === r.pid); return `
+    <article class="card bg-base-100 border ${r.flagged && !r.hidden ? 'border-warning' : 'border-base-300'} p-4 ${r.hidden ? 'opacity-60' : ''}">
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <div class="flex items-center gap-3"><div class="ph ph-sm size-11 rounded-field">${p.icon}</div>
+          <div><a class="font-medium hover:text-primary" href="product-form.html?id=${p.id}">${esc(p.name)}</a><div class="text-xs text-base-content/60">${esc(r.customer)} · ${r.date}</div></div></div>
+        <div class="flex items-center gap-2"><span class="text-warning" aria-label="${r.rating} trên 5 sao">${stars(r.rating)}</span>
+          ${r.flagged ? '<span class="badge badge-warning badge-sm">⚑ Bị báo cáo</span>' : ''}${r.hidden ? '<span class="badge badge-neutral badge-sm">Đã ẩn</span>' : ''}</div></div>
+      <!-- Noi dung do khach nhap: luon escape (c:out trong JSP) -> the <script> hien thanh chu, khong chay -->
+      <p class="mt-3 text-sm">${esc(r.comment)}</p>
+      <div class="mt-3 flex gap-2 justify-end">
+        <button class="btn btn-xs" onclick="toggle(${r.id})">${r.hidden ? 'Hiện lại' : 'Ẩn đánh giá'}</button>
+        <button class="btn btn-xs btn-error btn-outline" onclick="del(${r.id})">Xoá</button></div>
+    </article>`; }).join('');
+}
+function toggle(id) { const r = list.find(x => x.id === id); r.hidden = !r.hidden; draw(); toast(r.hidden ? 'Đã ẩn đánh giá' : 'Đã hiện lại đánh giá'); }
+function del(id) { confirmBox({ title: 'Xoá đánh giá?', message: 'Đánh giá bị xoá vĩnh viễn và không thể khôi phục.', okText: 'Xoá', okClass: 'btn-error', onOk() { list = list.filter(r => r.id !== id); draw(); toast('Đã xoá đánh giá'); } }); }
+draw();
+</script>
+</body>
+</html>

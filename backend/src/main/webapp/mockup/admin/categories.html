@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Danh mục — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="categories" data-title="Danh mục">
+<div id="page">
+<div class="max-w-4xl mx-auto space-y-4">
+  <div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold">Danh mục sản phẩm</h1><p class="text-sm text-base-content/60">Phân loại sản phẩm để khách dễ tìm kiếm</p></div>
+    <button class="btn btn-primary btn-sm" onclick="openForm()">+ Thêm danh mục</button></div>
+  <div class="card bg-base-100 border border-base-300 overflow-hidden"><div class="overflow-x-auto">
+    <table class="table"><thead><tr><th>Danh mục</th><th>Mô tả</th><th class="text-center">Sản phẩm</th><th class="text-right">Thao tác</th></tr></thead><tbody id="rows"></tbody></table></div></div>
+</div>
+
+<dialog id="m" class="modal"><div class="modal-box">
+  <h3 class="font-bold text-lg mb-3" id="m-title">Thêm danh mục</h3>
+  <label class="form-control w-full"><div class="label"><span class="label-text">Tên danh mục <span class="text-error">*</span></span></div><input id="f-name" class="input w-full"></label>
+  <label class="form-control w-full mt-3"><div class="label"><span class="label-text">Mô tả</span></div><textarea id="f-desc" class="textarea w-full" rows="2"></textarea></label>
+  <div class="modal-action"><button class="btn" onclick="m.close()">Huỷ</button><button class="btn btn-primary" onclick="saveCat()">Lưu</button></div>
+</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let cats = CATEGORIES.map(c => ({ ...c, desc: ['Hạt giống rau, củ, quả các loại', 'Phân hữu cơ, phân vô cơ, phân vi sinh', 'Thuốc bảo vệ thực vật, chế phẩm sinh học', 'Cuốc, xẻng, kéo cắt tỉa và dụng cụ làm vườn', 'Máy phun thuốc, máy cắt cỏ, hệ thống tưới', 'Gạo, rau củ và nông sản sạch'][c.id - 1] }));
+let editing = null;
+function draw() {
+  $('rows').innerHTML = cats.map(c => { const n = PRODUCTS.filter(p => p.cat === c.id).length; return `
+    <tr class="hover"><td><span class="mr-2">${c.icon}</span><b>${esc(c.name)}</b></td><td class="text-base-content/70">${esc(c.desc || '')}</td>
+    <td class="text-center"><a class="link" href="products.html?cat=${c.id}">${n}</a></td>
+    <td class="text-right whitespace-nowrap"><button class="btn btn-ghost btn-xs" onclick="openForm(${c.id})">Sửa</button>
+      ${n ? `<span class="tooltip tooltip-left" data-tip="Không xoá được: danh mục còn ${n} sản phẩm"><button class="btn btn-ghost btn-xs" disabled>Xoá</button></span>`
+          : `<button class="btn btn-ghost btn-xs text-error" onclick="delCat(${c.id})">Xoá</button>`}</td></tr>`; }).join('');
+}
+function openForm(id) { editing = id || null; const c = cats.find(x => x.id === id); $('m-title').textContent = c ? 'Sửa danh mục' : 'Thêm danh mục'; $('f-name').value = c ? c.name : ''; $('f-desc').value = c ? c.desc : ''; m.showModal(); }
+function saveCat() {
+  const name = $('f-name').value.trim(); if (!name) { toast('Vui lòng nhập tên danh mục', 'error'); return; }
+  if (editing) { const c = cats.find(x => x.id === editing); c.name = name; c.desc = $('f-desc').value; } else cats.push({ id: Date.now(), name, icon: '📁', desc: $('f-desc').value });
+  m.close(); draw(); toast('Đã lưu danh mục');
+}
+function delCat(id) { confirmBox({ title: 'Xoá danh mục?', message: 'Danh mục chưa có sản phẩm nào, xoá an toàn.', okText: 'Xoá', okClass: 'btn-error', onOk() { cats = cats.filter(c => c.id !== id); draw(); toast('Đã xoá danh mục'); } }); }
+draw();
+</script>
+</body>
+</html>

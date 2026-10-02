@@ -10,8 +10,9 @@
 <body class="bg-base-200 min-h-screen">
 <main class="max-w-5xl mx-auto px-4 py-10">
   <h1 class="text-3xl font-extrabold text-primary">🌾 NôngViệt — Giao diện Customer</h1>
-  <p class="text-base-content/70 mt-1">Mockup HTML tĩnh (Tailwind + daisyUI CDN), bám theo use case diagram và class diagram. Chưa vẽ phần Admin.</p>
+  <p class="text-base-content/70 mt-1">Mockup HTML tĩnh (Tailwind + daisyUI CDN), bám theo use case diagram và class diagram. Phần Admin ở mục bên dưới.</p>
   <div class="mt-8 grid md:grid-cols-2 gap-5" id="groups"></div>
+  <a href="admin/index.html" class="mt-8 card bg-primary text-primary-content p-5 flex-row items-center justify-between hover:brightness-110"><span><b class="text-lg">Giao diện quản trị (Admin CMS)</b><br><span class="text-sm opacity-80">14 trang: tổng quan, sản phẩm, đơn hàng, voucher, khách hàng, đánh giá, chat, thống kê</span></span><span class="text-2xl" aria-hidden="true">→</span></a>
   <div class="mt-8 card bg-base-100 border border-base-300 p-5 text-sm space-y-1">
     <div class="font-bold">Ghi chú khi chuyển sang JSP</div>
     <div>• <code>layout.js</code> (header/footer) → file include <code>WEB-INF/views/common/*.jspf</code>; <code>productCard()</code> → vòng <code>&lt;c:forEach&gt;</code>.</div>

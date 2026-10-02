@@ -72,6 +72,12 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   làm mục lục. Xem thử: mở `mockup/index.html` hoặc `python3 -m http.server` trong thư mục đó.
   `layout.js` chứa header/footer/product card + dữ liệu mẫu (chỉ để xem thử). **Chưa vẽ Admin.**
   Dùng làm bản thiết kế khi chuyển sang JSP; không phải code chạy thật.
+- **Mockup giao diện Admin (CMS)** — nhánh `feat/admin-ui`: `backend/src/main/webapp/mockup/admin/` — 14 trang (login, dashboard, statistics, products,
+  product-form kèm upload ảnh, categories, orders, order-detail, vouchers, voucher-form, customers, reviews, chat) + `index.html`. `admin.js` chứa khung
+  (sidebar/header), dữ liệu mẫu, biểu đồ SVG thuần (cột ≤ 24px, 1 màu, tooltip, nút "Xem dạng bảng"), toast và hộp thoại xác nhận. Đã kiểm tra desktop + mobile.
+  Rule hiển thị trong mockup cần giữ khi làm JSP: huỷ đơn/duyệt hoàn hàng ⇒ cộng lại kho; không xoá danh mục còn sản phẩm; voucher có 4 trạng thái
+  (hoạt động/hết hạn/hết lượt/tắt) khớp `Voucher.isValid()`; khoá tài khoản khách cần thêm cột `users.is_active` (chưa có trong entity); chat có công tắc
+  nhân viên tiếp quản (cần field `isHandledByHuman` của `Conversation`, chưa có).
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
@@ -92,7 +98,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - [ ] JSP views tương ứng từng Servlet ở trên (copy mẫu `WEB-INF/views/customer/products.jsp`: Tailwind + daisyUI + htmx qua `common/head.jspf`).
 - [ ] Chuyển mockup (`webapp/mockup/`) thành JSP thật theo từng nhóm chức năng (cùng lúc với Servlet/Service),
       mỗi nhóm 1 commit; Auth và danh sách sản phẩm đã xong, tiếp theo là giỏ hàng → checkout.
-- [ ] Hoàn thiện mockup: bản Admin (chưa vẽ); mockup forgot/reset password.
+- [x] Mockup Admin (nhánh `feat/admin-ui`). [ ] Mockup forgot/reset password.
 - [ ] Đóng `EntityManagerFactory` khi app dừng (`contextDestroyed`) để không rò kết nối khi redeploy.
 - [ ] (Khi cần deploy) cho `JPAUtil`/`EmailService` đọc thêm biến môi trường để chạy trong Docker/cloud, không cần file `.properties`.
 - [ ] Phần Optional (Voucher, Review, Notification, Chat, AIBot, Return/Refund) — chỉ làm sau khi Core xong hết.

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat với khách — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="chat" data-title="Chat với khách">
+<div id="page">
+<div class="max-w-7xl mx-auto">
+  <div class="mb-3"><h1 class="text-2xl font-bold">Chat với khách</h1><p class="text-sm text-base-content/60">Trợ lý AI trả lời trước; bạn tiếp quản khi khách cần nhân viên</p></div>
+  <div class="card bg-base-100 border border-base-300 overflow-hidden grid lg:grid-cols-[19rem_1fr_16rem] h-[calc(100vh-11rem)] min-h-[32rem]">
+    <!-- Danh sach cuoc tro chuyen -->
+    <div class="border-b lg:border-b-0 lg:border-r border-base-300 flex flex-col min-h-0">
+      <div class="p-3 border-b border-base-300 space-y-2">
+        <label class="input input-sm w-full"><input type="search" placeholder="Tìm khách hàng…"></label>
+        <div class="join w-full"><button class="join-item btn btn-xs flex-1 btn-primary" data-f="all">Tất cả</button><button class="join-item btn btn-xs flex-1" data-f="wait">Chờ NV</button><button class="join-item btn btn-xs flex-1" data-f="ai">AI</button></div></div>
+      <ul class="overflow-y-auto flex-1" id="convos"></ul>
+    </div>
+    <!-- Khung chat -->
+    <div class="flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r border-base-300">
+      <div class="px-4 py-3 border-b border-base-300 flex items-center gap-3">
+        <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-9 rounded-full text-xs" id="av"></div></div>
+        <div class="flex-1 min-w-0"><div class="font-semibold truncate" id="who"></div><div class="text-xs text-base-content/60" id="mode"></div></div>
+        <label class="flex items-center gap-2 text-xs cursor-pointer"><span>Nhân viên trả lời</span><input id="human" type="checkbox" class="toggle toggle-primary toggle-sm"></label>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-1 bg-base-200/50" id="msgs"></div>
+      <div class="px-4 pt-3 flex flex-wrap gap-2" id="quick"></div>
+      <form class="p-3 flex gap-2" onsubmit="return send(event)"><input id="inp" class="input flex-1" placeholder="Nhập tin nhắn…" autocomplete="off"><button class="btn btn-primary">Gửi</button></form>
+    </div>
+    <!-- Thong tin khach -->
+    <aside class="hidden lg:block p-4 text-sm space-y-3 overflow-y-auto" id="info"></aside>
+  </div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id), initials = n => n.split(' ').slice(-2).map(w => w[0]).join('');
+let cur = CONVOS[0].id, filter = 'all';
+const quick = ['Chào bạn, mình hỗ trợ gì được ạ?', 'Shop kiểm tra giúp bạn nhé.', 'Đơn của bạn đang được giao.', 'Cảm ơn bạn đã liên hệ!'];
+function drawList() {
+  const l = CONVOS.filter(c => filter === 'all' || (filter === 'wait' && c.human) || (filter === 'ai' && !c.human));
+  $('convos').innerHTML = l.map(c => { const cu = custById(c.cid); return `
+    <li><button class="w-full text-left px-4 py-3 flex gap-3 hover:bg-base-200 border-b border-base-300 ${c.id === cur ? 'bg-primary/10' : ''}" onclick="open_(${c.id})">
+      <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-9 rounded-full text-xs"><span>${initials(cu.name)}</span></div></div>
+      <div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><span class="font-medium truncate">${esc(cu.name)}</span><span class="text-xs text-base-content/50 shrink-0">${c.time}</span></div>
+        <div class="flex items-center justify-between gap-2"><span class="text-xs text-base-content/60 truncate">${esc(c.last)}</span>${c.unread ? `<span class="badge badge-error badge-xs">${c.unread}</span>` : ''}</div>
+        <div class="mt-1">${c.human ? '<span class="badge badge-primary badge-xs">Nhân viên</span>' : '<span class="badge badge-info badge-xs badge-soft">AI</span>'}</div></div></button></li>`; }).join('');
+}
+function drawChat() {
+  const c = CONVOS.find(x => x.id === cur), cu = custById(c.cid); c.unread = 0;
+  $('av').innerHTML = `<span>${initials(cu.name)}</span>`; $('who').textContent = cu.name;
+  $('mode').textContent = c.human ? 'Nhân viên đang trả lời — AI tạm dừng' : 'Trợ lý AI đang tự động trả lời';
+  $('human').checked = c.human;
+  $('msgs').innerHTML = c.msgs.map(([w, t, time]) => `
+    <div class="chat ${w === 'me' ? 'chat-start' : 'chat-end'}"><div class="chat-header text-xs">${w === 'me' ? esc(cu.name) : w === 'bot' ? 'Trợ lý AI <span class="badge badge-xs badge-info">AI</span>' : 'Bạn <span class="badge badge-xs badge-primary">Shop</span>'} <time class="opacity-50">${time}</time></div>
+      <div class="chat-bubble ${w === 'me' ? '' : w === 'admin' ? 'chat-bubble-primary' : 'chat-bubble-neutral'}">${esc(t)}</div></div>`).join('');
+  $('msgs').scrollTop = 1e6;
+  $('quick').innerHTML = quick.map(q => `<button class="badge badge-outline cursor-pointer" onclick="$('inp').value=this.textContent">${q}</button>`).join('');
+  const os = ORDERS.filter(o => o.cid === cu.id).slice(0, 3);
+  $('info').innerHTML = `<div class="font-semibold">${esc(cu.name)}</div><div class="text-base-content/70">${esc(cu.email)}<br>${cu.phone}</div>
+    <div class="divider my-1"></div><div class="font-semibold">Đơn gần đây</div>
+    <ul class="space-y-2">${os.map(o => `<li class="flex items-center justify-between gap-2"><a class="link link-primary font-mono" href="order-detail.html?no=${o.no}">#${o.no}</a>${statusBadge(o.status)}</li>`).join('') || '<li class="text-base-content/50">Chưa có đơn.</li>'}</ul>
+    <a class="btn btn-outline btn-xs btn-block" href="customers.html">Xem hồ sơ khách</a>`;
+  drawList();
+}
+function open_(id) { cur = id; drawChat(); }
+$('human').addEventListener('change', e => { const c = CONVOS.find(x => x.id === cur); c.human = e.target.checked; drawChat(); toast(c.human ? 'Bạn đã tiếp quản cuộc trò chuyện' : 'Đã chuyển lại cho trợ lý AI'); });
+function send(e) {
+  e.preventDefault(); const t = $('inp').value.trim(); if (!t) return false;
+  const c = CONVOS.find(x => x.id === cur); c.msgs.push(['admin', t, '14:40']); c.human = true; c.last = t; c.time = '14:40'; $('inp').value = ''; drawChat(); return false;
+}
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filter = b.dataset.f; document.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('btn-primary', x === b)); drawList(); }));
+drawChat();
+</script>
+</body>
+</html>

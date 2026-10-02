@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đơn hàng — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="orders" data-title="Đơn hàng">
+<div id="page">
+<div class="max-w-7xl mx-auto space-y-4">
+  <div><h1 class="text-2xl font-bold">Đơn hàng</h1><p class="text-sm text-base-content/60">Xác nhận, cập nhật trạng thái giao hàng, huỷ đơn và duyệt hoàn hàng</p></div>
+
+  <div role="tablist" class="tabs tabs-border bg-base-100 rounded-box border border-base-300 px-2 overflow-x-auto" id="tabs"></div>
+
+  <div class="card bg-base-100 border border-base-300 p-3 flex flex-row flex-wrap items-center gap-2">
+    <label class="input input-sm w-full sm:w-72"><input id="q" type="search" placeholder="Tìm theo mã đơn, tên hoặc email khách…"></label>
+    <select id="pay" class="select select-sm w-full sm:w-44"><option value="">Mọi thanh toán</option><option>COD</option><option>VNPay</option></select>
+    <input id="from" type="date" class="input input-sm w-full sm:w-40" value="2026-09-01" aria-label="Từ ngày">
+    <span class="text-base-content/50 hidden sm:inline">→</span>
+    <input id="to" type="date" class="input input-sm w-full sm:w-40" value="2026-10-02" aria-label="Đến ngày">
+  </div>
+
+  <div class="card bg-base-100 border border-base-300 overflow-hidden">
+    <div class="overflow-x-auto"><table class="table">
+      <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th class="text-right">Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th class="text-right">Thao tác</th></tr></thead>
+      <tbody id="rows"></tbody></table></div>
+    <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">📭</div>Không có đơn hàng phù hợp.</div>
+  </div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const TABS = [['all', 'Tất cả'], ['pending', 'Chờ xác nhận'], ['confirmed', 'Đã xác nhận'], ['shipping', 'Đang giao'], ['completed', 'Hoàn tất'], ['cancelled', 'Đã huỷ'], ['return', 'Hoàn hàng']];
+const inTab = (o, t) => t === 'all' || o.status === t || (t === 'return' && o.status === 'returned');
+let tab = new URLSearchParams(location.search).get('tab') || 'all';
+// Luong hop le (khop Order.updateStatus): PENDING -> CONFIRMED -> SHIPPING -> COMPLETED
+const NEXT = { pending: ['confirmed', 'Xác nhận'], confirmed: ['shipping', 'Giao hàng'], shipping: ['completed', 'Hoàn tất'] };
+function draw() {
+  $('tabs').innerHTML = TABS.map(([k, t]) => `<a role="tab" class="tab gap-2 ${k === tab ? 'tab-active' : ''}" onclick="tab='${k}';draw()">${t}<span class="badge badge-sm ${k === 'return' && ORDERS.some(o => o.status === 'return') ? 'badge-error' : 'badge-ghost'}">${ORDERS.filter(o => inTab(o, k)).length}</span></a>`).join('');
+  const q = $('q').value.trim().toLowerCase(), pay = $('pay').value;
+  const l = ORDERS.filter(o => inTab(o, tab) && (!pay || o.pay === pay) && (!q || ('#' + o.no).includes(q) || custById(o.cid).name.toLowerCase().includes(q) || custById(o.cid).email.includes(q)));
+  $('empty').classList.toggle('hidden', l.length > 0);
+  $('rows').innerHTML = l.map(o => { const c = custById(o.cid), nx = NEXT[o.status]; return `
+    <tr class="hover ${o.status === 'return' ? 'bg-error/5' : ''}">
+      <td><a class="link link-primary font-mono font-medium" href="order-detail.html?no=${o.no}">#${o.no}</a><div class="text-xs text-base-content/50">${o.date} · ${o.items.length} mặt hàng</div></td>
+      <td>${esc(c.name)}<div class="text-xs text-base-content/50">${esc(c.email)}</div></td>
+      <td class="text-right tabular-nums font-medium">${fmt(orderTotals(o).total)}</td>
+      <td><span class="badge badge-outline badge-sm">${o.pay}</span> <span class="text-xs ${o.paid ? 'text-success' : 'text-base-content/50'}">${o.paid ? '✓ Đã thanh toán' : 'Chưa thanh toán'}</span></td>
+      <td>${statusBadge(o.status)}</td>
+      <td class="text-right whitespace-nowrap">
+        ${nx ? `<button class="btn btn-primary btn-xs" onclick="advance(${o.no})">${nx[1]}</button>` : ''}
+        ${o.status === 'return' ? `<a class="btn btn-error btn-xs" href="order-detail.html?no=${o.no}">Duyệt hoàn hàng</a>` : ''}
+        <a class="btn btn-ghost btn-xs" href="order-detail.html?no=${o.no}">Chi tiết</a></td></tr>`; }).join('');
+}
+function advance(no) {
+  const o = ORDERS.find(x => x.no === no), [next, label] = NEXT[o.status];
+  confirmBox({ title: `${label} đơn #${no}?`, message: `Trạng thái chuyển từ <b>${ORDER_STATUS[o.status][0]}</b> sang <b>${ORDER_STATUS[next][0]}</b>. Khách hàng sẽ nhận thông báo.`, okText: label,
+    onOk() { o.status = next; draw(); toast(`Đơn #${no}: ${ORDER_STATUS[next][0]}`); } });
+}
+['q', 'pay', 'from', 'to'].forEach(i => $(i).addEventListener('input', draw)); draw();
+</script>
+</body>
+</html>

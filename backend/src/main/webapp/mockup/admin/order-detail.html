@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chi tiết đơn hàng — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="orders" data-title="Chi tiết đơn hàng">
+<div id="page">
+<div class="max-w-6xl mx-auto space-y-4">
+  <div class="flex flex-wrap items-start justify-between gap-2">
+    <div><a href="orders.html" class="text-sm link link-primary">← Danh sách đơn hàng</a>
+      <h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary" id="no"></span></h1>
+      <div class="text-sm text-base-content/60" id="date"></div></div>
+    <span id="badge"></span>
+  </div>
+  <div class="text-xs text-base-content/60">Xem thử trạng thái:
+    <a class="link" href="?no=1042">Chờ xác nhận</a> · <a class="link" href="?no=1040">Đã xác nhận</a> · <a class="link" href="?no=1038">Đang giao</a> ·
+    <a class="link" href="?no=1035">Hoàn tất</a> · <a class="link" href="?no=1027">Yêu cầu hoàn hàng</a> · <a class="link" href="?no=1019">Đã huỷ</a></div>
+
+  <div id="note"></div>
+
+  <div class="card bg-base-100 border border-base-300 p-5"><ul class="steps w-full text-sm" id="steps"></ul></div>
+
+  <div class="grid lg:grid-cols-[1fr_20rem] gap-4">
+    <div class="space-y-4">
+      <section class="card bg-base-100 border border-base-300 overflow-hidden">
+        <div class="overflow-x-auto"><table class="table"><thead><tr><th>Sản phẩm</th><th class="text-right">Đơn giá</th><th class="text-center">SL</th><th class="text-right">Thành tiền</th></tr></thead><tbody id="items"></tbody></table></div>
+        <div class="p-5 border-t border-base-300 ml-auto w-full sm:w-96 text-sm space-y-1" id="totals"></div>
+      </section>
+      <div class="flex flex-wrap gap-2 justify-end" id="actions"></div>
+    </div>
+    <aside class="space-y-4">
+      <section class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1"><h2 class="font-semibold mb-1">Khách hàng</h2><div id="cust"></div></section>
+      <section class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1"><h2 class="font-semibold mb-1">Giao tới</h2><div id="addr"></div></section>
+      <section class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1"><h2 class="font-semibold mb-1">Thanh toán</h2><div id="pay"></div></section>
+    </aside>
+  </div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const o = ORDERS.find(x => x.no === (+new URLSearchParams(location.search).get('no') || 1042)) || ORDERS[0];
+const NEXT = { pending: ['confirmed', 'Xác nhận đơn'], confirmed: ['shipping', 'Chuyển sang đang giao'], shipping: ['completed', 'Đánh dấu hoàn tất'] };
+const STEP_OF = { pending: 1, confirmed: 2, shipping: 3, completed: 4, return: 4, returned: 4 };
+function setStatus(s, msg) { o.status = s; draw(); toast(msg); }
+function draw() {
+  const t = orderTotals(o), c = custById(o.cid);
+  $('no').textContent = '#' + o.no; $('date').textContent = 'Đặt lúc ' + o.date; $('badge').innerHTML = statusBadge(o.status).replace('badge-sm', 'badge-lg');
+  $('steps').innerHTML = o.status === 'cancelled'
+    ? '<li class="step step-primary">Đặt hàng</li><li class="step step-error" data-content="✕">Đã huỷ</li>'
+    : ['Đặt hàng', 'Xác nhận', 'Đang giao', 'Hoàn tất'].map((n, i) => `<li class="step ${i < STEP_OF[o.status] ? 'step-primary' : ''}">${n}</li>`).join('');
+  $('note').innerHTML = o.status === 'return'
+    ? `<div class="alert alert-error alert-soft"><div><div class="font-semibold">Khách yêu cầu hoàn hàng</div><div class="text-sm">Lý do: “${esc(o.reason)}”</div></div></div>`
+    : o.status === 'cancelled' ? '<div class="alert alert-soft text-sm">Đơn đã huỷ. Số lượng sản phẩm đã được cộng lại vào kho.</div>'
+    : o.status === 'returned' ? '<div class="alert alert-soft text-sm">Đã duyệt hoàn hàng. Số lượng sản phẩm đã được cộng lại vào kho.</div>' : '';
+  $('items').innerHTML = o.items.map(([pid, q]) => { const p = PRODUCTS.find(x => x.id === pid); return `
+    <tr><td><div class="flex items-center gap-3"><div class="ph ph-sm size-12 rounded-field">${p.icon}</div><div><a class="font-medium hover:text-primary" href="product-form.html?id=${p.id}">${esc(p.name)}</a><div class="text-xs text-base-content/50">Tồn hiện tại: ${p.stock}</div></div></div></td>
+    <td class="text-right tabular-nums">${fmt(p.price)}</td><td class="text-center">${q}</td><td class="text-right tabular-nums">${fmt(p.price * q)}</td></tr>`; }).join('');
+  $('totals').innerHTML = `<div class="flex justify-between"><span>Tạm tính</span><span class="tabular-nums">${fmt(t.sub)}</span></div>
+    <div class="flex justify-between"><span>Phí vận chuyển</span><span>${t.ship ? fmt(t.ship) : 'Miễn phí'}</span></div>
+    ${o.voucher ? `<div class="flex justify-between text-success"><span>Voucher ${o.voucher}</span><span class="tabular-nums">−${fmt(t.discount)}</span></div>` : ''}
+    <div class="flex justify-between font-bold text-lg pt-1"><span>Tổng cộng</span><span class="text-primary tabular-nums">${fmt(t.total)}</span></div>`;
+  $('cust').innerHTML = `<a class="link link-primary font-medium" href="customers.html">${esc(c.name)}</a><div>${esc(c.email)}</div><div>${c.phone}</div>`;
+  $('addr').innerHTML = `<div class="font-medium">${esc(c.name)}</div><div>${c.phone}</div><div class="text-base-content/70">12 Lê Lợi, Quận 1, TP. Hồ Chí Minh</div>`;
+  $('pay').innerHTML = `<div>Phương thức: <b>${o.pay}</b></div><div>Trạng thái: <span class="badge badge-sm ${o.paid ? 'badge-success' : 'badge-warning'}">${o.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}</span></div>`;
+
+  const A = [], nx = NEXT[o.status];
+  if (nx) A.push(`<button class="btn btn-primary" onclick="adv()">${nx[1]}</button>`);
+  if (o.status === 'pending' || o.status === 'confirmed') A.unshift('<button class="btn btn-outline btn-error" onclick="cancel()">Huỷ đơn</button>');
+  if (o.status === 'return') A.push('<button class="btn btn-outline" onclick="reject()">Từ chối hoàn hàng</button>', '<button class="btn btn-error" onclick="approve()">Duyệt hoàn hàng</button>');
+  A.push('<a href="chat.html" class="btn btn-ghost">Nhắn khách</a>');
+  $('actions').innerHTML = A.join('');
+}
+function adv() { const [n, l] = NEXT[o.status]; confirmBox({ title: l + '?', message: `Chuyển sang <b>${ORDER_STATUS[n][0]}</b>. Hệ thống gửi thông báo cho khách hàng.`, okText: 'Đồng ý', onOk() { setStatus(n, 'Đã cập nhật: ' + ORDER_STATUS[n][0]); } }); }
+function cancel() { confirmBox({ title: `Huỷ đơn #${o.no}?`, message: 'Đơn bị huỷ và <b>số lượng sản phẩm được cộng lại vào kho</b>. Khách hàng nhận thông báo. Không thể hoàn tác.', okText: 'Huỷ đơn', okClass: 'btn-error', onOk() { setStatus('cancelled', 'Đã huỷ đơn, hoàn kho'); } }); }
+function approve() { confirmBox({ title: 'Duyệt hoàn hàng?', message: 'Đơn chuyển sang <b>Đã hoàn hàng</b>, số lượng được cộng lại vào kho.', okText: 'Duyệt', okClass: 'btn-error', onOk() { setStatus('returned', 'Đã duyệt hoàn hàng, hoàn kho'); } }); }
+function reject() { confirmBox({ title: 'Từ chối hoàn hàng?', message: 'Đơn quay lại trạng thái <b>Hoàn tất</b>.', okText: 'Từ chối', onOk() { setStatus('completed', 'Đã từ chối yêu cầu hoàn hàng'); } }); }
+draw();
+</script>
+</body>
+</html>

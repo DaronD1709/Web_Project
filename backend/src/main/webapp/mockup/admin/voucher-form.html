@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tạo voucher — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="vouchers" data-title="Tạo voucher">
+<div id="page">
+<div class="max-w-4xl mx-auto space-y-4">
+  <div><a href="vouchers.html" class="text-sm link link-primary">← Danh sách voucher</a><h1 class="text-2xl font-bold" id="h1">Tạo voucher</h1></div>
+  <form class="grid lg:grid-cols-[1fr_18rem] gap-4" onsubmit="return save(event)" novalidate>
+    <section class="card bg-base-100 border border-base-300 p-5 space-y-4">
+      <label class="form-control w-full"><div class="label"><span class="label-text">Mã voucher <span class="text-error">*</span></span></div>
+        <input id="code" class="input w-full font-mono uppercase" placeholder="VD: NONG10" maxlength="20">
+        <div class="label hidden" id="e-code"><span class="label-text-alt text-error">Mã chỉ gồm chữ, số, 3–20 ký tự</span></div></label>
+      <div><div class="label"><span class="label-text">Loại giảm giá</span></div>
+        <div class="join"><input class="join-item btn btn-sm" type="radio" name="type" value="percent" aria-label="Phần trăm (%)" checked><input class="join-item btn btn-sm" type="radio" name="type" value="fixed" aria-label="Số tiền cố định (₫)"></div></div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="form-control"><div class="label"><span class="label-text">Giá trị giảm <span class="text-error">*</span></span></div>
+          <label class="input w-full"><input id="value" type="number" min="1" placeholder="10"><span class="label" id="unit">%</span></label>
+          <div class="label hidden" id="e-value"><span class="label-text-alt text-error" id="e-value-t">Giá trị phải lớn hơn 0</span></div></label>
+        <label class="form-control"><div class="label"><span class="label-text">Đơn tối thiểu (₫)</span></div>
+          <input id="min" type="number" min="0" step="1000" class="input w-full" placeholder="300000"></label>
+        <label class="form-control"><div class="label"><span class="label-text">Số lượng phát hành <span class="text-error">*</span></span></div>
+          <input id="issued" type="number" min="1" class="input w-full" placeholder="100">
+          <div class="label hidden" id="e-issued"><span class="label-text-alt text-error">Số lượng phải ≥ 1</span></div></label>
+        <label class="form-control"><div class="label"><span class="label-text">Giới hạn mỗi khách (lần)</span></div>
+          <input id="per" type="number" min="1" class="input w-full" value="1"></label>
+        <label class="form-control"><div class="label"><span class="label-text">Ngày bắt đầu</span></div><input id="start" type="date" class="input w-full" value="2026-10-02"></label>
+        <label class="form-control"><div class="label"><span class="label-text">Ngày hết hạn</span></div><input id="end" type="date" class="input w-full" value="2026-10-31">
+          <div class="label hidden" id="e-end"><span class="label-text-alt text-error">Ngày hết hạn phải sau ngày bắt đầu</span></div></label>
+      </div>
+      <label class="flex items-center gap-3"><input id="active" type="checkbox" class="toggle toggle-primary" checked><span class="text-sm">Bật voucher (khách có thể dùng ngay khi còn hạn và còn lượt)</span></label>
+      <div class="flex justify-end gap-2 pt-2"><a href="vouchers.html" class="btn btn-ghost">Huỷ</a><button class="btn btn-primary">Lưu voucher</button></div>
+    </section>
+    <aside class="card bg-base-100 border border-base-300 p-5 h-fit space-y-3">
+      <h2 class="font-semibold">Xem trước</h2>
+      <div class="rounded-box border-2 border-dashed border-accent bg-accent/15 p-4 text-center">
+        <div class="text-xs text-base-content/60">Mã giảm giá</div><div class="font-mono text-2xl font-bold" id="pv-code">MÃ</div>
+        <div class="text-lg font-semibold text-primary mt-1" id="pv-val">Giảm 0%</div><div class="text-xs text-base-content/60 mt-1" id="pv-min"></div></div>
+      <p class="text-xs text-base-content/60">Khi checkout, hệ thống kiểm tra theo thứ tự: còn hạn → còn lượt → đạt giá trị tối thiểu.</p>
+    </aside>
+  </form>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id), id = +new URLSearchParams(location.search).get('id'), V = VOUCHERS.find(v => v.id === id);
+const type = () => document.querySelector('input[name=type]:checked').value;
+if (V) { $('h1').textContent = 'Sửa voucher ' + V.code; document.title = 'Sửa voucher — Quản trị NôngViệt'; $('code').value = V.code; $('value').value = V.value; $('min').value = V.min; $('issued').value = V.issued; $('per').value = V.perUser; $('start').value = V.start; $('end').value = V.end; $('active').checked = V.active; document.querySelector(`input[name=type][value=${V.type}]`).checked = true; }
+function preview() {
+  $('unit').textContent = type() === 'percent' ? '%' : '₫';
+  $('pv-code').textContent = $('code').value.toUpperCase() || 'MÃ';
+  $('pv-val').textContent = 'Giảm ' + ($('value').value ? (type() === 'percent' ? $('value').value + '%' : fmt(+$('value').value)) : '…');
+  $('pv-min').textContent = +$('min').value ? 'Đơn từ ' + fmt(+$('min').value) : 'Không yêu cầu đơn tối thiểu';
+}
+document.querySelectorAll('input').forEach(i => i.addEventListener('input', preview));
+function save(e) {
+  e.preventDefault();
+  const pct = type() === 'percent', v = +$('value').value;
+  const bad = { code: !/^[A-Za-z0-9]{3,20}$/.test($('code').value), value: !(v > 0) || (pct && v > 100), issued: !(+$('issued').value >= 1), end: $('end').value <= $('start').value };
+  $('e-value-t').textContent = pct && v > 100 ? 'Phần trăm giảm tối đa 100%' : 'Giá trị phải lớn hơn 0';
+  Object.entries(bad).forEach(([k, b]) => { $('e-' + k).classList.toggle('hidden', !b); $(k).classList.toggle('input-error', b); });
+  if (Object.values(bad).some(Boolean)) { toast('Vui lòng kiểm tra lại các trường báo lỗi', 'error'); return false; }
+  toast(V ? 'Đã cập nhật voucher' : 'Đã tạo voucher'); setTimeout(() => location.href = 'vouchers.html', 900); return false;
+}
+preview();
+</script>
+</body>
+</html>

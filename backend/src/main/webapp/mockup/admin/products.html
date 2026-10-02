@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sản phẩm — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="products" data-title="Sản phẩm">
+<div id="page">
+<div class="space-y-4 max-w-7xl mx-auto">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div><h1 class="text-2xl font-bold">Sản phẩm</h1><p class="text-sm text-base-content/60" id="count"></p></div>
+    <a href="product-form.html" class="btn btn-primary btn-sm">+ Thêm sản phẩm</a>
+  </div>
+
+  <div class="card bg-base-100 border border-base-300 p-3 flex flex-row flex-wrap items-center gap-2">
+    <label class="input input-sm w-full sm:w-64"><input id="q" type="search" placeholder="Tìm theo tên sản phẩm…"></label>
+    <select id="cat" class="select select-sm w-full sm:w-48"><option value="">Tất cả danh mục</option></select>
+    <select id="stock" class="select select-sm w-full sm:w-44">
+      <option value="">Mọi tồn kho</option><option value="in">Còn hàng</option><option value="low">Sắp hết (≤ 5)</option><option value="out">Hết hàng</option></select>
+    <select id="sort" class="select select-sm w-full sm:w-44 sm:ml-auto">
+      <option value="new">Mới nhất</option><option value="name">Tên A → Z</option><option value="asc">Giá thấp → cao</option><option value="desc">Giá cao → thấp</option><option value="stock">Tồn kho thấp trước</option></select>
+  </div>
+
+  <div class="card bg-base-100 border border-base-300 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th class="text-right">Giá</th><th class="text-center">Tồn kho</th><th class="text-right">Thao tác</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">📦</div>Không có sản phẩm phù hợp.</div>
+    <div class="flex items-center justify-between p-3 border-t border-base-300 text-sm">
+      <span class="text-base-content/60">Hiển thị 1–12</span>
+      <div class="join"><button class="join-item btn btn-sm">«</button><button class="join-item btn btn-sm btn-primary">1</button><button class="join-item btn btn-sm">2</button><button class="join-item btn btn-sm">»</button></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id), qs = new URLSearchParams(location.search);
+let list = PRODUCTS.map(p => ({ ...p }));
+$('cat').innerHTML += CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+if (qs.get('stock')) $('stock').value = qs.get('stock');
+function stockBadge(n) { return n === 0 ? '<span class="badge badge-neutral badge-sm">Hết hàng</span>' : n <= 5 ? `<span class="badge badge-warning badge-sm">Còn ${n}</span>` : `<span class="tabular-nums">${n}</span>`; }
+function draw() {
+  const q = $('q').value.trim().toLowerCase(), cat = +$('cat').value, st = $('stock').value;
+  let l = list.filter(p => (!q || p.name.toLowerCase().includes(q)) && (!cat || p.cat === cat) &&
+    (!st || (st === 'in' && p.stock > 0) || (st === 'low' && p.stock <= 5) || (st === 'out' && p.stock === 0)));
+  const s = $('sort').value;
+  if (s === 'name') l.sort((a, b) => a.name.localeCompare(b.name, 'vi')); if (s === 'asc') l.sort((a, b) => a.price - b.price);
+  if (s === 'desc') l.sort((a, b) => b.price - a.price); if (s === 'stock') l.sort((a, b) => a.stock - b.stock); if (s === 'new') l.sort((a, b) => b.id - a.id);
+  $('count').textContent = `${l.length} / ${list.length} sản phẩm`;
+  $('empty').classList.toggle('hidden', l.length > 0);
+  $('rows').innerHTML = l.map(p => `
+    <tr class="hover">
+      <td><div class="flex items-center gap-3"><div class="ph ph-sm size-12 rounded-field shrink-0">${p.icon}</div>
+        <div><a href="product-form.html?id=${p.id}" class="font-medium hover:text-primary">${esc(p.name)}</a><div class="text-xs text-base-content/50">Mã SP #${p.id}</div></div></div></td>
+      <td>${catName(p.cat)}</td>
+      <td class="text-right tabular-nums">${fmt(p.price)}${p.oldPrice ? `<div class="text-xs line-through text-base-content/40">${fmt(p.oldPrice)}</div>` : ''}</td>
+      <td class="text-center">${stockBadge(p.stock)}</td>
+      <td class="text-right whitespace-nowrap">
+        <a href="product-form.html?id=${p.id}" class="btn btn-ghost btn-xs">Sửa</a>
+        <button class="btn btn-ghost btn-xs text-error" onclick="delP(${p.id})">Xoá</button></td></tr>`).join('');
+}
+function delP(id) {
+  const p = list.find(x => x.id === id);
+  confirmBox({ title: 'Xoá sản phẩm?', message: `Xoá <b>${esc(p.name)}</b>? Các đánh giá của sản phẩm cũng bị xoá theo. Sản phẩm đã có trong đơn hàng sẽ không xoá được.`, okText: 'Xoá', okClass: 'btn-error',
+    onOk() { list = list.filter(x => x.id !== id); draw(); toast('Đã xoá sản phẩm'); } });
+}
+['q', 'cat', 'stock', 'sort'].forEach(i => $(i).addEventListener('input', draw)); draw();
+</script>
+</body>
+</html>

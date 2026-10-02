@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tổng quan — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="dashboard" data-title="Tổng quan">
+<div id="page">
+<div class="space-y-6 max-w-7xl mx-auto">
+  <div class="flex flex-wrap items-end justify-between gap-2">
+    <div><h1 class="text-2xl font-bold">Tổng quan</h1><p class="text-sm text-base-content/60">Thứ Sáu, 02/10/2026 — số liệu hôm nay so với hôm qua</p></div>
+    <a href="statistics.html" class="btn btn-sm btn-outline">Xem thống kê chi tiết →</a>
+  </div>
+
+  <div class="grid gap-3 md:grid-cols-2" id="alerts"></div>
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="tiles"></div>
+
+  <div class="grid xl:grid-cols-3 gap-4">
+    <section class="card bg-base-100 border border-base-300 p-5 xl:col-span-2" data-chart-card>
+      <div class="flex items-start justify-between gap-2">
+        <div><h2 class="font-semibold">Doanh thu 14 ngày gần nhất</h2><p class="text-xs text-base-content/60">Không tính đơn đã huỷ</p></div>
+        <button class="btn btn-ghost btn-xs" data-toggle-table aria-pressed="false">Xem dạng bảng</button>
+      </div>
+      <div id="rev" class="mt-3"></div>
+    </section>
+    <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+      <div class="flex items-start justify-between gap-2">
+        <div><h2 class="font-semibold">Đơn hàng theo trạng thái</h2><p class="text-xs text-base-content/60">Tất cả đơn trong hệ thống</p></div>
+        <button class="btn btn-ghost btn-xs" data-toggle-table aria-pressed="false">Xem dạng bảng</button>
+      </div>
+      <div id="status" class="mt-4"></div>
+    </section>
+  </div>
+
+  <div class="grid xl:grid-cols-3 gap-4">
+    <section class="card bg-base-100 border border-base-300 xl:col-span-2 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4"><h2 class="font-semibold">Đơn hàng mới nhất</h2><a href="orders.html" class="link link-primary text-sm">Xem tất cả</a></div>
+      <div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Mã</th><th>Khách hàng</th><th class="text-right">Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody id="recent"></tbody></table></div>
+    </section>
+    <section class="card bg-base-100 border border-base-300 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4"><h2 class="font-semibold">Sắp hết hàng</h2><a href="products.html?stock=low" class="link link-primary text-sm">Xem tất cả</a></div>
+      <div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Sản phẩm</th><th class="text-right">Tồn</th></tr></thead><tbody id="low"></tbody></table></div>
+    </section>
+  </div>
+
+  <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+    <div class="flex items-start justify-between gap-2">
+      <div><h2 class="font-semibold">Sản phẩm bán chạy nhất</h2><p class="text-xs text-base-content/60">Theo số lượng đã bán</p></div>
+      <button class="btn btn-ghost btn-xs" data-toggle-table aria-pressed="false">Xem dạng bảng</button>
+    </div>
+    <div id="top" class="mt-4"></div>
+  </section>
+</div>
+</div>
+<script>
+const rev = genSeries(14, 42, 9000000, 8000000), days = dayLabels(14);
+const today = rev[13], yday = rev[12], pct = ((today - yday) / yday * 100);
+const pend = ORDERS.filter(o => o.status === 'pending').length, ret = ORDERS.filter(o => o.status === 'return').length;
+const lowStock = PRODUCTS.filter(p => p.stock <= 15).sort((a, b) => a.stock - b.stock);
+
+document.getElementById('alerts').innerHTML = [
+  [pend, `${pend} đơn đang chờ xác nhận`, 'orders.html?tab=pending', 'alert-warning'],
+  [ret, `${ret} yêu cầu hoàn hàng chờ duyệt`, 'orders.html?tab=return', 'alert-error'],
+  [NAV_BADGE.chat, `${NAV_BADGE.chat} tin nhắn khách chưa đọc`, 'chat.html', 'alert-info'],
+  [NAV_BADGE.reviews, `${NAV_BADGE.reviews} đánh giá bị báo cáo cần duyệt`, 'reviews.html', 'alert-info'],
+].filter(a => a[0]).map(([, t, href, cls]) =>
+  `<a href="${href}" class="alert ${cls} alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${t}</span><span aria-hidden="true">→</span></a>`).join('');
+
+const tile = (label, value, delta, spark, href) =>
+  `<a href="${href}" class="card bg-base-100 border border-base-300 p-4 hover:border-primary transition">
+     <div class="text-sm text-base-content/60">${label}</div>
+     <div class="mt-1 text-2xl font-bold tabular-nums">${value}</div>
+     <div class="mt-2 flex items-center justify-between gap-2 text-xs"><span>${delta}</span>${spark || ''}</div></a>`;
+document.getElementById('tiles').innerHTML =
+  tile('Doanh thu hôm nay', fmt(today), `<span class="${pct >= 0 ? 'text-success' : 'text-error'}">${pct >= 0 ? '▲ +' : '▼ '}${pct.toFixed(1).replace('.', ',')}%</span> <span class="text-base-content/50">so với hôm qua</span>`, Chart.spark(rev.slice(-12)), 'statistics.html') +
+  tile('Đơn chờ xác nhận', pend, '<span class="text-base-content/50">Cần xử lý sớm</span>', '', 'orders.html?tab=pending') +
+  tile('Đang giao', ORDERS.filter(o => o.status === 'shipping').length, '<span class="text-base-content/50">Chưa hoàn tất</span>', '', 'orders.html?tab=shipping') +
+  tile('Sản phẩm sắp hết', PRODUCTS.filter(p => p.stock <= 5).length, '<span class="text-warning">⚠ Tồn kho ≤ 5</span>', '', 'products.html?stock=low');
+
+Chart.columns(document.getElementById('rev'), rev.map((v, i) => ({ label: days[i], value: v })), { height: 230, label: 'Doanh thu 14 ngày gần nhất', colLabel: 'Ngày', colValue: 'Doanh thu' });
+
+const counts = {}; ORDERS.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
+Chart.hbars(document.getElementById('status'), Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([s, n]) => ({ label: ORDER_STATUS[s][0], value: n })), { fmtValue: v => v + ' đơn', colLabel: 'Trạng thái', colValue: 'Số đơn' });
+
+Chart.hbars(document.getElementById('top'), [...PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 6).map(p => ({ label: p.name, value: p.sold, sub: catName(p.cat) })), { fmtValue: v => v + ' đã bán', colLabel: 'Sản phẩm', colValue: 'Đã bán' });
+
+document.getElementById('recent').innerHTML = ORDERS.slice(0, 6).map(o => `
+  <tr class="hover"><td><a class="link link-primary font-mono" href="order-detail.html?no=${o.no}">#${o.no}</a></td>
+  <td>${esc(custById(o.cid).name)}</td><td class="text-right tabular-nums">${fmt(orderTotals(o).total)}</td><td>${statusBadge(o.status)}</td></tr>`).join('');
+document.getElementById('low').innerHTML = lowStock.map(p => `
+  <tr class="hover"><td><a class="link link-hover" href="product-form.html?id=${p.id}">${esc(p.name)}</a></td>
+  <td class="text-right">${p.stock === 0 ? '<span class="badge badge-neutral badge-sm">Hết hàng</span>' : `<span class="badge ${p.stock <= 5 ? 'badge-warning' : 'badge-ghost'} badge-sm">${p.stock}</span>`}</td></tr>`).join('');
+</script>
+</body>
+</html>

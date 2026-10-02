@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Khách hàng — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="customers" data-title="Khách hàng">
+<div id="page">
+<div class="max-w-7xl mx-auto space-y-4">
+  <div><h1 class="text-2xl font-bold">Tài khoản khách hàng</h1><p class="text-sm text-base-content/60">Xem danh sách, khoá hoặc mở khoá tài khoản</p></div>
+  <div class="card bg-base-100 border border-base-300 p-3 flex flex-row flex-wrap items-center gap-2">
+    <label class="input input-sm w-full sm:w-72"><input id="q" type="search" placeholder="Tìm theo tên, email hoặc số điện thoại…"></label>
+    <select id="st" class="select select-sm w-full sm:w-44"><option value="">Mọi trạng thái</option><option value="active">Đang hoạt động</option><option value="locked">Đã khoá</option></select>
+    <span class="ml-auto text-sm text-base-content/60" id="count"></span>
+  </div>
+  <div class="card bg-base-100 border border-base-300 overflow-hidden"><div class="overflow-x-auto"><table class="table">
+    <thead><tr><th>Khách hàng</th><th>Liên hệ</th><th>Tham gia</th><th class="text-center">Đơn</th><th class="text-right">Tổng chi tiêu</th><th>Trạng thái</th><th class="text-right">Thao tác</th></tr></thead>
+    <tbody id="rows"></tbody></table></div>
+    <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">👥</div>Không có khách hàng phù hợp.</div></div>
+</div>
+
+<dialog id="m" class="modal"><div class="modal-box max-w-lg" id="m-body"></div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const stat = c => { const os = ORDERS.filter(o => o.cid === c.id && o.status !== 'cancelled'); return { n: ORDERS.filter(o => o.cid === c.id).length, spent: os.reduce((s, o) => s + orderTotals(o).total, 0) }; };
+const init = n => n.split(' ').slice(-2).map(w => w[0]).join('');
+function draw() {
+  const q = $('q').value.trim().toLowerCase(), st = $('st').value;
+  const l = CUSTOMERS.filter(c => (!st || c.status === st) && (!q || (c.name + c.email + c.phone).toLowerCase().includes(q)));
+  $('count').textContent = `${l.length} / ${CUSTOMERS.length} khách hàng`; $('empty').classList.toggle('hidden', l.length > 0);
+  $('rows').innerHTML = l.map(c => { const s = stat(c); return `
+    <tr class="hover ${c.status === 'locked' ? 'opacity-70' : ''}">
+      <td><div class="flex items-center gap-3"><div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-9 rounded-full text-xs"><span>${init(c.name)}</span></div></div><div class="font-medium">${esc(c.name)}</div></div></td>
+      <td class="text-sm">${esc(c.email)}<div class="text-xs text-base-content/50">${c.phone}</div></td><td class="text-sm">${c.joined}</td>
+      <td class="text-center">${s.n}</td><td class="text-right tabular-nums">${fmt(s.spent)}</td>
+      <td>${c.status === 'locked' ? '<span class="badge badge-error badge-sm">🔒 Đã khoá</span>' : '<span class="badge badge-success badge-sm">Hoạt động</span>'}</td>
+      <td class="text-right whitespace-nowrap"><button class="btn btn-ghost btn-xs" onclick="view(${c.id})">Xem</button>
+        <button class="btn btn-ghost btn-xs ${c.status === 'locked' ? 'text-success' : 'text-error'}" onclick="lock(${c.id})">${c.status === 'locked' ? 'Mở khoá' : 'Khoá'}</button></td></tr>`; }).join('');
+}
+function view(id) {
+  const c = custById(id), s = stat(c), os = ORDERS.filter(o => o.cid === id);
+  $('m-body').innerHTML = `
+    <div class="flex items-center gap-4"><div class="avatar avatar-placeholder"><div class="bg-primary text-primary-content w-14 rounded-full"><span>${init(c.name)}</span></div></div>
+      <div><h3 class="font-bold text-lg">${esc(c.name)}</h3><div class="text-sm text-base-content/60">${esc(c.email)} · ${c.phone}</div></div></div>
+    <div class="grid grid-cols-3 gap-2 my-4 text-center"><div class="bg-base-200 rounded-box p-3"><div class="text-xl font-bold">${s.n}</div><div class="text-xs text-base-content/60">Đơn hàng</div></div>
+      <div class="bg-base-200 rounded-box p-3"><div class="text-xl font-bold tabular-nums">${(s.spent / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}tr</div><div class="text-xs text-base-content/60">Chi tiêu</div></div>
+      <div class="bg-base-200 rounded-box p-3"><div class="text-sm font-bold pt-1">${c.joined}</div><div class="text-xs text-base-content/60">Tham gia</div></div></div>
+    <div class="font-semibold text-sm mb-1">Đơn hàng gần đây</div>
+    <ul class="divide-y divide-base-300 text-sm">${os.length ? os.map(o => `<li class="py-2 flex items-center justify-between gap-2"><a class="link link-primary font-mono" href="order-detail.html?no=${o.no}">#${o.no}</a><span>${statusBadge(o.status)}</span><span class="tabular-nums">${fmt(orderTotals(o).total)}</span></li>`).join('') : '<li class="py-3 text-base-content/60">Chưa có đơn hàng.</li>'}</ul>
+    <p class="text-xs text-base-content/50 mt-3">Quản trị viên không xem được mật khẩu của khách hàng.</p>
+    <div class="modal-action"><button class="btn" onclick="m.close()">Đóng</button></div>`;
+  m.showModal();
+}
+function lock(id) {
+  const c = custById(id), locking = c.status !== 'locked';
+  confirmBox({ title: locking ? 'Khoá tài khoản?' : 'Mở khoá tài khoản?', okText: locking ? 'Khoá' : 'Mở khoá', okClass: locking ? 'btn-error' : 'btn-success',
+    message: locking ? `<b>${esc(c.name)}</b> sẽ không thể đăng nhập hay đặt hàng. Các đơn đang xử lý vẫn tiếp tục.` : `<b>${esc(c.name)}</b> sẽ đăng nhập và mua hàng bình thường trở lại.`,
+    onOk() { c.status = locking ? 'locked' : 'active'; draw(); toast(locking ? 'Đã khoá tài khoản' : 'Đã mở khoá tài khoản'); } });
+}
+['q', 'st'].forEach(i => $(i).addEventListener('input', draw)); draw();
+</script>
+</body>
+</html>

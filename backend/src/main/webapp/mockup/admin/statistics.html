@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thống kê doanh thu — Quản trị NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-active="statistics" data-title="Thống kê doanh thu">
+<div id="page">
+<div class="max-w-7xl mx-auto space-y-4">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div><h1 class="text-2xl font-bold">Thống kê doanh thu</h1><p class="text-sm text-base-content/60" id="range"></p></div>
+    <div class="flex flex-wrap items-center gap-2">
+      <select id="period" class="select select-sm w-44"><option value="7">7 ngày qua</option><option value="14">14 ngày qua</option><option value="30" selected>30 ngày qua</option></select>
+      <button class="btn btn-outline btn-sm" onclick="toast('Mockup: chưa xuất được file CSV','info')">Xuất CSV</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4" id="tiles"></div>
+
+  <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+    <div class="flex items-start justify-between gap-2"><div><h2 class="font-semibold">Doanh thu theo ngày</h2><p class="text-xs text-base-content/60">Đơn hoàn tất và đang xử lý, không tính đơn huỷ/hoàn hàng</p></div>
+      <button class="btn btn-ghost btn-xs" data-toggle-table aria-pressed="false">Xem dạng bảng</button></div>
+    <div id="rev" class="mt-3"></div>
+  </section>
+
+  <div class="grid xl:grid-cols-2 gap-4">
+    <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+      <div class="flex items-start justify-between gap-2"><div><h2 class="font-semibold">Doanh thu theo danh mục</h2><p class="text-xs text-base-content/60">Sắp xếp từ cao xuống thấp</p></div>
+        <button class="btn btn-ghost btn-xs" data-toggle-table aria-pressed="false">Xem dạng bảng</button></div>
+      <div id="bycat" class="mt-4"></div>
+    </section>
+    <section class="card bg-base-100 border border-base-300 overflow-hidden">
+      <div class="px-5 py-4"><h2 class="font-semibold">Top 10 sản phẩm bán chạy</h2></div>
+      <div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>#</th><th>Sản phẩm</th><th class="text-right">Đã bán</th><th class="text-right">Doanh thu</th></tr></thead><tbody id="top"></tbody></table></div>
+    </section>
+  </div>
+</div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+function render() {
+  const n = +$('period').value, rev = genSeries(n, 99 + n, 9500000, 8000000), days = dayLabels(n);
+  const total = rev.reduce((a, b) => a + b, 0), orders = Math.round(total / 1250000), cancelled = Math.round(orders * 0.07);
+  $('range').textContent = `${days[0]}/2026 → ${days[n - 1]}/2026`;
+  const tile = (l, v, d) => `<div class="card bg-base-100 border border-base-300 p-4"><div class="text-sm text-base-content/60">${l}</div><div class="mt-1 text-2xl font-bold tabular-nums">${v}</div><div class="mt-2 text-xs">${d}</div></div>`;
+  $('tiles').innerHTML = tile('Tổng doanh thu', fmt(total), '<span class="text-success">▲ +6,4%</span> <span class="text-base-content/50">so với kỳ trước</span>') +
+    tile('Số đơn hàng', orders, '<span class="text-success">▲ +4,1%</span> <span class="text-base-content/50">so với kỳ trước</span>') +
+    tile('Giá trị trung bình / đơn', fmt(Math.round(total / orders / 1000) * 1000), '<span class="text-error">▼ −1,8%</span> <span class="text-base-content/50">so với kỳ trước</span>') +
+    tile('Tỷ lệ huỷ đơn', (cancelled / orders * 100).toFixed(1).replace('.', ',') + '%', `<span class="text-base-content/50">${cancelled} đơn bị huỷ</span>`);
+  Chart.columns($('rev'), rev.map((v, i) => ({ label: days[i], value: v })), { height: 250, label: 'Doanh thu theo ngày', colLabel: 'Ngày', colValue: 'Doanh thu' });
+  const bycat = CATEGORIES.map(c => ({ label: c.name, value: PRODUCTS.filter(p => p.cat === c.id).reduce((s, p) => s + p.price * p.sold * (n / 30) * 0.12, 0) }))
+    .map(r => ({ ...r, value: Math.round(r.value / 1000) * 1000 })).sort((a, b) => b.value - a.value);
+  Chart.hbars($('bycat'), bycat, { colLabel: 'Danh mục', colValue: 'Doanh thu' });
+  $('top').innerHTML = [...PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 10).map((p, i) => `
+    <tr class="hover"><td class="text-base-content/50">${i + 1}</td><td><span class="mr-1">${p.icon}</span>${esc(p.name)}</td><td class="text-right tabular-nums">${Math.round(p.sold * n / 30)}</td><td class="text-right tabular-nums">${fmt(Math.round(p.price * p.sold * n / 30 / 1000) * 1000)}</td></tr>`).join('');
+}
+$('period').addEventListener('change', render); render();
+</script>
+</body>
+</html>
