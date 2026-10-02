@@ -1,0 +1,22 @@
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Java / NetBeans / backend
+backend/build/
+backend/dist/
+backend/nbproject/private/
+*.class
+*.jar
+
+# IDE
+.vscode/
+.idea/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
