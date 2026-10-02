@@ -18,6 +18,8 @@ public abstract class User {
     protected String fullName;
     protected String phone;
     protected Date createdAt;
+    protected String resetTokenHash;   // băm SHA-256 của token quên mật khẩu (null nếu không có yêu cầu)
+    protected Date resetTokenExpiry;   // hết hạn sau 30 phút
 
     public boolean login(String email, String password) { ... }
     public void logout() { ... }
@@ -326,6 +328,8 @@ classDiagram
         #fullName : String
         #phone : String
         #createdAt : Date
+        #resetTokenHash : String
+        #resetTokenExpiry : Date
         +login(email : String, password : String) boolean
         +logout() void
         +updateProfile() void

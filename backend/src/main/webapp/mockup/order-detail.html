@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chi tiết đơn hàng — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="orders">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
+  <aside><div id="account-nav"></div></aside>
+
+  <section class="space-y-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div><a href="orders.html" class="text-sm link link-primary">← Đơn hàng của tôi</a>
+        <h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary">#1042</span></h1>
+        <div class="text-sm text-base-content/60">Đặt lúc 02/10/2026 14:30</div></div>
+      <span class="badge badge-lg" id="badge"></span>
+    </div>
+
+    <!-- Demo: doi trang thai de xem cac bien the -->
+    <div class="text-xs text-base-content/60">Xem thử trạng thái:
+      <a class="link" href="?status=pending">PENDING</a> · <a class="link" href="?status=confirmed">CONFIRMED</a> · <a class="link" href="?status=shipping">SHIPPING</a> ·
+      <a class="link" href="?status=completed">COMPLETED</a> · <a class="link" href="?status=cancelled">CANCELLED</a> · <a class="link" href="?status=return">RETURN_REQUESTED</a></div>
+
+    <!-- Timeline -->
+    <div class="card bg-base-100 border border-base-300 p-5">
+      <ul class="steps w-full text-sm" id="steps"></ul>
+      <div id="note" class="mt-4"></div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1">
+        <h2 class="font-bold mb-1">Địa chỉ nhận hàng</h2>
+        <div class="font-semibold">Nguyễn Danh</div><div>0901 234 567</div><div class="text-base-content/70">12 Lê Lợi, Quận 1, TP. Hồ Chí Minh</div>
+      </div>
+      <div class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1">
+        <h2 class="font-bold mb-1">Thanh toán</h2>
+        <div>Phương thức: <b>COD</b></div><div>Trạng thái: <span class="badge badge-warning badge-sm" id="paystatus">Chưa thanh toán</span></div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 border border-base-300 overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th class="text-center">SL</th><th class="text-right">Thành tiền</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="p-5 border-t border-base-300 ml-auto w-full sm:w-80 text-sm space-y-1">
+        <div class="flex justify-between"><span>Tạm tính</span><span>1.910.000₫</span></div>
+        <div class="flex justify-between"><span>Phí vận chuyển</span><span>Miễn phí</span></div>
+        <div class="flex justify-between text-success"><span>Voucher NONG10</span><span>−191.000₫</span></div>
+        <div class="flex justify-between font-bold text-lg pt-1"><span>Tổng cộng</span><span class="text-primary">1.719.000₫</span></div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 justify-end" id="actions"></div>
+  </section>
+</main>
+
+<!-- Modal huy don -->
+<dialog id="m-cancel" class="modal"><div class="modal-box">
+  <h3 class="font-bold text-lg">Huỷ đơn hàng #1042?</h3>
+  <p class="py-3 text-sm text-base-content/70">Đơn sẽ được huỷ và số lượng sản phẩm được hoàn lại kho. Bạn chỉ huỷ được khi đơn đang chờ xác nhận hoặc đã xác nhận.</p>
+  <div class="modal-action"><form method="dialog" class="flex gap-2"><button class="btn">Giữ đơn</button><button class="btn btn-error">Xác nhận huỷ</button></form></div>
+</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+
+<!-- Modal yeu cau hoan hang -->
+<dialog id="m-return" class="modal"><div class="modal-box">
+  <h3 class="font-bold text-lg">Yêu cầu hoàn hàng</h3>
+  <textarea class="textarea w-full mt-3" rows="3" placeholder="Lý do hoàn hàng (bắt buộc)…"></textarea>
+  <div class="modal-action"><form method="dialog" class="flex gap-2"><button class="btn">Đóng</button><button class="btn btn-primary">Gửi yêu cầu</button></form></div>
+</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+
+<!-- Modal danh gia -->
+<dialog id="m-review" class="modal"><div class="modal-box">
+  <h3 class="font-bold text-lg">Đánh giá sản phẩm</h3>
+  <div class="rating rating-lg my-3">
+    <input type="radio" name="r" class="mask mask-star-2 bg-warning"><input type="radio" name="r" class="mask mask-star-2 bg-warning">
+    <input type="radio" name="r" class="mask mask-star-2 bg-warning"><input type="radio" name="r" class="mask mask-star-2 bg-warning">
+    <input type="radio" name="r" class="mask mask-star-2 bg-warning" checked></div>
+  <textarea class="textarea w-full" rows="3" placeholder="Chia sẻ cảm nhận của bạn…"></textarea>
+  <div class="modal-action"><form method="dialog" class="flex gap-2"><button class="btn">Đóng</button><button class="btn btn-primary">Gửi đánh giá</button></form></div>
+</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+
+<div id="site-footer"></div>
+<script>
+  const status = new URLSearchParams(location.search).get('status') || 'pending';
+  const META = {
+    pending: ['Chờ xác nhận', 'badge-warning', 1], confirmed: ['Đã xác nhận', 'badge-info', 2], shipping: ['Đang giao', 'badge-info', 3],
+    completed: ['Hoàn tất', 'badge-success', 4], cancelled: ['Đã huỷ', 'badge-neutral', 0], return: ['Yêu cầu hoàn hàng', 'badge-error', 4],
+  };
+  const [label, cls, reached] = META[status];
+  document.getElementById('badge').textContent = label; document.getElementById('badge').classList.add(cls);
+  const names = ['Đặt hàng', 'Xác nhận', 'Đang giao', 'Hoàn tất'];
+  document.getElementById('steps').innerHTML = status === 'cancelled'
+    ? '<li class="step step-primary">Đặt hàng</li><li class="step step-error" data-content="✕">Đã huỷ</li>'
+    : names.map((n, i) => `<li class="step ${i < reached ? 'step-primary' : ''}">${n}</li>`).join('');
+  const note = document.getElementById('note');
+  if (status === 'cancelled') note.innerHTML = '<div class="alert alert-soft text-sm">Đơn đã bị huỷ. Số lượng sản phẩm đã được hoàn lại kho.</div>';
+  if (status === 'return') note.innerHTML = '<div class="alert alert-error alert-soft text-sm">Bạn đã yêu cầu hoàn hàng. Lý do: “Sản phẩm bị lỗi khi nhận”. Đang chờ shop duyệt.</div>';
+  if (status === 'shipping') note.innerHTML = '<div class="alert alert-info alert-soft text-sm">Đơn hàng đang trên đường giao đến bạn. Dự kiến 1–2 ngày.</div>';
+  if (status === 'completed') document.getElementById('paystatus').className = 'badge badge-success badge-sm', document.getElementById('paystatus').textContent = 'Đã thanh toán';
+
+  const canReview = status === 'completed';
+  document.getElementById('rows').innerHTML = [[5, 1], [3, 4], [9, 2]].map(([id, q]) => { const p = PRODUCTS.find(x => x.id === id); return `<tr>
+    <td><div class="flex items-center gap-3"><div class="ph ph-sm size-12 rounded-field">${p.icon}</div><div><div class="font-medium">${p.name}</div>
+      ${canReview ? '<button class="link link-primary text-xs" onclick="m_review.showModal()">Viết đánh giá</button>' : ''}</div></div></td>
+    <td>${fmt(p.price)}</td><td class="text-center">${q}</td><td class="text-right">${fmt(p.price * q)}</td></tr>`; }).join('');
+
+  const A = [];
+  if (status === 'pending' || status === 'confirmed') A.push('<button class="btn btn-outline btn-error" onclick="m_cancel.showModal()">Huỷ đơn</button>');
+  if (status === 'completed') A.push('<button class="btn btn-outline" onclick="m_return.showModal()">Yêu cầu hoàn hàng</button>');
+  if (status === 'completed' || status === 'cancelled') A.push('<button class="btn btn-primary">Mua lại</button>');
+  A.push('<a href="chat.html" class="btn btn-ghost">Chat với shop</a>');
+  document.getElementById('actions').innerHTML = A.join('');
+</script>
+</body>
+</html>

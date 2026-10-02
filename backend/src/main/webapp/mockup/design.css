@@ -1,0 +1,41 @@
+/* Theme "nongnghiep" cho daisyUI 5 - chi ghi de bien mau, khong can build.
+   Khi chuyen sang JSP: copy nguyen file nay vao webapp/static/css/. */
+html[data-theme="nongnghiep"] {
+  color-scheme: light;
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(97.5% 0.01 120);
+  --color-base-300: oklch(92% 0.02 120);
+  --color-base-content: oklch(27% 0.03 150);
+  --color-primary: oklch(52% 0.13 145);
+  --color-primary-content: oklch(98% 0.01 145);
+  --color-secondary: oklch(50% 0.09 60);
+  --color-secondary-content: oklch(98% 0.01 60);
+  --color-accent: oklch(80% 0.15 85);
+  --color-accent-content: oklch(28% 0.06 80);
+  --color-neutral: oklch(30% 0.04 150);
+  --color-neutral-content: oklch(97% 0.01 225);
+  --color-info: oklch(68% 0.13 235);
+  --color-info-content: oklch(20% 0.04 235);
+  --color-success: oklch(65% 0.15 155);
+  --color-success-content: oklch(18% 0.05 155);
+  --color-warning: oklch(82% 0.15 85);
+  --color-warning-content: oklch(25% 0.06 85);
+  --color-error: oklch(62% 0.2 25);
+  --color-error-content: oklch(98% 0.01 25);
+  --radius-selector: 1rem;
+  --radius-field: 0.6rem;
+  --radius-box: 1rem;
+}
+
+/* Khung anh san pham gia lap (chua co anh that) */
+.ph {
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, oklch(95% 0.05 125), oklch(90% 0.08 105));
+  font-size: 4rem; line-height: 1;
+}
+.ph-sm { font-size: 1.75rem; }
+.ph-lg { font-size: 7rem; }
+.hero-bg {
+  background: radial-gradient(circle at 80% 20%, oklch(80% 0.14 120 / .5), transparent 50%),
+              linear-gradient(135deg, oklch(46% 0.13 150), oklch(33% 0.09 165));
+}

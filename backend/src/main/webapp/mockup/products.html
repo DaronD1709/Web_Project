@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sản phẩm — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="guest" data-active="products">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+  <div class="breadcrumbs text-sm"><ul><li><a href="home.html">Trang chủ</a></li><li><a href="products.html">Sản phẩm</a></li><li id="crumb">Tất cả</li></ul></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] gap-6 mt-2">
+    <!-- Bo loc (Loc & Sap xep) -->
+    <aside>
+      <form id="filter" class="card bg-base-100 border border-base-300 p-4 space-y-5 lg:sticky lg:top-20">
+        <div>
+          <div class="font-semibold mb-2">Danh mục</div>
+          <label class="flex items-center gap-2 py-1 cursor-pointer"><input type="radio" name="cat" value="" class="radio radio-primary radio-sm" checked> Tất cả</label>
+          <div id="cat-radios"></div>
+        </div>
+        <div>
+          <div class="font-semibold mb-2">Khoảng giá</div>
+          <div class="flex items-center gap-2">
+            <input name="min" type="number" placeholder="Từ" class="input input-sm w-full"><span>–</span>
+            <input name="max" type="number" placeholder="Đến" class="input input-sm w-full">
+          </div>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <button type="button" class="badge badge-outline cursor-pointer">&lt; 100k</button>
+            <button type="button" class="badge badge-outline cursor-pointer">100k–500k</button>
+            <button type="button" class="badge badge-outline cursor-pointer">&gt; 500k</button>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="instock" class="checkbox checkbox-primary checkbox-sm"> Chỉ hiện còn hàng</label>
+        <button class="btn btn-primary btn-block btn-sm">Áp dụng bộ lọc</button>
+        <a href="products.html" class="btn btn-ghost btn-block btn-xs">Xoá bộ lọc</a>
+      </form>
+    </aside>
+
+    <section>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div><h1 class="text-xl font-bold" id="title">Tất cả sản phẩm</h1><div class="text-sm text-base-content/60" id="count"></div></div>
+        <label class="select select-sm w-56"><span class="label">Sắp xếp</span>
+          <select id="sort">
+            <option value="new">Mới nhất</option><option value="asc">Giá: thấp → cao</option>
+            <option value="desc">Giá: cao → thấp</option><option value="sold">Bán chạy</option>
+          </select></label>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="grid"></div>
+
+      <div id="empty" class="hidden card bg-base-100 border border-dashed border-base-300 p-12 text-center">
+        <div class="text-5xl">🔍</div><div class="font-semibold mt-2">Không tìm thấy sản phẩm phù hợp</div>
+        <p class="text-sm text-base-content/60">Thử bỏ bớt bộ lọc hoặc đổi từ khoá khác.</p>
+      </div>
+
+      <div class="join flex justify-center mt-8">
+        <button class="join-item btn btn-sm">«</button><button class="join-item btn btn-sm btn-primary">1</button>
+        <button class="join-item btn btn-sm">2</button><button class="join-item btn btn-sm">3</button><button class="join-item btn btn-sm">»</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+<script>
+  const qs = new URLSearchParams(location.search);
+  const cat = Number(qs.get('cat')) || 0, q = (qs.get('q') || '').toLowerCase();
+  document.getElementById('cat-radios').innerHTML = CATEGORIES.map(c =>
+    `<label class="flex items-center gap-2 py-1 cursor-pointer"><input type="radio" name="cat" value="${c.id}" class="radio radio-primary radio-sm" ${c.id === cat ? 'checked' : ''}> ${c.name}</label>`).join('');
+  if (cat) document.querySelector('input[name=cat][value=""]').checked = false;
+
+  let list = PRODUCTS.filter(p => (!cat || p.cat === cat) && (!q || p.name.toLowerCase().includes(q)));
+  const sort = document.getElementById('sort');
+  function draw() {
+    const l = [...list];
+    if (sort.value === 'asc') l.sort((a, b) => a.price - b.price);
+    if (sort.value === 'desc') l.sort((a, b) => b.price - a.price);
+    if (sort.value === 'sold') l.sort((a, b) => b.sold - a.sold);
+    document.getElementById('grid').innerHTML = l.map(productCard).join('');
+    document.getElementById('empty').classList.toggle('hidden', l.length > 0);
+    document.getElementById('count').textContent = l.length + ' sản phẩm';
+  }
+  sort.addEventListener('change', draw);
+  if (cat) { document.getElementById('title').textContent = catName(cat); document.getElementById('crumb').textContent = catName(cat); }
+  if (q) { document.getElementById('title').textContent = `Kết quả cho “${qs.get('q')}”`; document.getElementById('crumb').textContent = 'Tìm kiếm'; }
+  draw();
+</script>
+</body>
+</html>

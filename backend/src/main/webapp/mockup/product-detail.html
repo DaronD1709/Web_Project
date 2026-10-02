@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chi tiết sản phẩm — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="products">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+  <div class="breadcrumbs text-sm"><ul><li><a href="home.html">Trang chủ</a></li><li><a href="products.html" id="crumb-cat">Danh mục</a></li><li id="crumb-name"></li></ul></div>
+
+  <div class="card bg-base-100 border border-base-300 p-5 grid md:grid-cols-2 gap-8 mt-2">
+    <!-- Anh -->
+    <div>
+      <div class="ph ph-lg rounded-box h-80 md:h-96" id="main-img"></div>
+      <div class="grid grid-cols-4 gap-2 mt-2" id="thumbs"></div>
+    </div>
+
+    <!-- Thong tin -->
+    <div class="space-y-4">
+      <div>
+        <h1 class="text-2xl font-bold" id="name"></h1>
+        <div class="mt-1 text-sm"><span class="text-warning" id="stars"></span> <span class="text-base-content/60" id="meta"></span></div>
+      </div>
+      <div class="bg-base-200 rounded-box px-4 py-3 flex items-baseline gap-3">
+        <span class="text-3xl font-extrabold text-primary" id="price"></span>
+        <span class="line-through text-base-content/50" id="old"></span><span class="badge badge-accent" id="sale"></span>
+      </div>
+      <div id="stock" class="text-sm"></div>
+      <ul class="text-sm space-y-1 text-base-content/70">
+        <li>✔ Hàng chính hãng, có hạn sử dụng rõ ràng</li>
+        <li>✔ Đổi trả trong 7 ngày nếu lỗi do shop</li>
+        <li>✔ Thanh toán COD hoặc VNPay</li>
+      </ul>
+      <div class="flex items-center gap-3" id="buy">
+        <div class="join">
+          <button class="join-item btn btn-sm" onclick="step(-1)">−</button>
+          <input id="qty" value="1" class="join-item input input-sm w-14 text-center" />
+          <button class="join-item btn btn-sm" onclick="step(1)">+</button>
+        </div>
+        <button class="btn btn-primary flex-1" id="add">Thêm vào giỏ</button>
+        <a href="checkout.html" class="btn btn-accent" id="now">Mua ngay</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div role="tablist" class="tabs tabs-border mt-6 bg-base-100 rounded-t-box border border-b-0 border-base-300 px-4">
+    <input type="radio" name="t" role="tab" class="tab" aria-label="Mô tả" checked>
+    <div role="tabpanel" class="tab-content py-5 text-sm leading-relaxed">
+      <p id="desc"></p>
+      <table class="table table-sm mt-4 max-w-md"><tbody>
+        <tr><th class="w-40">Danh mục</th><td id="spec-cat"></td></tr>
+        <tr><th>Xuất xứ</th><td>Việt Nam / Nhập khẩu</td></tr>
+        <tr><th>Tình trạng</th><td id="spec-stock"></td></tr>
+      </tbody></table>
+    </div>
+
+    <input type="radio" name="t" role="tab" class="tab" aria-label="Đánh giá (3)">
+    <div role="tabpanel" class="tab-content py-5">
+      <div class="grid md:grid-cols-[14rem_1fr] gap-6">
+        <div class="text-center md:border-r border-base-300 md:pr-6">
+          <div class="text-5xl font-extrabold text-primary" id="avg"></div>
+          <div class="text-warning" id="avg-stars"></div><div class="text-xs text-base-content/60">3 đánh giá</div>
+        </div>
+        <div class="space-y-5">
+          <!-- Viet review: chi hien khi khach da mua (Order COMPLETED/RETURNED chua san pham) -->
+          <div class="alert alert-soft alert-info text-sm">Bạn đã mua sản phẩm này — hãy chia sẻ cảm nhận của bạn.</div>
+          <form class="space-y-2" onsubmit="return false">
+            <div class="rating rating-md">
+              <input type="radio" name="rate" class="mask mask-star-2 bg-warning" aria-label="1">
+              <input type="radio" name="rate" class="mask mask-star-2 bg-warning" aria-label="2">
+              <input type="radio" name="rate" class="mask mask-star-2 bg-warning" aria-label="3">
+              <input type="radio" name="rate" class="mask mask-star-2 bg-warning" aria-label="4">
+              <input type="radio" name="rate" class="mask mask-star-2 bg-warning" aria-label="5" checked>
+            </div>
+            <textarea class="textarea w-full" rows="2" placeholder="Viết nhận xét…"></textarea>
+            <button class="btn btn-primary btn-sm">Gửi đánh giá</button>
+          </form>
+          <div class="divider my-0"></div>
+          <div class="space-y-4" id="reviews"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mt-10">
+    <h2 class="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="related"></div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+<script>
+  const id = Number(new URLSearchParams(location.search).get('id')) || 1;
+  const p = PRODUCTS.find(x => x.id === id) || PRODUCTS[0];
+  const $ = s => document.getElementById(s);
+  $('main-img').textContent = p.icon;
+  $('thumbs').innerHTML = [0, 1, 2, 3].map(i => `<div class="ph ph-sm h-16 rounded-field cursor-pointer ${i === 0 ? 'ring-2 ring-primary' : 'opacity-70'}">${p.icon}</div>`).join('');
+  $('crumb-cat').textContent = catName(p.cat); $('crumb-cat').href = 'products.html?cat=' + p.cat;
+  $('crumb-name').textContent = p.name; $('name').textContent = p.name;
+  $('stars').textContent = stars(p.rating); $('meta').textContent = `${p.rating} · Đã bán ${p.sold}`;
+  $('price').textContent = fmt(p.price);
+  if (p.oldPrice) { $('old').textContent = fmt(p.oldPrice); $('sale').textContent = '-' + Math.round((1 - p.price / p.oldPrice) * 100) + '%'; } else { $('sale').remove(); }
+  const out = p.stock === 0, low = p.stock > 0 && p.stock <= 5;
+  $('stock').innerHTML = out ? '<span class="badge badge-neutral">Hết hàng</span>'
+    : low ? `<span class="badge badge-warning">Sắp hết — chỉ còn ${p.stock} sản phẩm</span>`
+    : `<span class="text-success font-medium">● Còn hàng</span> <span class="text-base-content/60">(${p.stock} sản phẩm)</span>`;
+  $('spec-stock').textContent = out ? 'Hết hàng' : `Còn ${p.stock}`; $('spec-cat').textContent = catName(p.cat);
+  $('desc').textContent = `${p.name} — chọn lọc kỹ, phù hợp cho cả nông hộ nhỏ lẻ lẫn trang trại. Kiểm tra chất lượng trước khi giao, kèm hướng dẫn sử dụng. Liên hệ shop qua chat nếu cần tư vấn kỹ thuật.`;
+  if (out) { $('add').disabled = true; $('add').textContent = 'Hết hàng'; $('now').classList.add('btn-disabled'); }
+  function step(d) { const el = $('qty'); el.value = Math.min(p.stock || 1, Math.max(1, Number(el.value) + d)); }
+  $('avg').textContent = p.rating; $('avg-stars').textContent = stars(p.rating);
+  $('reviews').innerHTML = [
+    ['Trần Minh', 5, 'Hàng đúng mô tả, đóng gói kỹ, dùng rất tốt. Sẽ ủng hộ tiếp!', '28/09/2026'],
+    ['Lê Hoa', 5, 'Đúng như mô tả, giao nhanh.', '20/09/2026'],
+    ['Phạm Quân', 4, 'Chất lượng ổn, giá hơi cao một chút.', '12/09/2026'],
+  ].map(([n, r, c, d]) => `<div class="flex gap-3"><div class="avatar avatar-placeholder"><div class="bg-base-300 w-9 rounded-full"><span class="text-xs">${n.split(' ').map(w => w[0]).join('')}</span></div></div>
+    <div><div class="font-medium text-sm">${n} <span class="text-warning text-xs">${stars(r)}</span></div><div class="text-sm">${c}</div><div class="text-xs text-base-content/50">${d}</div></div></div>`).join('');
+  $('related').innerHTML = PRODUCTS.filter(x => x.cat === p.cat && x.id !== p.id).concat(PRODUCTS.filter(x => x.cat !== p.cat)).slice(0, 4).map(productCard).join('');
+</script>
+</body>
+</html>

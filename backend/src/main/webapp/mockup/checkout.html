@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thanh toán — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="cart">
+<div id="site-header"></div>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+  <ul class="steps w-full mb-6 text-sm">
+    <li class="step step-primary">Giỏ hàng</li><li class="step step-primary">Thanh toán</li><li class="step">Hoàn tất</li>
+  </ul>
+
+  <form action="order-success.html" class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_24rem] gap-6">
+    <div class="space-y-5">
+      <!-- Dia chi giao hang -->
+      <section class="card bg-base-100 border border-base-300 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold">1. Địa chỉ giao hàng</h2><a href="addresses.html" class="link link-primary text-sm">+ Thêm / sửa địa chỉ</a>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <label class="border border-primary bg-primary/5 rounded-box p-4 cursor-pointer flex gap-3">
+            <input type="radio" name="addr" class="radio radio-primary radio-sm mt-1" checked>
+            <div class="text-sm"><div class="font-semibold">Nguyễn Danh <span class="badge badge-primary badge-sm">Mặc định</span></div>
+              <div class="text-base-content/70">0901 234 567</div><div class="text-base-content/70">12 Lê Lợi, Quận 1, TP. Hồ Chí Minh</div></div>
+          </label>
+          <label class="border border-base-300 rounded-box p-4 cursor-pointer flex gap-3">
+            <input type="radio" name="addr" class="radio radio-primary radio-sm mt-1">
+            <div class="text-sm"><div class="font-semibold">Nguyễn Văn Hùng</div>
+              <div class="text-base-content/70">0987 654 321</div><div class="text-base-content/70">45 Trần Phú, TP. Đà Nẵng</div></div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Thanh toan -->
+      <section class="card bg-base-100 border border-base-300 p-5">
+        <h2 class="font-bold mb-3">2. Phương thức thanh toán</h2>
+        <div class="space-y-2">
+          <label class="border border-primary bg-primary/5 rounded-box p-4 cursor-pointer flex items-center gap-3">
+            <input type="radio" name="pay" class="radio radio-primary radio-sm" checked>
+            <span class="text-2xl">💵</span><div class="text-sm"><div class="font-semibold">Thanh toán khi nhận hàng (COD)</div><div class="text-base-content/60">Trả tiền mặt cho shipper</div></div>
+          </label>
+          <label class="border border-base-300 rounded-box p-4 cursor-pointer flex items-center gap-3">
+            <input type="radio" name="pay" class="radio radio-primary radio-sm">
+            <span class="text-2xl">💳</span><div class="text-sm"><div class="font-semibold">VNPay (sandbox)</div><div class="text-base-content/60">Thẻ ATM / QR / Internet Banking</div></div>
+          </label>
+        </div>
+      </section>
+
+      <!-- Voucher -->
+      <section class="card bg-base-100 border border-base-300 p-5">
+        <h2 class="font-bold mb-3">3. Mã giảm giá</h2>
+        <!-- htmx: hx-post="/voucher/apply" hx-target="#voucher-result" -->
+        <div class="join w-full">
+          <input class="input join-item w-full font-mono" value="NONG10" placeholder="Nhập mã giảm giá">
+          <button type="button" class="btn btn-primary join-item">Áp dụng</button>
+        </div>
+        <div id="voucher-result" class="mt-3 space-y-2">
+          <div class="alert alert-success alert-soft text-sm">✔ Đã áp dụng <b>NONG10</b>: giảm 10% (tối đa theo cấu hình), đơn tối thiểu 300.000₫.</div>
+          <!-- Cac thong bao loi theo thu tu validate (mo ta o feature-list): -->
+          <div class="alert alert-error alert-soft text-sm hidden">Mã đã hết hạn sử dụng.</div>
+          <div class="alert alert-error alert-soft text-sm hidden">Mã đã hết lượt sử dụng.</div>
+          <div class="alert alert-error alert-soft text-sm hidden">Đơn hàng chưa đạt giá trị tối thiểu 300.000₫ để dùng mã này.</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tom tat -->
+    <aside>
+      <div class="card bg-base-100 border border-base-300 p-5 space-y-3 lg:sticky lg:top-20">
+        <h2 class="font-bold">Đơn hàng (3 sản phẩm)</h2>
+        <div class="space-y-2 text-sm" id="lines"></div>
+        <div class="divider my-0"></div>
+        <div class="flex justify-between text-sm"><span>Tạm tính</span><span id="sub"></span></div>
+        <div class="flex justify-between text-sm"><span>Phí vận chuyển</span><span>Miễn phí</span></div>
+        <div class="flex justify-between text-sm text-success"><span>Giảm giá (NONG10)</span><span id="disc"></span></div>
+        <div class="divider my-0"></div>
+        <div class="flex justify-between font-bold text-lg"><span>Tổng thanh toán</span><span class="text-primary" id="total"></span></div>
+        <button class="btn btn-primary btn-block btn-lg">Đặt hàng</button>
+        <p class="text-xs text-base-content/60 text-center">Bằng việc đặt hàng, bạn đồng ý với điều khoản của NôngViệt.</p>
+      </div>
+    </aside>
+  </form>
+</main>
+
+<div id="site-footer"></div>
+<script>
+  const items = [{ id: 5, qty: 1 }, { id: 3, qty: 4 }, { id: 9, qty: 2 }];
+  let sub = 0;
+  document.getElementById('lines').innerHTML = items.map(it => {
+    const p = PRODUCTS.find(x => x.id === it.id); sub += p.price * it.qty;
+    return `<div class="flex items-center gap-2"><div class="ph ph-sm size-10 rounded-field">${p.icon}</div><div class="flex-1 truncate">${p.name} <span class="text-base-content/60">×${it.qty}</span></div><div>${fmt(p.price * it.qty)}</div></div>`;
+  }).join('');
+  const disc = Math.round(sub * 0.1);
+  document.getElementById('sub').textContent = fmt(sub);
+  document.getElementById('disc').textContent = '−' + fmt(disc);
+  document.getElementById('total').textContent = fmt(sub - disc);
+</script>
+</body>
+</html>

@@ -38,6 +38,16 @@ public abstract class AbstractDAO<T, ID> {
         }
     }
 
+    public long count() {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT COUNT(e) FROM " + entityClass.getSimpleName() + " e", Long.class)
+                    .getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
     public T save(T entity) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         EntityTransaction tx = em.getTransaction();
