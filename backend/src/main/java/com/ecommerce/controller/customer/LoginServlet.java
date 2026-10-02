@@ -2,7 +2,10 @@ package com.ecommerce.controller.customer;
 
 import com.ecommerce.entity.User;
 import com.ecommerce.service.AuthService;
+import com.ecommerce.entity.Customer;
 import com.ecommerce.service.BusinessException;
+import com.ecommerce.service.CartService;
+import com.ecommerce.util.SessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,6 +20,7 @@ public class LoginServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/customer/login.jsp";
     private final AuthService authService = new AuthService();
+    private final CartService cartService = new CartService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -34,6 +38,9 @@ public class LoginServlet extends HttpServlet {
                 req.changeSessionId(); // doi ma session luc dang nhap -> chong session fixation
             }
             req.getSession(true).setAttribute("currentUser", user);
+            if (user instanceof Customer) { // badge gio hang tren header
+                req.getSession().setAttribute(SessionUtil.CART_COUNT, cartService.countItems(user.getId()));
+            }
             resp.sendRedirect(req.getContextPath() + (isSafeInternalPath(next) ? next : "/"));
         } catch (BusinessException e) {
             req.setAttribute("error", e.getMessage());

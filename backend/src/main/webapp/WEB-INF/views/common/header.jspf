@@ -11,10 +11,13 @@
     </form>
 
     <div class="flex items-center gap-2 ml-auto sm:ml-0">
+      <a href="${ctx}/chat" class="btn btn-ghost btn-sm" aria-label="Chat với shop"><span aria-hidden="true">💬</span><span class="hidden sm:inline">Chat</span></a>
+      <a href="${ctx}/cart" class="btn btn-ghost btn-sm" aria-label="Giỏ hàng">
+        <span class="indicator"><span aria-hidden="true">🛒</span><jsp:include page="/WEB-INF/views/customer/fragments/cart-count.jsp" /></span>
+        <span class="hidden sm:inline">Giỏ hàng</span></a>
       <c:choose>
         <c:when test="${not empty sessionScope.currentUser}">
           <span class="text-sm hidden md:inline"><c:out value="${sessionScope.currentUser.fullName}"/></span>
-          <a href="${ctx}/cart" class="btn btn-ghost btn-sm">Giỏ hàng</a>
           <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm text-error">Đăng xuất</button></form>
         </c:when>
         <c:otherwise>

@@ -5,3 +5,14 @@
   </div>
   <div class="text-center text-xs opacity-50 pb-6">© 2026 NôngViệt — đồ án môn học</div>
 </footer>
+<%-- Toast: server bao qua header HX-Trigger {"showToast":{"message":..,"type":"success|error"}} (xem util/HtmxUtil) --%>
+<div id="toast-box" class="toast toast-end toast-bottom z-50"></div>
+<script>
+  document.body.addEventListener('showToast', function (e) {
+    var d = e.detail || {}, el = document.createElement('div');
+    el.className = 'alert shadow-lg text-sm ' + (d.type === 'error' ? 'alert-error' : 'alert-success');
+    el.textContent = d.message;
+    document.getElementById('toast-box').appendChild(el);
+    setTimeout(function () { el.remove(); }, 3000);
+  });
+</script>
