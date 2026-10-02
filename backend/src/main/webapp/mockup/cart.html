@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Giỏ hàng — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="cart">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-4">Giỏ hàng <span class="text-base font-normal text-base-content/60" id="n"></span></h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] gap-6" id="filled">
+    <div class="card bg-base-100 border border-base-300 overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th class="text-center">Số lượng</th><th class="text-right">Thành tiền</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <aside>
+      <div class="card bg-base-100 border border-base-300 p-5 space-y-3 lg:sticky lg:top-20">
+        <h2 class="font-bold">Tóm tắt đơn hàng</h2>
+        <div class="flex justify-between text-sm"><span>Tạm tính</span><span id="sub"></span></div>
+        <div class="flex justify-between text-sm"><span>Phí vận chuyển</span><span id="ship"></span></div>
+        <div class="text-xs text-base-content/60">Mã giảm giá nhập ở bước thanh toán.</div>
+        <div class="divider my-0"></div>
+        <div class="flex justify-between font-bold text-lg"><span>Tổng cộng</span><span class="text-primary" id="total"></span></div>
+        <a href="checkout.html" class="btn btn-primary btn-block">Tiến hành thanh toán</a>
+        <a href="products.html" class="btn btn-ghost btn-sm btn-block">← Tiếp tục mua sắm</a>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Gio hang trong (hien khi items = 0) -->
+  <div class="card bg-base-100 border border-dashed border-base-300 p-14 text-center mt-6 hidden" id="empty">
+    <div class="text-6xl">🛒</div><div class="font-semibold mt-2">Giỏ hàng của bạn đang trống</div>
+    <a href="products.html" class="btn btn-primary btn-sm mt-3 mx-auto">Khám phá sản phẩm</a>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+<script>
+  const items = [{ id: 5, qty: 1 }, { id: 3, qty: 4 }, { id: 9, qty: 2 }];
+  const SHIP = 30000;
+  function draw() {
+    let sub = 0;
+    document.getElementById('rows').innerHTML = items.map((it, i) => {
+      const p = PRODUCTS.find(x => x.id === it.id); sub += p.price * it.qty;
+      return `<tr>
+        <td><div class="flex items-center gap-3"><div class="ph ph-sm size-16 rounded-field">${p.icon}</div>
+          <div><a href="product-detail.html?id=${p.id}" class="font-medium hover:text-primary">${p.name}</a><div class="text-xs text-base-content/60">${catName(p.cat)}${p.stock <= 5 ? ' · <span class=text-warning>Chỉ còn ' + p.stock + '</span>' : ''}</div></div></div></td>
+        <td>${fmt(p.price)}</td>
+        <td><div class="join justify-center flex">
+          <button class="join-item btn btn-xs" onclick="chg(${i},-1)">−</button>
+          <span class="join-item btn btn-xs pointer-events-none w-10">${it.qty}</span>
+          <button class="join-item btn btn-xs" onclick="chg(${i},1)">+</button></div></td>
+        <td class="text-right font-semibold">${fmt(p.price * it.qty)}</td>
+        <td><!-- htmx: hx-delete="/cart/item/${i}" hx-target="closest tr" -->
+          <button class="btn btn-ghost btn-xs text-error" onclick="del(${i})">Xoá</button></td></tr>`;
+    }).join('');
+    document.getElementById('n').textContent = `(${items.length} sản phẩm)`;
+    document.getElementById('sub').textContent = fmt(sub);
+    document.getElementById('ship').textContent = sub >= 500000 ? 'Miễn phí' : fmt(SHIP);
+    document.getElementById('total').textContent = fmt(sub + (sub >= 500000 ? 0 : SHIP));
+    document.getElementById('filled').classList.toggle('hidden', !items.length);
+    document.getElementById('empty').classList.toggle('hidden', !!items.length);
+  }
+  const chg = (i, d) => { items[i].qty = Math.max(1, items[i].qty + d); draw(); };
+  const del = i => { items.splice(i, 1); draw(); };
+  draw();
+</script>
+</body>
+</html>

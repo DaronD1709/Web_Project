@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Trang chủ — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="guest" data-active="home">
+<div id="site-header"></div>
+
+<!-- Hero -->
+<section class="hero-bg text-white">
+  <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-8 items-center">
+    <div>
+      <span class="badge badge-accent mb-4">Miễn phí giao hàng đơn từ 500.000₫</span>
+      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Đồng hành cùng<br>nhà nông Việt</h1>
+      <p class="mt-4 text-white/80 max-w-md">Hạt giống, phân bón, thuốc BVTV, dụng cụ và máy móc nông nghiệp chính hãng — giao tận vườn, đổi trả trong 7 ngày.</p>
+      <div class="mt-6 flex gap-3">
+        <a href="products.html" class="btn btn-accent btn-lg">Mua sắm ngay</a>
+        <a href="chat.html" class="btn btn-outline btn-lg text-white border-white/60 hover:bg-white hover:text-primary">Hỏi tư vấn</a>
+      </div>
+    </div>
+    <div class="hidden md:flex justify-center text-[10rem] leading-none select-none">🌾<span class="-ml-8 mt-16 text-[7rem]">🚜</span></div>
+  </div>
+</section>
+
+<main class="max-w-7xl mx-auto px-4">
+  <!-- Danh muc -->
+  <section class="-mt-8 relative z-10">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="cat-tiles"></div>
+  </section>
+
+  <!-- Voucher banner -->
+  <section class="mt-10 rounded-box bg-accent/20 border border-accent/40 p-5 flex flex-wrap items-center gap-4">
+    <div class="text-4xl">🎟️</div>
+    <div class="flex-1 min-w-60">
+      <div class="font-bold text-lg">Nhập mã <span class="badge badge-accent badge-lg font-mono">NONG10</span> giảm 10% cho đơn đầu tiên</div>
+      <div class="text-sm text-base-content/70">Áp dụng cho đơn từ 300.000₫ · Hết hạn 31/10/2026 · Nhập ở bước thanh toán</div>
+    </div>
+    <a href="products.html" class="btn btn-accent">Dùng ngay</a>
+  </section>
+
+  <!-- Noi bat -->
+  <section class="mt-12">
+    <div class="flex items-end justify-between mb-4">
+      <h2 class="text-2xl font-bold">Sản phẩm nổi bật</h2>
+      <a href="products.html" class="link link-primary text-sm">Xem tất cả →</a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="featured"></div>
+  </section>
+
+  <!-- Ly do -->
+  <section class="mt-12 grid gap-4 md:grid-cols-3">
+    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl">🚚</div><div class="font-semibold mt-2">Giao tận vườn toàn quốc</div><p class="text-sm text-base-content/70">Đóng gói chắc chắn, theo dõi đơn từng bước.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl">🧾</div><div class="font-semibold mt-2">Chính hãng, rõ nguồn gốc</div><p class="text-sm text-base-content/70">Có hạn sử dụng, hoá đơn; lỗi do shop được đổi trả 7 ngày.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl">💬</div><div class="font-semibold mt-2">Tư vấn kỹ thuật miễn phí</div><p class="text-sm text-base-content/70">Hỏi cách bón phân, phòng sâu bệnh qua chat hoặc trợ lý AI.</p></div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+<script>
+  document.getElementById('cat-tiles').innerHTML = CATEGORIES.map(c =>
+    `<a href="products.html?cat=${c.id}" class="card bg-base-100 border border-base-300 hover:border-primary hover:shadow-md transition items-center p-4 text-center">
+       <div class="text-4xl">${c.icon}</div><div class="text-sm font-medium mt-1">${c.name}</div></a>`).join('');
+  document.getElementById('featured').innerHTML = [5, 1, 9, 6, 3, 7, 2, 8].map(id => productCard(PRODUCTS.find(p => p.id === id))).join('');
+</script>
+</body>
+</html>

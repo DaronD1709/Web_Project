@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đăng ký — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="guest">
+<div id="site-header"></div>
+
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl">🌱</div>
+      <h2 class="text-3xl font-extrabold mt-4">Tạo tài khoản miễn phí</h2>
+      <ul class="text-white/80 mt-3 space-y-1 text-sm">
+        <li>✔ Theo dõi trạng thái đơn hàng</li><li>✔ Lưu nhiều địa chỉ giao hàng</li><li>✔ Nhận mã giảm giá và thông báo</li>
+      </ul>
+    </div>
+    <form class="p-8 space-y-3" action="login.html">
+      <h1 class="text-2xl font-bold">Đăng ký</h1>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Họ và tên</span></div>
+        <input name="fullName" class="input w-full" placeholder="Nguyễn Văn A" required></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
+        <input type="email" name="email" class="input w-full input-error" value="danh@email.com" required>
+        <div class="label"><span class="label-text-alt text-error">Email này đã được đăng ký</span></div></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Số điện thoại</span></div>
+        <input name="phone" class="input w-full" placeholder="09xx xxx xxx"></label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control"><div class="label"><span class="label-text">Mật khẩu</span></div>
+          <input type="password" class="input w-full" placeholder="Tối thiểu 6 ký tự" required></label>
+        <label class="form-control"><div class="label"><span class="label-text">Nhập lại</span></div>
+          <input type="password" class="input w-full" required></label>
+      </div>
+      <label class="flex items-start gap-2 text-sm pt-1"><input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5" required> Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật</label>
+      <button class="btn btn-primary btn-block">Tạo tài khoản</button>
+      <div class="text-center text-sm">Đã có tài khoản? <a href="login.html" class="link link-primary font-medium">Đăng nhập</a></div>
+    </form>
+  </div>
+</main>
+<div id="site-footer"></div>
+</body>
+</html>

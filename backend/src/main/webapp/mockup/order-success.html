@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đặt hàng thành công — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="cart">
+<div id="site-header"></div>
+
+<main class="max-w-2xl mx-auto px-4 py-10">
+  <ul class="steps w-full mb-8 text-sm">
+    <li class="step step-primary">Giỏ hàng</li><li class="step step-primary">Thanh toán</li><li class="step step-primary">Hoàn tất</li>
+  </ul>
+  <div class="card bg-base-100 border border-base-300 p-8 text-center space-y-4">
+    <div class="mx-auto size-20 rounded-full bg-success/20 text-success flex items-center justify-center text-5xl">✓</div>
+    <h1 class="text-2xl font-bold">Đặt hàng thành công!</h1>
+    <p class="text-base-content/70">Cảm ơn bạn đã mua sắm. Mã đơn hàng của bạn là <b class="font-mono text-primary">#1042</b>.<br>Shop sẽ sớm xác nhận đơn — bạn sẽ nhận thông báo khi trạng thái thay đổi.</p>
+    <div class="text-left bg-base-200 rounded-box p-4 text-sm space-y-1">
+      <div class="flex justify-between"><span>Thanh toán</span><b>COD — thanh toán khi nhận hàng</b></div>
+      <div class="flex justify-between"><span>Giao tới</span><b>12 Lê Lợi, Quận 1, TP.HCM</b></div>
+      <div class="flex justify-between"><span>Tổng tiền</span><b class="text-primary">1.719.000₫</b></div>
+      <div class="flex justify-between"><span>Trạng thái</span><span class="badge badge-warning">Chờ xác nhận</span></div>
+    </div>
+    <div class="flex gap-3 justify-center">
+      <a href="order-detail.html?status=pending" class="btn btn-primary">Theo dõi đơn hàng</a>
+      <a href="home.html" class="btn btn-ghost">Tiếp tục mua sắm</a>
+    </div>
+  </div>
+</main>
+<div id="site-footer"></div>
+</body>
+</html>

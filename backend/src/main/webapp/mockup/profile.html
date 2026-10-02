@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hồ sơ cá nhân — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="profile">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
+  <aside><div id="account-nav"></div></aside>
+
+  <section class="space-y-5 max-w-2xl">
+    <h1 class="text-2xl font-bold">Hồ sơ cá nhân</h1>
+
+    <form class="card bg-base-100 border border-base-300 p-6 space-y-4">
+      <div class="flex items-center gap-4">
+        <div class="avatar avatar-placeholder"><div class="bg-primary text-primary-content w-16 rounded-full text-xl"><span>ND</span></div></div>
+        <div><div class="font-semibold">Nguyễn Danh</div><div class="text-sm text-base-content/60">Khách hàng · Tham gia 09/2026</div></div>
+      </div>
+      <div class="alert alert-success alert-soft text-sm hidden">Đã lưu thay đổi.</div>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Họ và tên</span></div><input class="input w-full" value="Nguyễn Danh"></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div><input class="input w-full" value="danh@email.com" disabled>
+        <div class="label"><span class="label-text-alt">Email dùng để đăng nhập, không thể thay đổi.</span></div></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Số điện thoại</span></div><input class="input w-full" value="0901234567"></label>
+      <div class="flex justify-end gap-2"><button type="reset" class="btn btn-ghost">Huỷ</button><button class="btn btn-primary">Lưu thay đổi</button></div>
+    </form>
+
+    <form class="card bg-base-100 border border-base-300 p-6 space-y-4">
+      <h2 class="font-bold">Đổi mật khẩu</h2>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu hiện tại</span></div><input type="password" class="input w-full"></label>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="form-control"><div class="label"><span class="label-text">Mật khẩu mới</span></div><input type="password" class="input w-full"></label>
+        <label class="form-control"><div class="label"><span class="label-text">Nhập lại mật khẩu mới</span></div><input type="password" class="input w-full"></label>
+      </div>
+      <div class="flex justify-end"><button class="btn btn-primary">Cập nhật mật khẩu</button></div>
+    </form>
+  </section>
+</main>
+<div id="site-footer"></div>
+</body>
+</html>

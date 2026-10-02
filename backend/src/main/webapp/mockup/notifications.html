@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thông báo — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="notifications">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
+  <aside><div id="account-nav"></div></aside>
+
+  <section class="max-w-3xl">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">Thông báo</h1>
+      <button class="btn btn-ghost btn-sm">Đánh dấu tất cả đã đọc</button>
+    </div>
+    <!-- Notification.isRead: chua doc = nen nhat + cham xanh -->
+    <ul class="card bg-base-100 border border-base-300 divide-y divide-base-300" id="list"></ul>
+  </section>
+</main>
+<div id="site-footer"></div>
+<script>
+  const N = [
+    ['🚚', 'Đơn #1038 đang được giao', 'Shipper đã nhận hàng, dự kiến giao trong 1–2 ngày.', '10 phút trước', false, 'shipping'],
+    ['✅', 'Đơn #1042 đã được xác nhận', 'Shop đã xác nhận đơn hàng của bạn và đang chuẩn bị hàng.', '2 giờ trước', false, 'confirmed'],
+    ['🎉', 'Đơn #1031 đã hoàn tất', 'Cảm ơn bạn! Hãy để lại đánh giá cho sản phẩm nhé.', '3 ngày trước', true, 'completed'],
+    ['↩️', 'Yêu cầu hoàn hàng #1027 đang chờ duyệt', 'Shop sẽ phản hồi trong 24 giờ làm việc.', '5 ngày trước', true, 'return'],
+    ['❌', 'Đơn #1019 đã bị huỷ', 'Đơn hàng đã huỷ theo yêu cầu của bạn.', '1 tháng trước', true, 'cancelled'],
+  ];
+  document.getElementById('list').innerHTML = N.map(([i, t, d, time, read, st]) => `
+    <li><a href="order-detail.html?status=${st}" class="flex gap-4 p-4 hover:bg-base-200 ${read ? '' : 'bg-primary/5'}">
+      <div class="text-2xl">${i}</div>
+      <div class="flex-1"><div class="${read ? '' : 'font-semibold'}">${t}</div><div class="text-sm text-base-content/70">${d}</div><div class="text-xs text-base-content/50 mt-1">${time}</div></div>
+      ${read ? '' : '<span class="size-2.5 rounded-full bg-primary mt-2"></span>'}</a></li>`).join('');
+</script>
+</body>
+</html>

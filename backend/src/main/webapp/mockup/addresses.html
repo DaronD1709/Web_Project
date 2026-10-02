@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Địa chỉ giao hàng — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="addresses">
+<div id="site-header"></div>
+
+<main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
+  <aside><div id="account-nav"></div></aside>
+
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Địa chỉ giao hàng</h1>
+      <button class="btn btn-primary btn-sm" onclick="m_addr.showModal()">+ Thêm địa chỉ</button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border border-primary p-5 space-y-1 text-sm">
+        <div class="flex items-center justify-between"><div class="font-semibold text-base">Nguyễn Danh</div><span class="badge badge-primary">Mặc định</span></div>
+        <div>0901 234 567</div><div class="text-base-content/70">12 Lê Lợi, Quận 1, TP. Hồ Chí Minh</div>
+        <div class="flex gap-2 pt-2"><button class="btn btn-xs" onclick="m_addr.showModal()">Sửa</button><button class="btn btn-xs btn-ghost text-error">Xoá</button></div>
+      </div>
+      <div class="card bg-base-100 border border-base-300 p-5 space-y-1 text-sm">
+        <div class="flex items-center justify-between"><div class="font-semibold text-base">Nguyễn Văn Hùng</div></div>
+        <div>0987 654 321</div><div class="text-base-content/70">45 Trần Phú, TP. Đà Nẵng</div>
+        <div class="flex gap-2 pt-2"><button class="btn btn-xs" onclick="m_addr.showModal()">Sửa</button><button class="btn btn-xs btn-ghost text-error">Xoá</button><button class="btn btn-xs btn-ghost text-primary">Đặt làm mặc định</button></div>
+      </div>
+      <button class="card border-2 border-dashed border-base-300 p-5 items-center justify-center text-base-content/60 hover:border-primary hover:text-primary min-h-32" onclick="m_addr.showModal()">
+        <span class="text-3xl">+</span><span class="text-sm">Thêm địa chỉ mới</span></button>
+    </div>
+  </section>
+</main>
+
+<dialog id="m_addr" class="modal"><div class="modal-box">
+  <h3 class="font-bold text-lg mb-3">Địa chỉ giao hàng</h3>
+  <form class="space-y-3">
+    <label class="form-control w-full"><div class="label"><span class="label-text">Tên người nhận</span></div><input class="input w-full" placeholder="Nguyễn Văn A"></label>
+    <label class="form-control w-full"><div class="label"><span class="label-text">Số điện thoại</span></div><input class="input w-full" placeholder="09xx xxx xxx"></label>
+    <label class="form-control w-full"><div class="label"><span class="label-text">Địa chỉ (số nhà, đường)</span></div><input class="input w-full"></label>
+    <label class="form-control w-full"><div class="label"><span class="label-text">Tỉnh / Thành phố</span></div>
+      <select class="select w-full"><option>TP. Hồ Chí Minh</option><option>Hà Nội</option><option>Đà Nẵng</option></select></label>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox checkbox-sm checkbox-primary"> Đặt làm địa chỉ mặc định</label>
+    <div class="modal-action"><button type="button" class="btn" onclick="m_addr.close()">Huỷ</button><button class="btn btn-primary">Lưu địa chỉ</button></div>
+  </form>
+</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
+
+<div id="site-footer"></div>
+</body>
+</html>

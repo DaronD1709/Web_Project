@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đăng nhập — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="guest">
+<div id="site-header"></div>
+
+<main class="max-w-5xl mx-auto px-4 py-12">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl">🌾</div>
+      <h2 class="text-3xl font-extrabold mt-4">Chào mừng trở lại!</h2>
+      <p class="text-white/80 mt-2">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ giao hàng và chat với shop.</p>
+    </div>
+    <form class="p-8 space-y-4" action="home.html">
+      <h1 class="text-2xl font-bold">Đăng nhập</h1>
+      <!-- Hien khi sai email/mat khau -->
+      <div class="alert alert-error alert-soft text-sm hidden" id="err">Email hoặc mật khẩu không đúng.</div>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
+        <input type="email" name="email" class="input w-full" placeholder="ban@email.com" required></label>
+      <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
+        <input type="password" name="password" class="input w-full" placeholder="••••••••" required></label>
+      <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center gap-2"><input type="checkbox" class="checkbox checkbox-sm checkbox-primary"> Ghi nhớ đăng nhập</label>
+        <a class="link link-primary">Quên mật khẩu?</a>
+      </div>
+      <button class="btn btn-primary btn-block">Đăng nhập</button>
+      <div class="text-center text-sm">Chưa có tài khoản? <a href="register.html" class="link link-primary font-medium">Đăng ký</a></div>
+    </form>
+  </div>
+</main>
+<div id="site-footer"></div>
+</body>
+</html>

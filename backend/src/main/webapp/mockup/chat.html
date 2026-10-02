@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chat với shop — NôngViệt</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link href="design.css" rel="stylesheet"><script src="layout.js"></script>
+</head>
+<body class="bg-base-200 min-h-screen" data-auth="user" data-active="chat">
+<div id="site-header"></div>
+
+<main class="max-w-3xl mx-auto px-4 py-6">
+  <div class="card bg-base-100 border border-base-300 overflow-hidden">
+    <div class="flex items-center gap-3 px-5 py-3 border-b border-base-300">
+      <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary text-primary-content w-10 rounded-full">🌾</div></div>
+      <div class="flex-1"><div class="font-semibold">NôngViệt</div><div class="text-xs text-success">Đang hoạt động · Trợ lý AI trả lời ngay, nhân viên hỗ trợ khi cần</div></div>
+    </div>
+
+    <!-- Message: sender la User (Customer / Admin / AIBot) -->
+    <div class="p-5 space-y-1 h-[26rem] overflow-y-auto bg-base-200/50" id="msgs"></div>
+
+    <div class="px-5 pt-3 flex flex-wrap gap-2">
+      <button class="badge badge-outline cursor-pointer">Rau màu nên bón phân gì?</button>
+      <button class="badge badge-outline cursor-pointer">Tư vấn hệ thống tưới 1000m²</button>
+      <button class="badge badge-outline cursor-pointer">Gặp nhân viên</button>
+    </div>
+    <!-- Real-time gia lap: htmx hx-get="/chat/messages" hx-trigger="every 3s" -->
+    <form class="p-4 flex gap-2" onsubmit="return false">
+      <input class="input flex-1" placeholder="Nhập tin nhắn…"><button class="btn btn-primary">Gửi</button>
+    </form>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script>
+  const M = [
+    ['bot', 'Trợ lý AI', 'Xin chào! Mình là trợ lý AI của NôngViệt. Bạn cần tư vấn gì về hạt giống, phân bón, thuốc BVTV hay máy móc nông nghiệp?', '14:30'],
+    ['me', 'Bạn', 'Mình trồng 1000m² rau màu, nên dùng phân bón nào?', '14:31'],
+    ['bot', 'Trợ lý AI', 'Với rau màu bạn nên bón lót phân hữu cơ vi sinh, bón thúc bằng NPK 20-20-15. Bạn xem thêm tại mục Phân bón nhé.', '14:31'],
+    ['me', 'Bạn', 'Máy cắt cỏ cầm tay còn hàng không?', '14:33'],
+    ['admin', 'Nhân viên shop', 'Chào bạn, máy cắt cỏ còn 3 máy ạ. Bạn đặt sớm giúp shop nhé!', '14:35'],
+  ];
+  document.getElementById('msgs').innerHTML = M.map(([who, name, text, t]) => `
+    <div class="chat ${who === 'me' ? 'chat-end' : 'chat-start'}">
+      <div class="chat-header text-xs">${name}${who === 'bot' ? ' <span class="badge badge-xs badge-info">AI</span>' : ''}${who === 'admin' ? ' <span class="badge badge-xs badge-primary">Shop</span>' : ''} <time class="opacity-50">${t}</time></div>
+      <div class="chat-bubble ${who === 'me' ? 'chat-bubble-primary' : who === 'admin' ? 'chat-bubble-secondary' : ''}">${text}</div>
+    </div>`).join('');
+</script>
+</body>
+</html>
