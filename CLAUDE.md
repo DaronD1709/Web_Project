@@ -30,8 +30,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   Khi thêm/đổi Servlet phải cập nhật file này.
 - `docs/class-diagram.md` — thiết kế đầy đủ 22 class/entity, bảng quan hệ (loại + multiplicity + label),
   và mermaid source để vẽ lại nếu cần. **Đây là nguồn chân lý (source of truth) cho cấu trúc dữ liệu** —
-  code trong `backend/src/main/java/com/ecommerce/entity/` phải khớp với file này. **Lưu ý:** khung class trong sơ đồ không liệt kê field trỏ tới class khác
-  (được vẽ bằng đường quan hệ); các field đó vẫn có trong code (JPA) — xem mục "Field quan hệ trong code" của file.
+  code trong `backend/src/main/java/com/ecommerce/entity/` phải khớp với file này.
 
 ## 3. Trạng thái hiện tại (đã code)
 
