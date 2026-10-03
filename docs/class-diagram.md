@@ -239,10 +239,8 @@ public class Review {
 | Order — Address (shippingAddress) | Association | 0..* — 1 | ships to |
 | Review — Customer | Association | 0..* — 1 | written by |
 | User — Notification | Composition | 1 — 0..* | receives |
-| Customer — Conversation | Composition | 1 — 1 | has |
-| Conversation — Message | Composition | 1 — 0..* | contains |
+| Message — Customer | Association | 0..* — 1 | belongs to (khách sở hữu luồng chat) |
 | Message — User | Association | 0..* — 1 | sent by |
-| User — AIBot | Inheritance | — | (không ghi) |
 | Order — Voucher | Association | 0..* — 0..1 | applies |
 | Voucher → DiscountType | Dependency | — | `<<use>>` |
 | Order → OrderStatus | Dependency | — | `<<use>>` |
@@ -262,41 +260,21 @@ public class Notification {
 ```
 Tạo tự động mỗi khi `Order.updateStatus()` được gọi — không cần class Order gọi trực tiếp constructor, có thể tách 1 service riêng `NotificationService` để lo việc này (không cần class diagram thể hiện service layer).
 
-## 18. Conversation (mới)
-```java
-public class Conversation {
-    private int id;
-    private Date createdAt;
-    private Customer customer; // khách sở hữu cuộc trò chuyện
-    private List<Message> messages = new ArrayList<>();
-}
-```
-
-## 19. Message (mới)
+## 18. Message (mới)
 ```java
 public class Message {
     private int id;
     private String content;
     private Date sentAt;
-    private Conversation conversation;
-    private User sender; // Customer / Admin / AIBot (đa hình)
+    private Customer customer; // khách sở hữu luồng chat (mọi tin của khách lẫn shop đều gắn với 1 khách)
+    private User sender; // Customer hoặc Admin (đa hình); chatbot dùng 1 tài khoản hệ thống loại Admin
 }
 ```
 `sender` không lưu field riêng `isAdmin` hay tương tự — chỉ cần tham chiếu kiểu `User`, polymorphism tự lo việc phân biệt Customer hay Admin gửi.
 
----
+**Không có class `Conversation` và `AIBot`:** mỗi `Message` gắn trực tiếp với khách qua `customer` (khách chỉ thấy tin có `customer` là mình, Admin lọc theo khách). Chatbot trả lời bằng một tài khoản hệ thống loại `Admin` ("Trợ lý AI"); logic gọi API AI (OpenAI/Anthropic...) nằm ở tầng Service (`ChatBotService.generateReply(...)`), không thể hiện trong class diagram.
 
-## 20. AIBot (mới)
-```java
-public class AIBot extends User {
-    public Message generateReply(Conversation conversation) { ... }
-}
-```
-Không có field riêng — dùng lại field kế thừa từ `User` (có thể để placeholder cho email/password vì bot không thật sự đăng nhập). `Message.sender` giữ nguyên kiểu `User`, không cần sửa gì — `AIBot` tự động hợp lệ nhờ polymorphism. Logic gọi API AI thật (OpenAI/Anthropic...) nằm trong thân `generateReply()`, không thể hiện trong class diagram.
-
----
-
-## 21. Voucher (mới)
+## 19. Voucher (mới)
 ```java
 public class Voucher {
     private int id;
@@ -314,7 +292,7 @@ public class Voucher {
 }
 ```
 
-## 22. DiscountType (mới, enum)
+## 20. DiscountType (mới, enum)
 ```java
 public enum DiscountType {
     PERCENTAGE, FIXED_AMOUNT
@@ -366,10 +344,6 @@ classDiagram
         +manageProduct(product : Product) void
         +manageOrder(order : Order) void
         +manageVoucher(voucher : Voucher) void
-    }
-
-    class AIBot {
-        +generateReply(conversation : Conversation) Message
     }
 
     class Address {
@@ -513,19 +487,11 @@ classDiagram
         +Getters/Setters
     }
 
-    class Conversation {
-        -id : int
-        -createdAt : Date
-        -customer : Customer
-        -messages : List~Message~
-        +Getters/Setters
-    }
-
     class Message {
         -id : int
         -content : String
         -sentAt : Date
-        -conversation : Conversation
+        -customer : Customer
         -sender : User
         +Getters/Setters
     }
@@ -553,7 +519,6 @@ classDiagram
 
     User <|-- Customer
     User <|-- Admin
-    User <|-- AIBot
     Payment <|-- CODPayment
     Payment <|-- VNPayPayment
 
@@ -575,8 +540,7 @@ classDiagram
     Product "1" *-- "0..*" Review : has
     Review "0..*" --> "1" Customer : written by
     User "1" *-- "0..*" Notification : receives
-    Customer "1" *-- "1" Conversation : has
-    Conversation "1" *-- "0..*" Message : contains
+    Message "0..*" --> "1" Customer : belongs to
     Message "0..*" --> "1" User : sent by
     Order "0..*" --> "0..1" Voucher : applies
     Voucher ..> DiscountType : <<use>>

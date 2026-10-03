@@ -143,7 +143,7 @@ Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. M
 | POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi trả lời AI nếu chưa có Admin tiếp quản) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
 
-`Message.sender` là `User` (Customer / Admin / AIBot) — JSP phân biệt kiểu bubble theo loại sender.
+`Message` gắn với khách qua `Message.customer`; `Message.sender` là `User` (Customer hoặc Admin; chatbot dùng tài khoản hệ thống loại Admin) — JSP phân biệt bubble theo người gửi.
 Nội dung tin nhắn luôn qua `<c:out>`.
 
 ---

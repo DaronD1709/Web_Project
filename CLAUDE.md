@@ -28,26 +28,26 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - `docs/api-spec.md` — danh sách endpoint (Servlet) theo từng màn hình: URL, method, tham số, attr truyền cho JSP,
   quyền truy cập, rule nghiệp vụ, thứ tự code. **Không phải REST/JSON** — Servlet trả JSP hoặc htmx fragment.
   Khi thêm/đổi Servlet phải cập nhật file này.
-- `docs/class-diagram.md` — thiết kế đầy đủ 22 class/entity, bảng quan hệ (loại + multiplicity + label),
+- `docs/class-diagram.md` — thiết kế đầy đủ 20 class/entity, bảng quan hệ (loại + multiplicity + label),
   và mermaid source để vẽ lại nếu cần. **Đây là nguồn chân lý (source of truth) cho cấu trúc dữ liệu** —
   code trong `backend/src/main/java/com/ecommerce/entity/` phải khớp với file này.
 
 ## 3. Trạng thái hiện tại (đã code)
 
 - `backend/pom.xml`, `persistence.xml`, `web.xml` — skeleton Maven đã chạy được.
-- `backend/src/main/java/com/ecommerce/entity/` — đủ 22 entity + 4 enum, đúng theo class-diagram.md.
+- `backend/src/main/java/com/ecommerce/entity/` — đủ 20 entity + 4 enum, đúng theo class-diagram.md.
 - `backend/src/main/java/com/ecommerce/dao/AbstractDAO.java` — generic CRUD dùng chung cho mọi entity.
 - **Vertical slice mẫu chạy đầy đủ (đã test trên Tomcat + Postgres):** `GET /products` có tìm kiếm/lọc/sắp xếp/phân trang:
   `ProductServlet` (đọc tham số → `ProductFilter` DTO) → `ProductService.search` → `ProductDAO.search/countSearch`
   (JPQL động, mọi giá trị qua `setParameter`) → `WEB-INF/views/customer/products.jsp` (JSTL, `<c:out>` chống XSS).
   Copy đúng mẫu này cho các chức năng khác. Contract URL ở `docs/api-spec.md`.
 - **Giỏ hàng và Chat (đã làm, test 37 kiểm tra tự động + trình duyệt):** `/cart` (`CartServlet` → `CartService` → `CartDAO`, JOIN FETCH items+product),
-  `/chat`, `/chat/messages`, `/chat/send` (`ChatServlet` → `ChatService` → `ConversationDAO/MessageDAO`). Pattern htmx dùng cho mọi chức năng sau:
+  `/chat`, `/chat/messages`, `/chat/send` (`ChatServlet` → `ChatService` → `MessageDAO`). Pattern htmx dùng cho mọi chức năng sau:
   request có header `HX-Request` → Servlet trả **đoạn HTML** (`customer/fragments/*.jsp`), request thường → redirect (PRG). Badge giỏ (`#cart-count`) lưu ở
   session `cartCount` (đặt lúc đăng nhập, cập nhật khi thêm/xoá), đổi tức thì không reload (htmx + `hx-swap-oob`). Toast: server gửi header `HX-Trigger`
   (`util/HtmxUtil.toast`, tiếng Việt mã hoá `\uXXXX` vì header chỉ ASCII), listener ở `common/footer.jspf`. Chưa đăng nhập: `util/SessionUtil.requireCustomer`
   → `/login?next=...` (htmx: `HX-Redirect`); Admin vào `/cart`,`/chat` → 403. Mọi thao tác giỏ kiểm tra dòng thuộc **đúng giỏ của khách** (không sửa được giỏ người khác).
-  Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản `AIBot` (bot@nongviet.vn) để gửi lời chào.
+  Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản hệ thống loại **Admin** "Trợ lý AI" (bot@nongviet.vn) để chatbot gửi lời chào (không có class AIBot/Conversation: `Message` gắn thẳng với khách qua `Message.customer`).
   **Chưa làm:** nút "Thanh toán" (disabled, chờ `feat/place-order-pay`), AI tự trả lời và phía Admin của chat (`feat/chat-with-shop`).
 - **Trang chủ thật:** `GET /` và `/home` → `HomeServlet` (map `""` + `/home`, không còn `welcome-file` trong `web.xml`) → `customer/home.jsp`
   (chuyển từ `mockup/home.html`: hero, danh mục, 8 sản phẩm mới nhất qua `ProductService.getLatestProducts`). Thẻ sản phẩm dùng chung ở
@@ -106,7 +106,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - [ ] Hoàn thiện mockup: bản Admin (chưa vẽ); mockup forgot/reset password.
 - [ ] Đóng `EntityManagerFactory` khi app dừng (`contextDestroyed`) để không rò kết nối khi redeploy.
 - [ ] (Khi cần deploy) cho `JPAUtil`/`EmailService` đọc thêm biến môi trường để chạy trong Docker/cloud, không cần file `.properties`.
-- [ ] Phần Optional (Voucher, Review, Notification, Chat, AIBot, Return/Refund) — chỉ làm sau khi Core xong hết.
+- [ ] Phần Optional (Voucher, Review, Notification, chatbot AI, Return/Refund) — chỉ làm sau khi Core xong hết.
 
 ## 5. Nghiệp vụ quan trọng đã bàn kỹ khi thiết kế — PHẢI nhớ khi viết Service (phần Auth/email đã code; còn lại chưa code, chỉ mới quyết định)
 
@@ -128,10 +128,10 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `quantityUsed < quantityIssued`) vào đúng 1 chỗ, gọi khi áp dụng voucher lúc checkout — tránh if-else rải rác.
 - **Notification:** tạo tự động mỗi khi `Order.updateStatus()` được gọi (ví dụ trong `NotificationService`
   gọi kèm theo `OrderService.updateStatus()`).
-- **AIBot:** `generateReply()` là nơi gọi API AI ngoài thật (OpenAI/Anthropic...) — cần quyết định khi nào
-  AI tự trả lời vs khi nào để Admin trả lời tay (nếu cần, thêm field `isHandledByHuman : boolean` vào
-  `Conversation`, hiện chưa có).
-- **Không có class `Account` riêng:** Admin/Customer/AIBot đều là `User` — "khoá/mở tài khoản" chỉ cần
+- **Chatbot AI (không có class AIBot/Conversation):** tin của bot gửi bằng tài khoản hệ thống loại Admin; logic gọi API AI ngoài thật
+  (OpenAI/Anthropic...) nằm ở tầng Service (`ChatBotService.generateReply`). Cần quyết định khi nào AI tự trả lời vs để nhân viên trả lời tay
+  (nếu cần, thêm cờ vào `Customer` hoặc `Message`, hiện chưa có).
+- **Không có class `Account` riêng:** Admin/Customer đều là `User` — "khoá/mở tài khoản" chỉ cần
   thêm field `isActive : boolean` vào `User` (chưa có trong entity hiện tại, cần thêm nếu làm tính năng này).
 
 ## 6. Quy ước code khi mở rộng
@@ -140,7 +140,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - Servlet KHÔNG gọi thẳng DAO — luôn qua Service, để validate/rule nằm đúng 1 chỗ.
 - Composition trong class diagram → JPA `cascade = CascadeType.ALL, orphanRemoval = true`.
   Aggregation → `@ManyToOne`/`@OneToMany` trơn, không cascade (vd `CartItem → Product`).
-- `User` và `Payment` dùng `@Inheritance(SINGLE_TABLE)` — Customer/Admin/AIBot chung bảng `users`,
+- `User` và `Payment` dùng `@Inheritance(SINGLE_TABLE)` — Customer/Admin chung bảng `users`,
   CODPayment/VNPayPayment chung bảng `payments`, phân biệt qua cột discriminator.
 - Không thêm thư viện/framework mới (không React, không REST framework) trừ khi người dùng yêu cầu rõ —
   giữ đúng tinh thần "đơn giản, cả team làm được, giải thích được khi vấn đáp".
