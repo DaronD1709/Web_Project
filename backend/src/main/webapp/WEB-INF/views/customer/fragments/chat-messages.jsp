@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<%-- Cac bong bong chat moi + 1 phan tu #poll o cuoi. Attr: messages (List<Message>), lastId (id tin cuoi da co), botEmail (email tai khoan AIBot).
+<%-- Cac bong bong chat moi + 1 phan tu #poll o cuoi. Attr: messages (List<Message>), lastId (id tin cuoi da co), botEmail (email tai khoan he thong cua chatbot).
      #poll tu hoi /chat/messages?after=lastId moi 3 giay (polling); ket qua thay chinh no bang tin moi + #poll moi. --%>
 <c:forEach var="m" items="${messages}">
   <c:set var="mine" value="${m.sender.id == sessionScope.currentUser.id}" />

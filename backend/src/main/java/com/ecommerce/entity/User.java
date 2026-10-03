@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Lop cha abstract. SINGLE_TABLE: Customer/Admin/AIBot deu luu chung 1 bang "users",
+ * Lop cha abstract. SINGLE_TABLE: Customer/Admin deu luu chung 1 bang "users",
  * phan biet nhau qua cot discriminator "user_type". Don gian, nhanh, phu hop vi
  * cac lop con hau nhu khong co cot rieng (chi co quan he OneToMany/OneToOne).
  */

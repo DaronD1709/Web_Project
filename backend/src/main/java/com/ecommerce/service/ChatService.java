@@ -1,9 +1,7 @@
 package com.ecommerce.service;
 
-import com.ecommerce.dao.ConversationDAO;
 import com.ecommerce.dao.MessageDAO;
 import com.ecommerce.dao.UserDAO;
-import com.ecommerce.entity.Conversation;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.Message;
 import com.ecommerce.entity.User;
@@ -12,54 +10,53 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Chat giua khach va shop. Moi khach co 1 Conversation; Message.sender la User (Customer / Admin / AIBot).
- * Hien tai: khach gui va xem tin (polling bang htmx). Tra loi tu dong cua AI va phia Admin lam o nhanh feat/chat-with-shop.
+ * Chat giua khach va shop. Khong co bang "cuoc tro chuyen": moi Message gan truc tiep voi khach so huu luong chat
+ * (Message.customer) va co nguoi gui (Message.sender = Customer hoac Admin).
+ * Chatbot tra loi bang 1 tai khoan he thong loai Admin ("Tro ly AI", email BOT_EMAIL) do DataSeeder tao - khong co class AIBot.
+ * Hien tai: khach gui va xem tin (polling bang htmx). Chatbot tu tra loi va phia Admin lam o nhanh feat/chat-with-shop.
  */
 public class ChatService {
 
-    public static final String BOT_EMAIL = "bot@nongviet.vn"; // tai khoan AIBot do DataSeeder tao
+    public static final String BOT_EMAIL = "bot@nongviet.vn"; // tai khoan he thong cua chatbot (do DataSeeder tao)
     private static final int MAX_LENGTH = 1000;
 
-    private final ConversationDAO conversationDAO = new ConversationDAO();
     private final MessageDAO messageDAO = new MessageDAO();
     private final UserDAO userDAO = new UserDAO();
 
-    /** Lay cuoc tro chuyen cua khach; lan dau thi tao va chen loi chao cua tro ly AI. */
-    public Conversation getOrCreateConversation(Integer customerId) {
-        Conversation conv = conversationDAO.findByCustomerId(customerId);
-        if (conv != null) return conv;
-
-        User user = userDAO.findById(customerId);
-        if (!(user instanceof Customer customer)) throw new BusinessException("Chỉ khách hàng mới dùng được chat.");
-        Conversation fresh = new Conversation();
-        fresh.setCustomer(customer);
-        fresh.setCreatedAt(LocalDateTime.now());
-        conversationDAO.save(fresh);
-
-        User bot = userDAO.findByEmail(BOT_EMAIL);
-        if (bot != null) {
-            addMessage(fresh, bot, "Xin chào! Mình là trợ lý AI của NôngViệt. Bạn cần tư vấn gì về hạt giống, phân bón, "
-                    + "thuốc BVTV hay máy móc nông nghiệp? Nhân viên shop sẽ hỗ trợ thêm khi cần.");
-        }
-        return fresh;
-    }
-
+    /** Tin nhan moi hon `afterId` cua khach. Lan dau khach mo chat (chua co tin nao) thi chen loi chao cua chatbot. */
     public List<Message> getMessagesAfter(Integer customerId, int afterId) {
-        Conversation conv = getOrCreateConversation(customerId);
-        return messageDAO.findAfter(conv.getId(), afterId);
+        List<Message> messages = messageDAO.findAfter(customerId, afterId);
+        if (afterId == 0 && messages.isEmpty()) {
+            greet(customerId);
+            messages = messageDAO.findAfter(customerId, afterId);
+        }
+        return messages;
     }
 
     public void sendFromCustomer(Integer customerId, String content) {
         String text = content == null ? "" : content.trim();
         if (text.isEmpty()) throw new BusinessException("Vui lòng nhập nội dung tin nhắn.");
         if (text.length() > MAX_LENGTH) throw new BusinessException("Tin nhắn tối đa " + MAX_LENGTH + " ký tự.");
-        Conversation conv = getOrCreateConversation(customerId);
-        addMessage(conv, userDAO.findById(customerId), text);
+        Customer customer = requireCustomer(customerId);
+        addMessage(customer, customer, text);
     }
 
-    private void addMessage(Conversation conv, User sender, String content) {
+    private void greet(Integer customerId) {
+        User bot = userDAO.findByEmail(BOT_EMAIL);
+        if (bot == null) return; // chua seed tai khoan chatbot thi bo qua loi chao
+        addMessage(requireCustomer(customerId), bot, "Xin chào! Mình là trợ lý AI của NôngViệt. Bạn cần tư vấn gì về hạt giống, "
+                + "phân bón, thuốc BVTV hay máy móc nông nghiệp? Nhân viên shop sẽ hỗ trợ thêm khi cần.");
+    }
+
+    private Customer requireCustomer(Integer customerId) {
+        User user = userDAO.findById(customerId);
+        if (!(user instanceof Customer customer)) throw new BusinessException("Chỉ khách hàng mới dùng được chat.");
+        return customer;
+    }
+
+    private void addMessage(Customer owner, User sender, String content) {
         Message m = new Message();
-        m.setConversation(conv);
+        m.setCustomer(owner);
         m.setSender(sender);
         m.setContent(content);
         m.setSentAt(LocalDateTime.now());
