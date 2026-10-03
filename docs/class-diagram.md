@@ -5,7 +5,7 @@ Quy ước visibility dùng trong toàn bộ file:
 - `protected` — dùng ở 2 lớp cha thiết kế để kế thừa (`User`, `Payment`), cho phép class con truy cập trực tiếp field mà không cần getter
 - `public` — tất cả method là API nên luôn public
 
-Đây là bản đầy đủ có thể copy gần như nguyên trạng thành file `.java` (chỉ cần thêm phần thân method).
+**Quy ước vẽ:** khung class chỉ liệt kê thuộc tính của chính đối tượng (kiểu đơn giản, enum). Thuộc tính trỏ tới một class khác trong sơ đồ **không** liệt kê trong khung mà thể hiện bằng **đường quan hệ** (bảng quan hệ bên dưới), tránh vẽ trùng. Trong code Java các field này **vẫn tồn tại** (JPA cần chúng) — xem mục "Field quan hệ trong code" ở cuối phần class.
 
 ---
 
@@ -30,13 +30,9 @@ public abstract class User {
 ## 2. Customer extends User
 ```java
 public class Customer extends User {
-    private List<Address> addresses = new ArrayList<>();
-    private List<Order> orders = new ArrayList<>();
-    private Cart cart;
-
     public void addToCart(Product product, int qty) { ... }
     public Order placeOrder() { ... }
-    public List<Order> viewOrderHistory() { return orders; }
+    public List<Order> viewOrderHistory() { ... }
     public Review writeReview(Product product, int rating, String comment) { ... }
 }
 ```
@@ -47,6 +43,7 @@ public class Customer extends User {
 public class Admin extends User {
     public void manageProduct(Product product) { ... }
     public void manageOrder(Order order) { ... }
+    public void manageVoucher(Voucher voucher) { ... }
 }
 ```
 
@@ -68,7 +65,6 @@ public class Category {
     private int id;
     private String name;
     private String description;
-    private List<Product> products = new ArrayList<>();
 }
 ```
 
@@ -81,8 +77,6 @@ public class Product {
     private double price;
     private int stockQuantity;
     private String imageUrl;
-    private Category category;
-    private List<Review> reviews = new ArrayList<>();
 
     public void updateStock(int qty) { ... }
     public String getDetails() { ... }
@@ -108,7 +102,6 @@ public class CartItem {
     private int id;
     private int quantity;
     private double priceAtAdd;
-    private Product product; // aggregation — chỉ giữ reference
 }
 ```
 
@@ -140,7 +133,6 @@ public class OrderItem {
     private int id;
     private int quantity;
     private double priceAtOrder; // snapshot giá, không đổi dù Product đổi giá sau
-    private Product product; // aggregation
 }
 ```
 
@@ -202,9 +194,23 @@ public class Review {
     private int rating; // 1-5 sao
     private String comment;
     private Date createdAt;
-    private Customer customer; // tác giả
 }
 ```
+
+---
+
+## Field quan hệ trong code (không vẽ trong khung class)
+
+Các field dưới đây có trong entity Java (`@ManyToOne`/`@OneToMany`/`@OneToOne`) nhưng sơ đồ thể hiện bằng đường quan hệ, nên không liệt kê trong khung:
+
+| Class | Field trong code | Quan hệ tương ứng |
+|---|---|---|
+| `Customer` | `addresses : List<Address>`, `orders : List<Order>`, `cart : Cart` | owns Address / owns Cart / places Order |
+| `Category` | `products : List<Product>` | groups Product |
+| `Product` | `category : Category`, `reviews : List<Review>` | groups (phía Category) / has Review |
+| `CartItem` | `product : Product` (+ `cart : Cart` phía con) | refers to Product |
+| `OrderItem` | `product : Product` (+ `order : Order` phía con) | refers to Product |
+| `Review` | `customer : Customer` (+ `product : Product` phía con) | written by Customer |
 
 ---
 
@@ -226,6 +232,7 @@ public class Review {
 | Customer — Order | Association | 1 — 0..* | places |
 | Admin — Product | Association | 1 — 0..* | manages |
 | Admin — Order | Association | 1 — 0..* | processes |
+| Admin — Voucher | Association | 1 — 0..* | manages |
 | Order — Address (shippingAddress) | Association | 0..* — 1 | ships to |
 | Review — Customer | Association | 0..* — 1 | written by |
 | User — Notification | Composition | 1 — 0..* | receives |
@@ -337,9 +344,6 @@ classDiagram
     }
 
     class Customer {
-        -addresses : List~Address~
-        -orders : List~Order~
-        -cart : Cart
         +addToCart(product : Product, qty : int) void
         +placeOrder() Order
         +viewOrderHistory() List~Order~
@@ -350,6 +354,7 @@ classDiagram
     class Admin {
         +manageProduct(product : Product) void
         +manageOrder(order : Order) void
+        +manageVoucher(voucher : Voucher) void
     }
 
     class AIBot {
@@ -370,7 +375,6 @@ classDiagram
         -id : int
         -name : String
         -description : String
-        -products : List~Product~
         +Getters/Setters
     }
 
@@ -381,8 +385,6 @@ classDiagram
         -price : double
         -stockQuantity : int
         -imageUrl : String
-        -category : Category
-        -reviews : List~Review~
         +updateStock(qty : int) void
         +getDetails() String
         +Getters/Setters
@@ -402,7 +404,6 @@ classDiagram
         -id : int
         -quantity : int
         -priceAtAdd : double
-        -product : Product
         +Getters/Setters
     }
 
@@ -429,7 +430,6 @@ classDiagram
         -id : int
         -quantity : int
         -priceAtOrder : double
-        -product : Product
         +Getters/Setters
     }
 
@@ -476,7 +476,6 @@ classDiagram
         -rating : int
         -comment : String
         -createdAt : Date
-        -customer : Customer
         +Getters/Setters
     }
 
@@ -541,6 +540,7 @@ classDiagram
     Customer "1" --> "0..*" Order : places
     Admin "1" --> "0..*" Product : manages
     Admin "1" --> "0..*" Order : processes
+    Admin "1" --> "0..*" Voucher : manages
     Order "0..*" --> "1" Address : ships to
     Product "1" *-- "0..*" Review : has
     Review "0..*" --> "1" Customer : written by
