@@ -148,13 +148,20 @@ Nội dung tin nhắn luôn qua `<c:out>`.
 
 ---
 
-## 7. Admin (đề xuất — chưa có mockup, Core trước)
+## 7. Admin (Core trước; Quản lý sản phẩm đã code)
+
+Mọi URL `/admin/*` dùng `SessionUtil.requireAdmin` (chưa đăng nhập → `/login?next=`, khách hàng → 403). Khung trang (header + sidebar) nằm ở `WEB-INF/views/admin/layout.jsp`;
+Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mục-sidebar")` — mở trực tiếp thì trả cả khung, bấm link qua htmx (`hx-boost`) thì chỉ trả nội dung.
 
 | Method | URL | Servlet | Tham số chính | Ghi chú |
 |---|---|---|---|---|
 | GET | `/admin` | `AdminDashboardServlet` | — | Optional: thống kê doanh thu, bán chạy |
-| GET | `/admin/products` | `AdminProductServlet` | `q`, `cat`, `page` | Danh sách + tồn kho |
-| POST | `/admin/products` | `AdminProductServlet` | `action=create\|update\|delete`, `id`, `name`, `description`, `price`, `stockQuantity`, `categoryId`, ảnh (`multipart/form-data`) | Upload ảnh lưu vào `webapp/static/uploads/`; xoá SP đã có trong đơn → từ chối |
+| GET | `/admin/products` | `AdminProductServlet` | `q`, `cat`, `stock=in\|low\|out`, `sort=new\|name\|asc\|desc\|stock`, `page` (10 SP/trang) | **Đã code.** Trang đầy đủ; request htmx có `HX-Target: product-list` (ô lọc, phân trang) chỉ trả bảng `fragments/product-list.jsp` |
+| GET | `/admin/products/new` | `AdminProductServlet` | — | **Đã code.** Form thêm |
+| POST | `/admin/products/new` | `AdminProductServlet` | `name`, `description`, `price`, `stock`, `category`, `image` (`multipart/form-data`) | **Đã code.** Lỗi → vẽ lại form kèm lỗi từng ô; đúng → flash + 302 `/admin/products`. Ảnh: JPG/PNG/WEBP ≤ 2MB, nhận diện bằng byte đầu file, lưu ngoài webapp (`~/nongviet-uploads` hoặc biến môi trường `UPLOAD_DIR`), phục vụ qua `GET /uploads/<uuid>.<ext>` |
+| GET | `/admin/products/edit` | `AdminProductServlet` | `id` | **Đã code.** Form sửa (id lạ → flash lỗi + 302 danh sách) |
+| POST | `/admin/products/edit` | `AdminProductServlet` | `id` (query), các trường như thêm, `removeImage=on` | **Đã code.** Ảnh mới thay ảnh cũ (file cũ bị xoá) |
+| POST | `/admin/products/delete` | `AdminProductServlet` | `id`, (kèm bộ lọc hiện tại), `redirect` (từ trang form) | **Đã code (htmx).** SP đã có trong đơn hàng → từ chối (toast lỗi, `HX-Reswap: none`); còn trong giỏ → gỡ khỏi giỏ rồi xoá; đánh giá xoá theo. Từ bảng: trả mảnh rỗng (dòng biến mất) + `#product-summary` cập nhật bằng `hx-swap-oob` |
 | GET/POST | `/admin/categories` | `AdminCategoryServlet` | `action=create\|update\|delete`, `id`, `name`, `description` | Không xoá danh mục còn sản phẩm |
 | GET | `/admin/orders` | `AdminOrderServlet` | `status`, `page` | Mọi đơn của mọi khách |
 | GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | — |
