@@ -1,0 +1,17 @@
+<%-- Thanh tren cung cua CMS (dung chung moi trang admin): nut mo menu (mobile), tieu de trang, nguoi dung + dang xuat. --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<header class="sticky top-0 z-30 bg-base-100 border-b border-base-300 h-14 px-4 flex items-center gap-3">
+  <%-- Nut mo menu: chi hien tren man hinh nho --%>
+  <label for="adm-drawer" class="btn btn-ghost btn-sm btn-square lg:hidden" aria-label="Mở menu">☰</label>
+  <%-- Tieu de trang --%>
+  <div class="text-sm flex items-center gap-2">
+    <span class="text-base-content/50 hidden sm:inline">Quản trị /</span>
+    <%@ include file="/WEB-INF/views/admin/common/title.jspf" %>
+  </div>
+  <%-- Nguoi dung + dang xuat (POST /logout; hx-boost="false" de dang xuat tai lai trang that su, khong chi doi 1 manh) --%>
+  <div class="ml-auto flex items-center gap-3">
+    <span class="text-sm text-base-content/70 hidden sm:inline"><c:out value="${sessionScope.currentUser.fullName}"/></span>
+    <span class="badge badge-primary badge-sm">Admin</span>
+    <form method="post" action="${ctx}/logout" hx-boost="false"><button class="btn btn-ghost btn-sm">Đăng xuất</button></form>
+  </div>
+</header>
