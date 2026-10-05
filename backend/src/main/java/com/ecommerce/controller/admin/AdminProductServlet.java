@@ -4,6 +4,7 @@ import com.ecommerce.dto.ProductFilter;
 import com.ecommerce.entity.Admin;
 import com.ecommerce.entity.Category;
 import com.ecommerce.entity.Product;
+import com.ecommerce.service.AdminProductService;
 import com.ecommerce.service.BusinessException;
 import com.ecommerce.service.CategoryService;
 import com.ecommerce.service.ProductService;
@@ -33,7 +34,8 @@ public class AdminProductServlet extends HttpServlet {
 
     private static final int PAGE_SIZE = 10;
 
-    private final ProductService productService = new ProductService();
+    private final ProductService productService = new ProductService();             // doc / tim kiem (dung chung voi khach hang)
+    private final AdminProductService adminProductService = new AdminProductService(); // them / sua / xoa (chi Admin)
     private final CategoryService categoryService = new CategoryService();
 
     @Override
@@ -118,7 +120,7 @@ public class AdminProductServlet extends HttpServlet {
         try {
             Part imagePart = req.getPart("image");
             byte[] image = (imagePart == null || imagePart.getSize() == 0) ? null : imagePart.getInputStream().readAllBytes();
-            productService.save(id, name, description, price, stock, categoryId, image, req.getParameter("removeImage") != null);
+            adminProductService.save(id, name, description, price, stock, categoryId, image, req.getParameter("removeImage") != null);
 
             AdminView.flash(req, id == null ? "Đã thêm sản phẩm" : "Đã cập nhật sản phẩm", "success");
             resp.sendRedirect(req.getContextPath() + "/admin/products"); // POST-Redirect-GET: F5 khong gui lai form
@@ -154,7 +156,7 @@ public class AdminProductServlet extends HttpServlet {
         Integer id = ParamUtil.intOrNull(req.getParameter("id"));
         try {
             if (id == null) throw new BusinessException("Thiếu mã sản phẩm.");
-            productService.delete(id);
+            adminProductService.delete(id);
         } catch (BusinessException e) {
             if (HtmxUtil.isHtmx(req)) {
                 HtmxUtil.toast(resp, e.getMessage(), "error");

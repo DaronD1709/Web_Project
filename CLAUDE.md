@@ -83,7 +83,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   làm mục lục. Xem thử: mở `mockup/index.html` hoặc `python3 -m http.server` trong thư mục đó.
   `layout.js` chứa header/footer/product card + dữ liệu mẫu (chỉ để xem thử). **Chưa vẽ Admin.**
   Dùng làm bản thiết kế khi chuyển sang JSP; không phải code chạy thật.
-- **Admin > Quản lý sản phẩm (nhánh `feat/admin-manage-product`, đã test Tomcat + Postgres):** `AdminProductServlet` (`/admin/products`, `/new`, `/edit`, `/delete`) → `ProductService.save/delete`
+- **Admin > Quản lý sản phẩm (nhánh `feat/admin-manage-product`, đã test Tomcat + Postgres):** `AdminProductServlet` (`/admin/products`, `/new`, `/edit`, `/delete`) → `AdminProductService.save/delete`
   → `ProductDAO`. Khung CMS dùng chung cho mọi trang admin: `WEB-INF/views/admin/layout.jsp` + `admin/common/{header,sidebar,nav,title}.jspf`; Servlet gọi `util/AdminView.render(...)`
   (cả khung khi mở trực tiếp, chỉ nội dung khi qua htmx; sidebar/tiêu đề cập nhật bằng `hx-swap-oob`); `AdminView.flash` = thông báo sau redirect. File JSP nội dung admin KHÔNG tự dựng `<html>`.
   JS dùng chung ở `static/js/admin.js` (toast, xem trước sản phẩm) — không đặt `<script>` trong trang nội dung vì lịch sử htmx không chạy lại script. `SessionUtil.requireAdmin` chặn `/admin/*`.
