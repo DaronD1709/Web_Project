@@ -78,7 +78,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   **Đổi trang bằng htmx (không nháy):** `admin.js` dựng sidebar/header 1 lần, `hx-boost` + `hx-select="#page"` chỉ thay nội dung `#adm-main`
   (không tải lại trang, Tailwind CDN không phải biên dịch lại). Quy ước mỗi trang admin: `data-active`/`data-title` đặt trên `#page`; `<script>` của
   trang nằm TRONG `#page`; khai báo top-level dùng `var` (chạy lại được nhiều lần); form do JS xử lý phải có `hx-boost="false"`; chuyển trang
-  bằng code dùng `go(url)`, không dùng `location.href`. Khi làm JSP thật: `hx-boost` + `hx-select` tương tự trên layout admin.
+  bằng code dùng `go(url)`, không dùng `location.href`. Link/form do JS vẽ ra sau khi tải (innerHTML) được `MutationObserver` trong `admin.js`
+  gọi `htmx.process` tự động, nên vẫn được boost; không cần tự xử lý từng chỗ. Khi làm JSP thật: `hx-boost` + `hx-select` tương tự trên layout admin.
   Rule hiển thị trong mockup cần giữ khi làm JSP: huỷ đơn/duyệt hoàn hàng ⇒ cộng lại kho; không xoá danh mục còn sản phẩm; voucher có 4 trạng thái
   (hoạt động/hết hạn/hết lượt/tắt) khớp `Voucher.isValid()`; khoá tài khoản khách cần thêm cột `users.is_active` (chưa có trong entity); chat có công tắc
   nhân viên tiếp quản (cần field `isHandledByHuman` của `Conversation`, chưa có).

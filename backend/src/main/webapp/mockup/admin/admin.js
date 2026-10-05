@@ -162,7 +162,17 @@ function mountAdminShell() {
   body.insertBefore(shell, page);
   shell.querySelector('#adm-main').appendChild(page);
   if (window.htmx) htmx.process(shell);
+  observeDynamicContent(shell.querySelector('#adm-main'));
   refreshShell();
+}
+
+/* Link/form do JS ve ra SAU khi trang tai (bang don hang, san pham... dung innerHTML) khong duoc htmx tu nhan dien,
+   nen bam vao se tai lai ca trang (nhay). MutationObserver goi htmx.process cho moi phan tu vua them vao #adm-main,
+   de chung cung duoc "boost" nhu link viet san trong HTML. */
+function observeDynamicContent(root) {
+  if (!window.htmx || !window.MutationObserver || !root) return;
+  new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) htmx.process(n); })))
+    .observe(root, { childList: true, subtree: true });
 }
 
 // Cap nhat tieu de + muc sidebar dang chon theo trang vua hien (doc tu data-* tren #page)
