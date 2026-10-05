@@ -8,11 +8,12 @@
   <title>Đăng nhập — NôngViệt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
-<body class="bg-base-200 min-h-screen">
+<body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-5xl mx-auto px-4 py-12">
-  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+<%-- flex-1 + items-center: khung dang nhap nam GIUA vung giua header va footer, footer luon sat day man hinh --%>
+<main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
+  <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
       <div class="text-7xl" aria-hidden="true">🌾</div>
       <h2 class="text-3xl font-extrabold mt-4">Chào mừng trở lại!</h2>
