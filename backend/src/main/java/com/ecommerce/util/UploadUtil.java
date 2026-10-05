@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * Luu anh san pham do Admin tai len. Anh nam NGOAI thu muc webapp (mac dinh ~/nongviet-uploads, doi bang bien moi truong
- * UPLOAD_DIR) vi webapp bi xoa sach moi lan build/deploy lai; UploadServlet phuc vu anh qua URL /uploads/<ten-file>.
+ * UPLOAD_DIR) vi webapp bi xoa sach moi lan build/deploy lai; ImageServlet phuc vu anh qua URL /uploads/<ten-file>.
  * Chi nhan JPG/PNG/WEBP, nhan dien bang BYTE DAU cua file (khong tin ten file/Content-Type nguoi dung gui), ten file luu
  * la UUID ngau nhien -> khong ghi de, khong lo duong dan.
  */

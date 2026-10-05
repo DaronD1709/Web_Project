@@ -10,9 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// GET /uploads/<ten-file> -> tra anh san pham Admin da tai len (luu ngoai webapp, xem UploadUtil)
+// GET /uploads/<ten-file> -> TRA ANH san pham ve cho trinh duyet (anh do Admin tai len, luu ngoai webapp, xem UploadUtil).
+// Chi phuc vu (doc) anh; viec nhan file tai len nam o AdminProductServlet/AdminProductService.
 @WebServlet("/uploads/*")
-public class UploadServlet extends HttpServlet {
+public class ImageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

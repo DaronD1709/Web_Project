@@ -87,7 +87,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   → `ProductDAO`. Khung CMS dùng chung cho mọi trang admin: `WEB-INF/views/admin/layout.jsp` + `admin/common/{header,sidebar,nav,title}.jspf`; Servlet gọi `util/AdminView.render(...)`
   (cả khung khi mở trực tiếp, chỉ nội dung khi qua htmx; sidebar/tiêu đề cập nhật bằng `hx-swap-oob`); `AdminView.flash` = thông báo sau redirect. File JSP nội dung admin KHÔNG tự dựng `<html>`.
   JS dùng chung ở `static/js/admin.js` (toast, xem trước sản phẩm) — không đặt `<script>` trong trang nội dung vì lịch sử htmx không chạy lại script. `SessionUtil.requireAdmin` chặn `/admin/*`.
-  Ảnh sản phẩm: `util/UploadUtil` lưu ngoài webapp (`~/nongviet-uploads` hoặc env `UPLOAD_DIR`), `controller/UploadServlet` phục vụ `/uploads/*`; khi deploy Docker phải mount volume cho thư mục này.
+  Ảnh sản phẩm: `util/UploadUtil` lưu ngoài webapp (`~/nongviet-uploads` hoặc env `UPLOAD_DIR`), `controller/ImageServlet` phục vụ `/uploads/*`; khi deploy Docker phải mount volume cho thư mục này.
   Product chỉ có 1 cột `imageUrl` nên mỗi sản phẩm 1 ảnh (mockup vẽ tới 5 ảnh, chưa làm). `ProductFilter` có thêm `stock` + sort `name|stock` + `pageSize` cho trang admin.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
