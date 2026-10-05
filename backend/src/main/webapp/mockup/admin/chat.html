@@ -11,67 +11,134 @@
 <body class="bg-base-200 min-h-screen" data-active="chat" data-title="Chat với khách">
 <div id="page" data-active="chat" data-title="Chat với khách">
 <div class="max-w-7xl mx-auto">
-  <div class="mb-3"><h1 class="text-2xl font-bold">Chat với khách</h1><p class="text-sm text-base-content/60">Trợ lý AI trả lời trước; bạn tiếp quản khi khách cần nhân viên</p></div>
-  <div class="card bg-base-100 border border-base-300 overflow-hidden grid lg:grid-cols-[19rem_1fr_16rem] h-[calc(100vh-11rem)] min-h-[32rem]">
-    <!-- Danh sach cuoc tro chuyen -->
-    <div class="border-b lg:border-b-0 lg:border-r border-base-300 flex flex-col min-h-0">
-      <div class="p-3 border-b border-base-300 space-y-2">
+  <div class="mb-4"><h1 class="text-2xl font-bold">Chat với khách</h1><p class="text-sm text-base-content/60">Trợ lý AI trả lời trước; bạn tiếp quản khi khách cần nhân viên</p></div>
+
+  <div class="card bg-base-100 border border-base-300 overflow-hidden grid grid-cols-1 lg:grid-cols-[20rem_minmax(0,1fr)] 2xl:grid-cols-[20rem_minmax(0,1fr)_17rem] lg:h-[calc(100vh-11rem)] lg:min-h-[34rem]">
+
+    <!-- Cot 1: danh sach hoi thoai -->
+    <div class="border-b lg:border-b-0 lg:border-r border-base-300 flex flex-col min-h-0 min-w-0 max-h-72 lg:max-h-none">
+      <div class="px-5 pt-5 pb-4 space-y-3 border-b border-base-300">
+        <div class="flex items-center justify-between"><h2 class="font-semibold">Hội thoại</h2><span class="text-xs text-base-content/50" id="count"></span></div>
         <label class="input input-sm w-full"><input type="search" placeholder="Tìm khách hàng…"></label>
-        <div class="join w-full"><button class="join-item btn btn-xs flex-1 btn-primary" data-f="all">Tất cả</button><button class="join-item btn btn-xs flex-1" data-f="wait">Chờ NV</button><button class="join-item btn btn-xs flex-1" data-f="ai">AI</button></div></div>
+        <div class="join w-full">
+          <button class="join-item btn btn-sm flex-1 btn-primary" data-f="all">Tất cả</button>
+          <button class="join-item btn btn-sm flex-1" data-f="wait">Nhân viên</button>
+          <button class="join-item btn btn-sm flex-1" data-f="ai">AI</button>
+        </div>
+      </div>
       <ul class="overflow-y-auto flex-1" id="convos"></ul>
     </div>
-    <!-- Khung chat -->
-    <div class="flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r border-base-300">
-      <div class="px-4 py-3 border-b border-base-300 flex items-center gap-3">
-        <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-9 rounded-full text-xs" id="av"></div></div>
-        <div class="flex-1 min-w-0"><div class="font-semibold truncate" id="who"></div><div class="text-xs text-base-content/60" id="mode"></div></div>
-        <label class="flex items-center gap-2 text-xs cursor-pointer"><span>Nhân viên trả lời</span><input id="human" type="checkbox" class="toggle toggle-primary toggle-sm"></label>
+
+    <!-- Cot 2: khung chat -->
+    <div class="flex flex-col min-h-[34rem] lg:min-h-0 min-w-0 border-b lg:border-b-0 2xl:border-r border-base-300">
+      <div class="px-6 py-4 border-b border-base-300 flex items-center gap-4">
+        <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary/15 text-primary w-11 rounded-full font-semibold" id="av"></div></div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold truncate" id="who"></div>
+          <div class="text-xs text-base-content/60 flex items-center gap-1.5 mt-0.5 min-w-0"><span class="size-2 rounded-full inline-block shrink-0" id="dot"></span><span id="mode" class="truncate"></span></div>
+        </div>
+        <div class="join shrink-0" role="group" aria-label="Chế độ trả lời">
+          <button class="join-item btn btn-sm" id="m-ai" onclick="setMode(false)">🤖 AI</button>
+          <button class="join-item btn btn-sm" id="m-human" onclick="setMode(true)">👤 Nhân viên</button>
+        </div>
       </div>
-      <div class="flex-1 overflow-y-auto p-4 space-y-1 bg-base-200/50" id="msgs"></div>
-      <div class="px-4 pt-3 flex flex-wrap gap-2" id="quick"></div>
-      <form hx-boost="false" class="p-3 flex gap-2" onsubmit="return send(event)"><input id="inp" class="input flex-1" placeholder="Nhập tin nhắn…" autocomplete="off"><button class="btn btn-primary">Gửi</button></form>
+
+      <div class="flex-1 overflow-y-auto px-6 py-6 space-y-5 bg-base-200/60" id="msgs"></div>
+
+      <div class="px-6 pt-3 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" id="quick"></div>
+      <form hx-boost="false" class="px-6 py-4 flex items-center gap-3" onsubmit="return send(event)">
+        <input id="inp" class="input flex-1 rounded-full px-5" placeholder="Nhập tin nhắn cho khách…" autocomplete="off">
+        <button class="btn btn-primary btn-circle" aria-label="Gửi tin nhắn">
+          <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.27 3.13A59.8 59.8 0 0121.5 12a59.8 59.8 0 01-18.23 8.87L6 12zm0 0h7.5"/></svg>
+        </button>
+      </form>
     </div>
-    <!-- Thong tin khach -->
-    <aside class="hidden lg:block p-4 text-sm space-y-3 overflow-y-auto" id="info"></aside>
+
+    <!-- Cot 3: thong tin khach -->
+    <aside class="hidden 2xl:block p-6 text-sm overflow-y-auto" id="info"></aside>
   </div>
 </div>
 <script>
 var $ = id => document.getElementById(id), initials = n => n.split(' ').slice(-2).map(w => w[0]).join('');
 var cur = CONVOS[0].id, filter = 'all';
 var quick = ['Chào bạn, mình hỗ trợ gì được ạ?', 'Shop kiểm tra giúp bạn nhé.', 'Đơn của bạn đang được giao.', 'Cảm ơn bạn đã liên hệ!'];
+var nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+
+// Gom cac tin lien tiep cua cung 1 nguoi gui thanh 1 nhom (chi hien ten + gio o dau nhom)
+function groupMsgs(msgs) {
+  const g = [];
+  msgs.forEach(([w, t, time]) => { const last = g[g.length - 1]; if (last && last.w === w) last.items.push(t); else g.push({ w, time, items: [t] }); });
+  return g;
+}
+
 function drawList() {
   const l = CONVOS.filter(c => filter === 'all' || (filter === 'wait' && c.human) || (filter === 'ai' && !c.human));
-  $('convos').innerHTML = l.map(c => { const cu = custById(c.cid); return `
-    <li><button class="w-full text-left px-4 py-3 flex gap-3 hover:bg-base-200 border-b border-base-300 ${c.id === cur ? 'bg-primary/10' : ''}" onclick="open_(${c.id})">
-      <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-9 rounded-full text-xs"><span>${initials(cu.name)}</span></div></div>
-      <div class="min-w-0 flex-1"><div class="flex items-center justify-between gap-2"><span class="font-medium truncate">${esc(cu.name)}</span><span class="text-xs text-base-content/50 shrink-0">${c.time}</span></div>
-        <div class="flex items-center justify-between gap-2"><span class="text-xs text-base-content/60 truncate">${esc(c.last)}</span>${c.unread ? `<span class="badge badge-error badge-xs">${c.unread}</span>` : ''}</div>
-        <div class="mt-1">${c.human ? '<span class="badge badge-primary badge-xs">Nhân viên</span>' : '<span class="badge badge-info badge-xs badge-soft">AI</span>'}</div></div></button></li>`; }).join('');
+  $('count').textContent = l.length + ' cuộc';
+  $('convos').innerHTML = l.map(c => { const cu = custById(c.cid), active = c.id === cur; return `
+    <li><button class="w-full text-left px-5 py-4 flex gap-3 items-start border-b border-base-300/70 hover:bg-base-200/70 transition ${active ? 'bg-primary/10 shadow-[inset_3px_0_0_var(--color-primary)]' : ''}" onclick="open_(${c.id})">
+      <div class="avatar avatar-placeholder shrink-0"><div class="bg-primary/15 text-primary w-10 rounded-full text-sm font-semibold"><span>${initials(cu.name)}</span></div></div>
+      <div class="min-w-0 flex-1 space-y-1">
+        <div class="flex items-center justify-between gap-2"><span class="font-medium truncate ${c.unread ? '' : 'text-base-content/80'}">${esc(cu.name)}</span><span class="text-[11px] text-base-content/50 shrink-0">${c.time}</span></div>
+        <div class="flex items-center justify-between gap-2"><span class="text-xs truncate ${c.unread ? 'text-base-content font-medium' : 'text-base-content/60'}">${esc(c.last)}</span>${c.unread ? `<span class="badge badge-primary badge-sm rounded-full">${c.unread}</span>` : ''}</div>
+        <div>${c.human ? '<span class="badge badge-soft badge-primary badge-sm">👤 Nhân viên</span>' : '<span class="badge badge-soft badge-accent badge-sm">🤖 AI</span>'}</div>
+      </div></button></li>`; }).join('');
 }
+
 function drawChat() {
   const c = CONVOS.find(x => x.id === cur), cu = custById(c.cid); c.unread = 0;
   $('av').innerHTML = `<span>${initials(cu.name)}</span>`; $('who').textContent = cu.name;
-  $('mode').textContent = c.human ? 'Nhân viên đang trả lời — AI tạm dừng' : 'Trợ lý AI đang tự động trả lời';
-  $('human').checked = c.human;
-  $('msgs').innerHTML = c.msgs.map(([w, t, time]) => `
-    <div class="chat ${w === 'me' ? 'chat-start' : 'chat-end'}"><div class="chat-header text-xs">${w === 'me' ? esc(cu.name) : w === 'bot' ? 'Trợ lý AI <span class="badge badge-xs badge-info">AI</span>' : 'Bạn <span class="badge badge-xs badge-primary">Shop</span>'} <time class="opacity-50">${time}</time></div>
-      <div class="chat-bubble ${w === 'me' ? '' : w === 'admin' ? 'chat-bubble-primary' : 'chat-bubble-neutral'}">${esc(t)}</div></div>`).join('');
+  $('mode').textContent = c.human ? 'Nhân viên đang trả lời' : 'AI đang tự động trả lời';
+  $('dot').className = 'size-2 rounded-full inline-block shrink-0 ' + (c.human ? 'bg-success' : 'bg-warning');
+  $('m-ai').className = 'join-item btn btn-sm ' + (c.human ? 'btn-ghost border border-base-300' : 'btn-primary');
+  $('m-human').className = 'join-item btn btn-sm ' + (c.human ? 'btn-primary' : 'btn-ghost border border-base-300');
+
+  // Moi nguoi gui 1 kieu: khach (trang, trai), tro ly AI (vang nhat, phai), nhan vien (xanh dam, phai)
+  const M = {
+    me:    { name: cu.name, left: true, av: `<div class="size-8 rounded-full bg-base-300 text-base-content/70 grid place-items-center text-xs font-semibold shrink-0">${initials(cu.name)}</div>`, bubble: 'bg-base-100 border border-base-300', tail: 'rounded-bl-md' },
+    bot:   { name: 'Trợ lý AI', left: false, av: '<div class="size-8 rounded-full bg-accent/40 grid place-items-center text-sm shrink-0">🤖</div>', bubble: 'bg-accent/35 border border-accent/50', tail: 'rounded-br-md' },
+    admin: { name: 'Bạn', left: false, av: '<div class="size-8 rounded-full bg-primary text-primary-content grid place-items-center text-xs font-semibold shrink-0">HD</div>', bubble: 'bg-primary text-primary-content', tail: 'rounded-br-md' },
+  };
+  $('msgs').innerHTML = '<div class="text-center"><span class="text-[11px] text-base-content/50 bg-base-100 border border-base-300 rounded-full px-3 py-1">Hôm nay · 02/10/2026</span></div>' +
+    groupMsgs(c.msgs).map(g => { const m = M[g.w]; return `
+    <div class="flex items-end gap-2.5 ${m.left ? '' : 'flex-row-reverse'}">
+      ${m.av}
+      <div class="flex flex-col gap-1 min-w-0 max-w-[78%] ${m.left ? 'items-start' : 'items-end'}">
+        <div class="text-[11px] text-base-content/50 px-1">${esc(m.name)} · ${g.time}</div>
+        ${g.items.map((t, i) => `<div class="px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${m.bubble} ${i === g.items.length - 1 ? m.tail : ''}">${esc(t)}</div>`).join('')}
+      </div>
+    </div>`; }).join('');
   $('msgs').scrollTop = 1e6;
-  $('quick').innerHTML = quick.map(q => `<button class="badge badge-outline cursor-pointer" onclick="$('inp').value=this.textContent">${q}</button>`).join('');
+
+  $('quick').innerHTML = quick.map(q => `<button type="button" class="btn btn-sm btn-outline rounded-full font-normal whitespace-nowrap" onclick="$('inp').value=this.textContent; $('inp').focus()">${q}</button>`).join('');
+
   const os = ORDERS.filter(o => o.cid === cu.id).slice(0, 3);
-  $('info').innerHTML = `<div class="font-semibold">${esc(cu.name)}</div><div class="text-base-content/70">${esc(cu.email)}<br>${cu.phone}</div>
-    <div class="divider my-1"></div><div class="font-semibold">Đơn gần đây</div>
-    <ul class="space-y-2">${os.map(o => `<li class="flex items-center justify-between gap-2"><a class="link link-primary font-mono" href="order-detail.html?no=${o.no}">#${o.no}</a>${statusBadge(o.status)}</li>`).join('') || '<li class="text-base-content/50">Chưa có đơn.</li>'}</ul>
-    <a class="btn btn-outline btn-xs btn-block" href="customers.html">Xem hồ sơ khách</a>`;
+  $('info').innerHTML = `
+    <div class="text-center">
+      <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-16 rounded-full text-xl font-semibold"><span>${initials(cu.name)}</span></div></div>
+      <div class="font-semibold mt-3">${esc(cu.name)}</div>
+      <div class="text-base-content/60 text-xs mt-1">${esc(cu.email)}<br>${cu.phone}</div>
+    </div>
+    <div class="divider my-5"></div>
+    <div class="font-semibold mb-3">Đơn gần đây</div>
+    <ul class="space-y-3">${os.map(o => `<li class="flex items-center justify-between gap-2"><a class="link link-primary font-mono" href="order-detail.html?no=${o.no}">#${o.no}</a>${statusBadge(o.status)}</li>`).join('') || '<li class="text-base-content/50">Chưa có đơn.</li>'}</ul>
+    <a class="btn btn-outline btn-sm btn-block mt-6" href="customers.html">Xem hồ sơ khách</a>`;
   drawList();
 }
+
 function open_(id) { cur = id; drawChat(); }
-$('human').addEventListener('change', e => { const c = CONVOS.find(x => x.id === cur); c.human = e.target.checked; drawChat(); toast(c.human ? 'Bạn đã tiếp quản cuộc trò chuyện' : 'Đã chuyển lại cho trợ lý AI'); });
+function setMode(human) {
+  const c = CONVOS.find(x => x.id === cur); if (c.human === human) return;
+  c.human = human; drawChat(); toast(human ? 'Bạn đã tiếp quản cuộc trò chuyện' : 'Đã chuyển lại cho trợ lý AI');
+}
 function send(e) {
   e.preventDefault(); const t = $('inp').value.trim(); if (!t) return false;
-  const c = CONVOS.find(x => x.id === cur); c.msgs.push(['admin', t, '14:40']); c.human = true; c.last = t; c.time = '14:40'; $('inp').value = ''; drawChat(); return false;
+  const c = CONVOS.find(x => x.id === cur); c.msgs.push(['admin', t, nowHM()]); c.human = true; c.last = t; c.time = nowHM(); $('inp').value = ''; drawChat(); return false;
 }
-document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filter = b.dataset.f; document.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('btn-primary', x === b)); drawList(); }));
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+  filter = b.dataset.f;
+  document.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('btn-primary', x === b));
+  drawList();
+}));
 drawChat();
 </script>
 </div>
