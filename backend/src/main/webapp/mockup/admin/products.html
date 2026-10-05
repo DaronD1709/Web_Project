@@ -5,10 +5,11 @@
   <title>Sản phẩm — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="products" data-title="Sản phẩm">
-<div id="page">
+<div id="page" data-active="products" data-title="Sản phẩm">
 <div class="space-y-4 max-w-7xl mx-auto">
   <div class="flex flex-wrap items-center justify-between gap-2">
     <div><h1 class="text-2xl font-bold">Sản phẩm</h1><p class="text-sm text-base-content/60" id="count"></p></div>
@@ -38,10 +39,9 @@
     </div>
   </div>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id), qs = new URLSearchParams(location.search);
-let list = PRODUCTS.map(p => ({ ...p }));
+var $ = id => document.getElementById(id), qs = new URLSearchParams(location.search);
+var list = PRODUCTS.map(p => ({ ...p }));
 $('cat').innerHTML += CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 if (qs.get('stock')) $('stock').value = qs.get('stock');
 function stockBadge(n) { return n === 0 ? '<span class="badge badge-neutral badge-sm">Hết hàng</span>' : n <= 5 ? `<span class="badge badge-warning badge-sm">Còn ${n}</span>` : `<span class="tabular-nums">${n}</span>`; }
@@ -72,5 +72,6 @@ function delP(id) {
 }
 ['q', 'cat', 'stock', 'sort'].forEach(i => $(i).addEventListener('input', draw)); draw();
 </script>
+</div>
 </body>
 </html>

@@ -5,15 +5,16 @@
   <title>Thêm sản phẩm — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="products" data-title="Thêm sản phẩm">
-<div id="page">
+<div id="page" data-active="products" data-title="Thêm sản phẩm">
 <div class="max-w-5xl mx-auto space-y-4">
   <div><a href="products.html" class="text-sm link link-primary">← Danh sách sản phẩm</a>
     <h1 class="text-2xl font-bold" id="h1">Thêm sản phẩm</h1></div>
 
-  <form class="grid lg:grid-cols-[1fr_20rem] gap-4" onsubmit="return save(event)" novalidate>
+  <form hx-boost="false" class="grid lg:grid-cols-[1fr_20rem] gap-4" onsubmit="return save(event)" novalidate>
     <div class="space-y-4">
       <section class="card bg-base-100 border border-base-300 p-5 space-y-4">
         <h2 class="font-semibold">Thông tin cơ bản</h2>
@@ -64,12 +65,11 @@
     </aside>
   </form>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id), id = +new URLSearchParams(location.search).get('id');
-const P = PRODUCTS.find(p => p.id === id);
+var $ = id => document.getElementById(id), id = +new URLSearchParams(location.search).get('id');
+var P = PRODUCTS.find(p => p.id === id);
 $('cat').innerHTML += CATEGORIES.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-let imgs = [];
+var imgs = [];
 if (P) {
   document.title = 'Sửa sản phẩm — Quản trị NôngViệt'; $('h1').textContent = 'Sửa sản phẩm #' + P.id; $('del').classList.remove('hidden');
   $('name').value = P.name; $('desc').value = 'Mô tả chi tiết của ' + P.name + '.'; $('price').value = P.price; $('stock').value = P.stock; $('cat').value = P.cat;
@@ -97,10 +97,11 @@ function save(e) {
   const bad = { name: !$('name').value.trim(), price: !(+$('price').value > 0), stock: $('stock').value === '' || +$('stock').value < 0, cat: !$('cat').value };
   Object.entries(bad).forEach(([k, v]) => { $('e-' + k).classList.toggle('hidden', !v); $(k).classList.toggle('input-error', v); });
   if (Object.values(bad).some(Boolean)) { toast('Vui lòng kiểm tra lại các trường báo lỗi', 'error'); return false; }
-  toast(P ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm'); setTimeout(() => location.href = 'products.html', 900); return false;
+  toast(P ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm'); setTimeout(() => go('products.html'), 900); return false;
 }
-function delP() { confirmBox({ title: 'Xoá sản phẩm?', message: `Xoá <b>${esc(P.name)}</b>? Không thể hoàn tác.`, okText: 'Xoá', okClass: 'btn-error', onOk() { toast('Đã xoá sản phẩm'); setTimeout(() => location.href = 'products.html', 900); } }); }
+function delP() { confirmBox({ title: 'Xoá sản phẩm?', message: `Xoá <b>${esc(P.name)}</b>? Không thể hoàn tác.`, okText: 'Xoá', okClass: 'btn-error', onOk() { toast('Đã xoá sản phẩm'); setTimeout(() => go('products.html'), 900); } }); }
 renderImgs(); preview();
 </script>
+</div>
 </body>
 </html>

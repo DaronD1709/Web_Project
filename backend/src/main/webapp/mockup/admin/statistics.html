@@ -5,10 +5,11 @@
   <title>Thống kê doanh thu — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="statistics" data-title="Thống kê doanh thu">
-<div id="page">
+<div id="page" data-active="statistics" data-title="Thống kê doanh thu">
 <div class="max-w-7xl mx-auto space-y-4">
   <div class="flex flex-wrap items-end justify-between gap-3">
     <div><h1 class="text-2xl font-bold">Thống kê doanh thu</h1><p class="text-sm text-base-content/60" id="range"></p></div>
@@ -38,9 +39,8 @@
     </section>
   </div>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id);
+var $ = id => document.getElementById(id);
 function render() {
   const n = +$('period').value, rev = genSeries(n, 99 + n, 9500000, 8000000), days = dayLabels(n);
   const total = rev.reduce((a, b) => a + b, 0), orders = Math.round(total / 1250000), cancelled = Math.round(orders * 0.07);
@@ -59,5 +59,6 @@ function render() {
 }
 $('period').addEventListener('change', render); render();
 </script>
+</div>
 </body>
 </html>

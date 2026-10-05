@@ -5,10 +5,11 @@
   <title>Tổng quan — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="dashboard" data-title="Tổng quan">
-<div id="page">
+<div id="page" data-active="dashboard" data-title="Tổng quan">
 <div class="space-y-6 max-w-7xl mx-auto">
   <div class="flex flex-wrap items-end justify-between gap-2">
     <div><h1 class="text-2xl font-bold">Tổng quan</h1><p class="text-sm text-base-content/60">Thứ Sáu, 02/10/2026 — số liệu hôm nay so với hôm qua</p></div>
@@ -54,12 +55,11 @@
     <div id="top" class="mt-4"></div>
   </section>
 </div>
-</div>
 <script>
-const rev = genSeries(14, 42, 9000000, 8000000), days = dayLabels(14);
-const today = rev[13], yday = rev[12], pct = ((today - yday) / yday * 100);
-const pend = ORDERS.filter(o => o.status === 'pending').length, ret = ORDERS.filter(o => o.status === 'return').length;
-const lowStock = PRODUCTS.filter(p => p.stock <= 15).sort((a, b) => a.stock - b.stock);
+var rev = genSeries(14, 42, 9000000, 8000000), days = dayLabels(14);
+var today = rev[13], yday = rev[12], pct = ((today - yday) / yday * 100);
+var pend = ORDERS.filter(o => o.status === 'pending').length, ret = ORDERS.filter(o => o.status === 'return').length;
+var lowStock = PRODUCTS.filter(p => p.stock <= 15).sort((a, b) => a.stock - b.stock);
 
 document.getElementById('alerts').innerHTML = [
   [pend, `${pend} đơn đang chờ xác nhận`, 'orders.html?tab=pending', 'alert-warning'],
@@ -69,7 +69,7 @@ document.getElementById('alerts').innerHTML = [
 ].filter(a => a[0]).map(([, t, href, cls]) =>
   `<a href="${href}" class="alert ${cls} alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${t}</span><span aria-hidden="true">→</span></a>`).join('');
 
-const tile = (label, value, delta, spark, href) =>
+var tile = (label, value, delta, spark, href) =>
   `<a href="${href}" class="card bg-base-100 border border-base-300 p-4 hover:border-primary transition">
      <div class="text-sm text-base-content/60">${label}</div>
      <div class="mt-1 text-2xl font-bold tabular-nums">${value}</div>
@@ -82,7 +82,7 @@ document.getElementById('tiles').innerHTML =
 
 Chart.columns(document.getElementById('rev'), rev.map((v, i) => ({ label: days[i], value: v })), { height: 230, label: 'Doanh thu 14 ngày gần nhất', colLabel: 'Ngày', colValue: 'Doanh thu' });
 
-const counts = {}; ORDERS.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
+var counts = {}; ORDERS.forEach(o => counts[o.status] = (counts[o.status] || 0) + 1);
 Chart.hbars(document.getElementById('status'), Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([s, n]) => ({ label: ORDER_STATUS[s][0], value: n })), { fmtValue: v => v + ' đơn', colLabel: 'Trạng thái', colValue: 'Số đơn' });
 
 Chart.hbars(document.getElementById('top'), [...PRODUCTS].sort((a, b) => b.sold - a.sold).slice(0, 6).map(p => ({ label: p.name, value: p.sold, sub: catName(p.cat) })), { fmtValue: v => v + ' đã bán', colLabel: 'Sản phẩm', colValue: 'Đã bán' });
@@ -94,5 +94,6 @@ document.getElementById('low').innerHTML = lowStock.map(p => `
   <tr class="hover"><td><a class="link link-hover" href="product-form.html?id=${p.id}">${esc(p.name)}</a></td>
   <td class="text-right">${p.stock === 0 ? '<span class="badge badge-neutral badge-sm">Hết hàng</span>' : `<span class="badge ${p.stock <= 5 ? 'badge-warning' : 'badge-ghost'} badge-sm">${p.stock}</span>`}</td></tr>`).join('');
 </script>
+</div>
 </body>
 </html>

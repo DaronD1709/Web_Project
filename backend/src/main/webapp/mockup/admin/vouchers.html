@@ -5,10 +5,11 @@
   <title>Voucher — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="vouchers" data-title="Voucher">
-<div id="page">
+<div id="page" data-active="vouchers" data-title="Voucher">
 <div class="max-w-7xl mx-auto space-y-4">
   <div class="flex flex-wrap items-center justify-between gap-2">
     <div><h1 class="text-2xl font-bold">Voucher</h1><p class="text-sm text-base-content/60">Mã giảm giá áp dụng ở bước thanh toán</p></div>
@@ -20,11 +21,10 @@
     <tbody id="rows"></tbody></table></div>
     <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">🎟️</div>Không có voucher.</div></div>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id), d = s => s.split('-').reverse().join('/');
-let list = VOUCHERS.map(v => ({ ...v })), tab = 'all';
-const TABS = [['all', 'Tất cả'], ['active', 'Đang hoạt động'], ['soldout', 'Hết lượt'], ['expired', 'Hết hạn'], ['off', 'Đã tắt']];
+var $ = id => document.getElementById(id), d = s => s.split('-').reverse().join('/');
+var list = VOUCHERS.map(v => ({ ...v })), tab = 'all';
+var TABS = [['all', 'Tất cả'], ['active', 'Đang hoạt động'], ['soldout', 'Hết lượt'], ['expired', 'Hết hạn'], ['off', 'Đã tắt']];
 function draw() {
   $('tabs').innerHTML = TABS.map(([k, t]) => `<a role="tab" class="tab gap-2 ${k === tab ? 'tab-active' : ''}" onclick="tab='${k}';draw()">${t}<span class="badge badge-sm badge-ghost">${list.filter(v => k === 'all' || voucherState(v) === k).length}</span></a>`).join('');
   const l = list.filter(v => tab === 'all' || voucherState(v) === tab);
@@ -42,5 +42,6 @@ function flip(id, on) { list.find(v => v.id === id).active = on; draw(); toast(o
 function del(id) { const v = list.find(x => x.id === id); confirmBox({ title: 'Xoá voucher?', message: `Xoá mã <b>${esc(v.code)}</b>? Các đơn đã áp dụng mã này vẫn giữ nguyên.`, okText: 'Xoá', okClass: 'btn-error', onOk() { list = list.filter(x => x.id !== id); draw(); toast('Đã xoá voucher'); } }); }
 draw();
 </script>
+</div>
 </body>
 </html>

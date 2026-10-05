@@ -5,10 +5,11 @@
   <title>Danh mục — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="categories" data-title="Danh mục">
-<div id="page">
+<div id="page" data-active="categories" data-title="Danh mục">
 <div class="max-w-4xl mx-auto space-y-4">
   <div class="flex items-center justify-between"><div><h1 class="text-2xl font-bold">Danh mục sản phẩm</h1><p class="text-sm text-base-content/60">Phân loại sản phẩm để khách dễ tìm kiếm</p></div>
     <button class="btn btn-primary btn-sm" onclick="openForm()">+ Thêm danh mục</button></div>
@@ -21,12 +22,11 @@
   <label class="form-control w-full"><div class="label"><span class="label-text">Tên danh mục <span class="text-error">*</span></span></div><input id="f-name" class="input w-full"></label>
   <label class="form-control w-full mt-3"><div class="label"><span class="label-text">Mô tả</span></div><textarea id="f-desc" class="textarea w-full" rows="2"></textarea></label>
   <div class="modal-action"><button class="btn" onclick="m.close()">Huỷ</button><button class="btn btn-primary" onclick="saveCat()">Lưu</button></div>
-</div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
-</div>
+</div><form hx-boost="false" method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
 <script>
-const $ = id => document.getElementById(id);
-let cats = CATEGORIES.map(c => ({ ...c, desc: ['Hạt giống rau, củ, quả các loại', 'Phân hữu cơ, phân vô cơ, phân vi sinh', 'Thuốc bảo vệ thực vật, chế phẩm sinh học', 'Cuốc, xẻng, kéo cắt tỉa và dụng cụ làm vườn', 'Máy phun thuốc, máy cắt cỏ, hệ thống tưới', 'Gạo, rau củ và nông sản sạch'][c.id - 1] }));
-let editing = null;
+var $ = id => document.getElementById(id);
+var cats = CATEGORIES.map(c => ({ ...c, desc: ['Hạt giống rau, củ, quả các loại', 'Phân hữu cơ, phân vô cơ, phân vi sinh', 'Thuốc bảo vệ thực vật, chế phẩm sinh học', 'Cuốc, xẻng, kéo cắt tỉa và dụng cụ làm vườn', 'Máy phun thuốc, máy cắt cỏ, hệ thống tưới', 'Gạo, rau củ và nông sản sạch'][c.id - 1] }));
+var editing = null;
 function draw() {
   $('rows').innerHTML = cats.map(c => { const n = PRODUCTS.filter(p => p.cat === c.id).length; return `
     <tr class="hover"><td><span class="mr-2">${c.icon}</span><b>${esc(c.name)}</b></td><td class="text-base-content/70">${esc(c.desc || '')}</td>
@@ -44,5 +44,6 @@ function saveCat() {
 function delCat(id) { confirmBox({ title: 'Xoá danh mục?', message: 'Danh mục chưa có sản phẩm nào, xoá an toàn.', okText: 'Xoá', okClass: 'btn-error', onOk() { cats = cats.filter(c => c.id !== id); draw(); toast('Đã xoá danh mục'); } }); }
 draw();
 </script>
+</div>
 </body>
 </html>

@@ -5,10 +5,11 @@
   <title>Khách hàng — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="customers" data-title="Khách hàng">
-<div id="page">
+<div id="page" data-active="customers" data-title="Khách hàng">
 <div class="max-w-7xl mx-auto space-y-4">
   <div><h1 class="text-2xl font-bold">Tài khoản khách hàng</h1><p class="text-sm text-base-content/60">Xem danh sách, khoá hoặc mở khoá tài khoản</p></div>
   <div class="card bg-base-100 border border-base-300 p-3 flex flex-row flex-wrap items-center gap-2">
@@ -22,12 +23,11 @@
     <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">👥</div>Không có khách hàng phù hợp.</div></div>
 </div>
 
-<dialog id="m" class="modal"><div class="modal-box max-w-lg" id="m-body"></div><form method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
-</div>
+<dialog id="m" class="modal"><div class="modal-box max-w-lg" id="m-body"></div><form hx-boost="false" method="dialog" class="modal-backdrop"><button>close</button></form></dialog>
 <script>
-const $ = id => document.getElementById(id);
-const stat = c => { const os = ORDERS.filter(o => o.cid === c.id && o.status !== 'cancelled'); return { n: ORDERS.filter(o => o.cid === c.id).length, spent: os.reduce((s, o) => s + orderTotals(o).total, 0) }; };
-const init = n => n.split(' ').slice(-2).map(w => w[0]).join('');
+var $ = id => document.getElementById(id);
+var stat = c => { const os = ORDERS.filter(o => o.cid === c.id && o.status !== 'cancelled'); return { n: ORDERS.filter(o => o.cid === c.id).length, spent: os.reduce((s, o) => s + orderTotals(o).total, 0) }; };
+var init = n => n.split(' ').slice(-2).map(w => w[0]).join('');
 function draw() {
   const q = $('q').value.trim().toLowerCase(), st = $('st').value;
   const l = CUSTOMERS.filter(c => (!st || c.status === st) && (!q || (c.name + c.email + c.phone).toLowerCase().includes(q)));
@@ -63,5 +63,6 @@ function lock(id) {
 }
 ['q', 'st'].forEach(i => $(i).addEventListener('input', draw)); draw();
 </script>
+</div>
 </body>
 </html>

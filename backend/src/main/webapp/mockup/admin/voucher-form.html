@@ -5,13 +5,14 @@
   <title>Tạo voucher — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="vouchers" data-title="Tạo voucher">
-<div id="page">
+<div id="page" data-active="vouchers" data-title="Tạo voucher">
 <div class="max-w-4xl mx-auto space-y-4">
   <div><a href="vouchers.html" class="text-sm link link-primary">← Danh sách voucher</a><h1 class="text-2xl font-bold" id="h1">Tạo voucher</h1></div>
-  <form class="grid lg:grid-cols-[1fr_18rem] gap-4" onsubmit="return save(event)" novalidate>
+  <form hx-boost="false" class="grid lg:grid-cols-[1fr_18rem] gap-4" onsubmit="return save(event)" novalidate>
     <section class="card bg-base-100 border border-base-300 p-5 space-y-4">
       <label class="form-control w-full"><div class="label"><span class="label-text">Mã voucher <span class="text-error">*</span></span></div>
         <input id="code" class="input w-full font-mono uppercase" placeholder="VD: NONG10" maxlength="20">
@@ -45,10 +46,9 @@
     </aside>
   </form>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id), id = +new URLSearchParams(location.search).get('id'), V = VOUCHERS.find(v => v.id === id);
-const type = () => document.querySelector('input[name=type]:checked').value;
+var $ = id => document.getElementById(id), id = +new URLSearchParams(location.search).get('id'), V = VOUCHERS.find(v => v.id === id);
+var type = () => document.querySelector('input[name=type]:checked').value;
 if (V) { $('h1').textContent = 'Sửa voucher ' + V.code; document.title = 'Sửa voucher — Quản trị NôngViệt'; $('code').value = V.code; $('value').value = V.value; $('min').value = V.min; $('issued').value = V.issued; $('per').value = V.perUser; $('start').value = V.start; $('end').value = V.end; $('active').checked = V.active; document.querySelector(`input[name=type][value=${V.type}]`).checked = true; }
 function preview() {
   $('unit').textContent = type() === 'percent' ? '%' : '₫';
@@ -64,9 +64,10 @@ function save(e) {
   $('e-value-t').textContent = pct && v > 100 ? 'Phần trăm giảm tối đa 100%' : 'Giá trị phải lớn hơn 0';
   Object.entries(bad).forEach(([k, b]) => { $('e-' + k).classList.toggle('hidden', !b); $(k).classList.toggle('input-error', b); });
   if (Object.values(bad).some(Boolean)) { toast('Vui lòng kiểm tra lại các trường báo lỗi', 'error'); return false; }
-  toast(V ? 'Đã cập nhật voucher' : 'Đã tạo voucher'); setTimeout(() => location.href = 'vouchers.html', 900); return false;
+  toast(V ? 'Đã cập nhật voucher' : 'Đã tạo voucher'); setTimeout(() => go('vouchers.html'), 900); return false;
 }
 preview();
 </script>
+</div>
 </body>
 </html>

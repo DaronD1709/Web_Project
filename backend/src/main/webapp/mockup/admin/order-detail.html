@@ -5,10 +5,11 @@
   <title>Chi tiết đơn hàng — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="orders" data-title="Chi tiết đơn hàng">
-<div id="page">
+<div id="page" data-active="orders" data-title="Chi tiết đơn hàng">
 <div class="max-w-6xl mx-auto space-y-4">
   <div class="flex flex-wrap items-start justify-between gap-2">
     <div><a href="orders.html" class="text-sm link link-primary">← Danh sách đơn hàng</a>
@@ -39,12 +40,11 @@
     </aside>
   </div>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id);
-const o = ORDERS.find(x => x.no === (+new URLSearchParams(location.search).get('no') || 1042)) || ORDERS[0];
-const NEXT = { pending: ['confirmed', 'Xác nhận đơn'], confirmed: ['shipping', 'Chuyển sang đang giao'], shipping: ['completed', 'Đánh dấu hoàn tất'] };
-const STEP_OF = { pending: 1, confirmed: 2, shipping: 3, completed: 4, return: 4, returned: 4 };
+var $ = id => document.getElementById(id);
+var o = ORDERS.find(x => x.no === (+new URLSearchParams(location.search).get('no') || 1042)) || ORDERS[0];
+var NEXT = { pending: ['confirmed', 'Xác nhận đơn'], confirmed: ['shipping', 'Chuyển sang đang giao'], shipping: ['completed', 'Đánh dấu hoàn tất'] };
+var STEP_OF = { pending: 1, confirmed: 2, shipping: 3, completed: 4, return: 4, returned: 4 };
 function setStatus(s, msg) { o.status = s; draw(); toast(msg); }
 function draw() {
   const t = orderTotals(o), c = custById(o.cid);
@@ -80,5 +80,6 @@ function approve() { confirmBox({ title: 'Duyệt hoàn hàng?', message: 'Đơn
 function reject() { confirmBox({ title: 'Từ chối hoàn hàng?', message: 'Đơn quay lại trạng thái <b>Hoàn tất</b>.', okText: 'Từ chối', onOk() { setStatus('completed', 'Đã từ chối yêu cầu hoàn hàng'); } }); }
 draw();
 </script>
+</div>
 </body>
 </html>

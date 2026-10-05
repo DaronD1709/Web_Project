@@ -109,22 +109,30 @@ const NAV_BADGE = {
 };
 const svgIcon = (d, cls = 'size-5') => `<svg class="${cls}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="${d}"/></svg>`;
 
-function mountAdminShell() {
-  const body = document.body;
-  const page = document.getElementById('page');
-  if (!page || body.dataset.shell === 'none') return;
-  const active = body.dataset.active || '', title = body.dataset.title || '';
-  const items = NAV.map(([k, t, href, d]) => `
-    <li><a href="${href}" class="flex items-center gap-3 rounded-field px-3 py-2 text-sm ${k === active ? 'bg-primary text-primary-content font-medium' : 'text-neutral-content/80 hover:bg-white/10'}">
+const NAV_ACTIVE = 'bg-primary text-primary-content font-medium', NAV_IDLE = 'text-neutral-content/80 hover:bg-white/10';
+function navHtml(active) {
+  return NAV.map(([k, t, href, d]) => `
+    <li><a href="${href}" class="flex items-center gap-3 rounded-field px-3 py-2 text-sm ${k === active ? NAV_ACTIVE : NAV_IDLE}">
       ${svgIcon(d)}<span class="flex-1">${t}</span>${NAV_BADGE[k] ? `<span class="badge badge-sm ${k === active ? 'bg-white/25 border-0 text-primary-content' : 'badge-accent'}">${NAV_BADGE[k]}</span>` : ''}</a></li>`).join('');
+}
+
+/* Khung (sidebar + header) chi dung 1 lan; chuyen trang thi htmx chi doi noi dung #adm-main (hx-boost + hx-select="#page")
+   nen khong tai lai trang, khong phai bien dich lai Tailwind, khong nhay. Trong JSP that: <body hx-boost> tuong tu. */
+function mountAdminShell() {
+  const body = document.body, page = document.getElementById('page');
+  if (!page || body.dataset.shell === 'none') return;
   const shell = document.createElement('div');
   shell.className = 'drawer lg:drawer-open';
+  shell.setAttribute('hx-boost', 'true');
+  shell.setAttribute('hx-target', '#adm-main');
+  shell.setAttribute('hx-select', '#page');
+  shell.setAttribute('hx-swap', 'innerHTML show:window:top');
   shell.innerHTML = `
     <input id="adm-drawer" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col min-w-0 min-h-screen">
       <header class="sticky top-0 z-30 bg-base-100 border-b border-base-300 h-14 px-4 flex items-center gap-3">
         <label for="adm-drawer" class="btn btn-ghost btn-sm btn-square lg:hidden" aria-label="Mở menu">${svgIcon('M4 6h16M4 12h16M4 18h16')}</label>
-        <div class="text-sm flex items-center gap-2 min-w-0"><span class="text-base-content/50 hidden sm:inline">Quản trị /</span><span class="font-semibold truncate">${esc(title)}</span></div>
+        <div class="text-sm flex items-center gap-2 min-w-0"><span class="text-base-content/50 hidden sm:inline">Quản trị /</span><span id="adm-title" class="font-semibold truncate"></span></div>
         <div class="ml-auto flex items-center gap-1">
           <a href="chat.html" class="btn btn-ghost btn-sm btn-circle" title="Tin nhắn">
             <div class="indicator">${svgIcon('M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z')}${NAV_BADGE.chat ? `<span class="badge badge-error badge-xs indicator-item">${NAV_BADGE.chat}</span>` : ''}</div></a>
@@ -135,8 +143,8 @@ function mountAdminShell() {
             </div>
             <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow-lg border border-base-300 mt-2">
               <li class="menu-title">${esc(ADM.email)}</li>
-              <li><a href="../home.html" target="_blank">Xem cửa hàng ↗</a></li>
-              <li><a href="login.html" class="text-error">Đăng xuất</a></li>
+              <li><a href="../home.html" target="_blank" hx-boost="false">Xem cửa hàng ↗</a></li>
+              <li><a href="login.html" class="text-error" hx-boost="false">Đăng xuất</a></li>
             </ul>
           </div>
         </div>
@@ -147,14 +155,38 @@ function mountAdminShell() {
       <label for="adm-drawer" class="drawer-overlay" aria-label="Đóng menu"></label>
       <aside class="w-64 min-h-full bg-neutral text-neutral-content flex flex-col">
         <a href="dashboard.html" class="h-14 px-5 flex items-center gap-2 text-lg font-extrabold border-b border-white/10">🌾 NôngViệt <span class="badge badge-sm badge-outline border-white/40 text-white/70">CMS</span></a>
-        <ul class="p-3 space-y-1 flex-1">${items}</ul>
+        <ul id="adm-nav" class="p-3 space-y-1 flex-1"></ul>
         <div class="p-4 text-xs text-neutral-content/50 border-t border-white/10">Đăng nhập với vai trò <b>ADMIN</b><br>Mockup giao diện — chưa kết nối dữ liệu</div>
       </aside>
     </div>`;
   body.insertBefore(shell, page);
   shell.querySelector('#adm-main').appendChild(page);
+  if (window.htmx) htmx.process(shell);
+  refreshShell();
 }
+
+// Cap nhat tieu de + muc sidebar dang chon theo trang vua hien (doc tu data-* tren #page)
+function refreshShell() {
+  const p = document.getElementById('page'); if (!p) return;
+  const nav = document.getElementById('adm-nav'), t = document.getElementById('adm-title'), d = document.getElementById('adm-drawer');
+  if (nav) { nav.innerHTML = navHtml(p.dataset.active || ''); if (window.htmx) htmx.process(nav); }
+  if (t) t.textContent = p.dataset.title || '';
+  if (d) d.checked = false; // man hinh nho: dong menu sau khi chon
+}
+
+// Chuyen trang bang code (vd sau khi luu form) ma van qua htmx, khong tai lai trang
+function go(url) {
+  const a = document.createElement('a'); a.href = url; a.hidden = true;
+  document.querySelector('.drawer').appendChild(a); htmx.process(a); a.click(); a.remove();
+}
+
 document.addEventListener('DOMContentLoaded', mountAdminShell);
+document.addEventListener('htmx:afterSwap', e => { if (e.detail.target && e.detail.target.id === 'adm-main') refreshShell(); });
+// Nut Back/Forward: htmx khoi phuc HTML da luu nhung KHONG chay lai script cua trang -> chay lai de nut/bieu do hoat dong
+document.addEventListener('htmx:historyRestore', () => {
+  refreshShell();
+  document.querySelectorAll('#page script').forEach(old => { const s = document.createElement('script'); s.textContent = old.textContent; old.replaceWith(s); });
+});
 
 /* ------------------------------------------------------------------ toast & hop thoai xac nhan */
 function toast(msg, kind = 'success') {

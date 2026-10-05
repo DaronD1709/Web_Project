@@ -5,10 +5,11 @@
   <title>Đơn hàng — Quản trị NôngViệt</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <link href="../design.css" rel="stylesheet"><script src="../layout.js"></script><script src="admin.js"></script>
 </head>
 <body class="bg-base-200 min-h-screen" data-active="orders" data-title="Đơn hàng">
-<div id="page">
+<div id="page" data-active="orders" data-title="Đơn hàng">
 <div class="max-w-7xl mx-auto space-y-4">
   <div><h1 class="text-2xl font-bold">Đơn hàng</h1><p class="text-sm text-base-content/60">Xác nhận, cập nhật trạng thái giao hàng, huỷ đơn và duyệt hoàn hàng</p></div>
 
@@ -29,14 +30,13 @@
     <div id="empty" class="hidden p-12 text-center text-base-content/60"><div class="text-4xl">📭</div>Không có đơn hàng phù hợp.</div>
   </div>
 </div>
-</div>
 <script>
-const $ = id => document.getElementById(id);
-const TABS = [['all', 'Tất cả'], ['pending', 'Chờ xác nhận'], ['confirmed', 'Đã xác nhận'], ['shipping', 'Đang giao'], ['completed', 'Hoàn tất'], ['cancelled', 'Đã huỷ'], ['return', 'Hoàn hàng']];
-const inTab = (o, t) => t === 'all' || o.status === t || (t === 'return' && o.status === 'returned');
-let tab = new URLSearchParams(location.search).get('tab') || 'all';
+var $ = id => document.getElementById(id);
+var TABS = [['all', 'Tất cả'], ['pending', 'Chờ xác nhận'], ['confirmed', 'Đã xác nhận'], ['shipping', 'Đang giao'], ['completed', 'Hoàn tất'], ['cancelled', 'Đã huỷ'], ['return', 'Hoàn hàng']];
+var inTab = (o, t) => t === 'all' || o.status === t || (t === 'return' && o.status === 'returned');
+var tab = new URLSearchParams(location.search).get('tab') || 'all';
 // Luong hop le (khop Order.updateStatus): PENDING -> CONFIRMED -> SHIPPING -> COMPLETED
-const NEXT = { pending: ['confirmed', 'Xác nhận'], confirmed: ['shipping', 'Giao hàng'], shipping: ['completed', 'Hoàn tất'] };
+var NEXT = { pending: ['confirmed', 'Xác nhận'], confirmed: ['shipping', 'Giao hàng'], shipping: ['completed', 'Hoàn tất'] };
 function draw() {
   $('tabs').innerHTML = TABS.map(([k, t]) => `<a role="tab" class="tab gap-2 ${k === tab ? 'tab-active' : ''}" onclick="tab='${k}';draw()">${t}<span class="badge badge-sm ${k === 'return' && ORDERS.some(o => o.status === 'return') ? 'badge-error' : 'badge-ghost'}">${ORDERS.filter(o => inTab(o, k)).length}</span></a>`).join('');
   const q = $('q').value.trim().toLowerCase(), pay = $('pay').value;
@@ -61,5 +61,6 @@ function advance(no) {
 }
 ['q', 'pay', 'from', 'to'].forEach(i => $(i).addEventListener('input', draw)); draw();
 </script>
+</div>
 </body>
 </html>
