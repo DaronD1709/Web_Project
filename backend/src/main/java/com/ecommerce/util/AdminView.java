@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Ve 1 trang Admin: Servlet chi chon "noi dung" (vd products.jsp), con khung (header + sidebar) do admin/layout.jsp lo.
+ * Ve 1 trang Admin: Servlet chi chon "noi dung" (vd admin-product-list.jsp), con khung (header + sidebar) do admin/admin-layout.jsp lo.
  *  - Mo trang truc tiep (go URL, F5)        -> tra CA KHUNG + noi dung.
  *  - Bam link/form qua htmx (hx-boost)       -> chi tra NOI DUNG (+ sidebar/tieu de cap nhat bang hx-swap-oob).
  * Nho do chuyen trang khong nhay, ma moi trang van chi la 1 file JSP chua noi dung.
@@ -36,7 +36,7 @@ public class AdminView {
         }
 
         resp.addHeader("Vary", "HX-Request"); // cung 1 URL tra 2 kieu noi dung -> cache khong duoc lan lon
-        req.getRequestDispatcher("/WEB-INF/views/admin/layout.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/admin-layout.jsp").forward(req, resp);
     }
 
     /** Nho 1 thong bao de hien o trang KE TIEP (sau sendRedirect, request moi nen attribute cua request cu da mat). */

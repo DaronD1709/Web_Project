@@ -4,7 +4,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" scope="request" />
 <%--
   KHUNG CHUNG CUA CMS. AdminView.render(...) forward toi day, kem cac attribute:
-    adminContent : file noi dung trong views/admin/ (vd products.jsp)     adminTitle : tieu de trang
+    adminContent : file noi dung trong views/admin/ (vd admin-product-list.jsp)     adminTitle : tieu de trang
     adminActive  : muc sidebar duoc to sang                                 partial    : true khi la request htmx (xem AdminView)
   - partial = false (go URL, F5, Back)  -> in CA TRANG: <html>, header, sidebar, noi dung.
   - partial = true  (bam link da hx-boost) -> chi in NOI DUNG + title/nav cap nhat bang hx-swap-oob; htmx nhet vao #adm-main.
@@ -14,8 +14,8 @@
 <title><c:out value="${adminTitle}"/> — Quản trị NôngViệt</title>
 <jsp:include page="/WEB-INF/views/admin/${adminContent}" />
 <%-- Nhung phan nam NGOAI #adm-main nhung can doi theo trang: tieu de tren header + muc dang chon o sidebar (hx-swap-oob) --%>
-<%@ include file="/WEB-INF/views/admin/common/title.jspf" %>
-<%@ include file="/WEB-INF/views/admin/common/nav.jspf" %>
+<%@ include file="/WEB-INF/views/admin/common/admin-title.jspf" %>
+<%@ include file="/WEB-INF/views/admin/common/admin-nav.jspf" %>
 </c:when>
 <c:otherwise>
 <!doctype html>
@@ -31,7 +31,7 @@
   <input id="adm-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-content flex flex-col min-w-0 min-h-screen">
-    <%@ include file="/WEB-INF/views/admin/common/header.jspf" %>
+    <%@ include file="/WEB-INF/views/admin/common/admin-header.jspf" %>
 
     <%-- VUNG NOI DUNG: thay doi theo tung trang --%>
     <main id="adm-main" class="flex-1 p-4 md:p-6 min-w-0">
@@ -39,7 +39,7 @@
     </main>
   </div>
 
-  <%@ include file="/WEB-INF/views/admin/common/sidebar.jspf" %>
+  <%@ include file="/WEB-INF/views/admin/common/admin-sidebar.jspf" %>
 </div>
 
 <%-- Toast: hien khi server gui header HX-Trigger (showToast) hoac khi co flash sau redirect (xem static/js/admin.js) --%>

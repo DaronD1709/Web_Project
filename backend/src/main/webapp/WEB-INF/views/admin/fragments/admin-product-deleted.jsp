@@ -6,4 +6,4 @@
 --%>
 <%-- oob phai o request scope: jsp:include ben duoi co page scope rieng --%>
 <c:set var="oob" value="${true}" scope="request" />
-<jsp:include page="/WEB-INF/views/admin/fragments/product-summary.jsp" />
+<jsp:include page="/WEB-INF/views/admin/fragments/admin-product-summary.jsp" />

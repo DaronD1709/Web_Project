@@ -87,9 +87,9 @@ public class AdminProductServlet extends HttpServlet {
         // O loc / phan trang (htmx) chi can bang san pham; mo trang / chuyen trang tu sidebar can ca noi dung trang.
         if (HtmxUtil.isHtmx(req) && "product-list".equals(req.getHeader("HX-Target"))) {
             resp.addHeader("Vary", "HX-Request, HX-Target");
-            req.getRequestDispatcher("/WEB-INF/views/admin/fragments/product-list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/fragments/admin-product-table.jsp").forward(req, resp);
         } else {
-            AdminView.render(req, resp, "products.jsp", "Sản phẩm", "products");
+            AdminView.render(req, resp, "admin-product-list.jsp", "Sản phẩm", "products");
         }
     }
 
@@ -108,7 +108,7 @@ public class AdminProductServlet extends HttpServlet {
 
     private void showForm(HttpServletRequest req, HttpServletResponse resp, String title) throws ServletException, IOException {
         req.setAttribute("categories", categoryService.getAllCategories());
-        AdminView.render(req, resp, "product-form.jsp", title, "products");
+        AdminView.render(req, resp, "admin-product-form.jsp", title, "products");
     }
 
     private void save(HttpServletRequest req, HttpServletResponse resp, Integer id) throws ServletException, IOException {
@@ -179,7 +179,7 @@ public class AdminProductServlet extends HttpServlet {
             ProductFilter filter = readFilter(req);
             req.setAttribute("filter", filter);
             req.setAttribute("result", productService.search(filter));
-            req.getRequestDispatcher("/WEB-INF/views/admin/fragments/product-deleted.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/views/admin/fragments/admin-product-deleted.jsp").forward(req, resp);
         }
     }
 }

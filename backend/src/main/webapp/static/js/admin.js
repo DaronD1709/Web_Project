@@ -1,4 +1,4 @@
-/* JS dung chung cua CMS Admin. Nap 1 lan trong <head> (layout.jsp). Dat o day thay vi <script> trong trang vi
+/* JS dung chung cua CMS Admin. Nap 1 lan trong <head> (admin-layout.jsp). Dat o day thay vi <script> trong trang vi
    script ben trong noi dung htmx swap vao khong chay lai khi bam Back (lich su htmx chi luu HTML). */
 
 // Toast goc duoi-phai
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (f) nvToast(f.textContent, f.dataset.type);
 });
 
-// Xem truoc the san pham trong form them/sua san pham: goi tu oninput/onchange cua form (product-form.jsp)
+// Xem truoc the san pham trong form them/sua san pham: goi tu oninput/onchange cua form (admin-product-form.jsp)
 function nvProductPreview() {
   var f = document.getElementById('product-form');
   if (!f) return;

@@ -5,7 +5,7 @@
 <fmt:setLocale value="vi_VN" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%--
-  MANH: bang san pham + dong tong so + phan trang. Nam trong <div id="product-list"> cua products.jsp; khi loc/doi trang
+  MANH: bang san pham + dong tong so + phan trang. Nam trong <div id="product-list"> cua admin-product-list.jsp; khi loc/doi trang
   AdminProductServlet chi tra rieng file nay de htmx thay noi dung #product-list. Attribute: filter, result.
 --%>
 <c:choose>
@@ -63,7 +63,7 @@
 
 <%-- ===== CHAN BANG: dong tong so + phan trang ===== --%>
 <div class="flex flex-wrap items-center justify-between gap-2 p-3 border-t border-base-300 text-sm">
-  <jsp:include page="/WEB-INF/views/admin/fragments/product-summary.jsp" />
+  <jsp:include page="/WEB-INF/views/admin/fragments/admin-product-summary.jsp" />
   <c:if test="${result.totalPages > 1}">
     <%-- Link phan trang la link thuong; vi nam trong khung hx-boost nen htmx tu bien thanh request ngam, hx-target doi vung can thay
          tu #adm-main (ke thua) thanh #product-list (chi thay bang). --%>

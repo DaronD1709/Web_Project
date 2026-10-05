@@ -1,5 +1,5 @@
-<%-- Menu ben trai. Tach file rieng vi 2 noi dung: (1) nam trong sidebar.jspf khi ve CA TRANG, (2) tu thay the khi chuyen trang bang htmx:
-     o che do manh (partial) layout.jsp chi in lai <ul> nay kem hx-swap-oob="true" de htmx doi muc dang to sang ma khong ve lai ca sidebar.
+<%-- Menu ben trai. Tach file rieng vi 2 noi dung: (1) nam trong admin-sidebar.jspf khi ve CA TRANG, (2) tu thay the khi chuyen trang bang htmx:
+     o che do manh (partial) admin-layout.jsp chi in lai <ul> nay kem hx-swap-oob="true" de htmx doi muc dang to sang ma khong ve lai ca sidebar.
      Can: adminActive (muc dang chon), partial, ctx. --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <ul id="adm-nav" class="p-3 space-y-1 flex-1"${partial ? ' hx-swap-oob="true"' : ''}>

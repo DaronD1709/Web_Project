@@ -6,7 +6,7 @@
   <%-- Tieu de trang --%>
   <div class="text-sm flex items-center gap-2">
     <span class="text-base-content/50 hidden sm:inline">Quản trị /</span>
-    <%@ include file="/WEB-INF/views/admin/common/title.jspf" %>
+    <%@ include file="/WEB-INF/views/admin/common/admin-title.jspf" %>
   </div>
   <%-- Nguoi dung + dang xuat (POST /logout; hx-boost="false" de dang xuat tai lai trang that su, khong chi doi 1 manh) --%>
   <div class="ml-auto flex items-center gap-3">

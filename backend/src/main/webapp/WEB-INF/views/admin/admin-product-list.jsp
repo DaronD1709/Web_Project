@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%--
-  NOI DUNG trang Admin > San pham (khung header/sidebar do layout.jsp lo). AdminProductServlet.showList truyen:
+  NOI DUNG trang Admin > San pham (khung header/sidebar do admin-layout.jsp lo). AdminProductServlet.showList truyen:
     filter     : ProductFilter (q, cat, stock, sort, page dang chon)
     result     : PageResult<Product>
     categories : List<Category>
@@ -20,7 +20,7 @@
 
   <%-- ===== VUNG 2: THANH LOC (tu tim khi go / doi o chon, khong tai lai trang) =====
        htmx: form tu gui GET /admin/products khi (a) go o tim kiem xong 0,3 giay, (b) doi 1 o chon, (c) nhan Enter.
-       Servlet thay HX-Target = product-list nen chi tra bang (fragments/product-list.jsp); hx-push-url cap nhat thanh dia chi. --%>
+       Servlet thay HX-Target = product-list nen chi tra bang (fragments/admin-product-table.jsp); hx-push-url cap nhat thanh dia chi. --%>
   <form id="product-filter" method="get" action="${ctx}/admin/products"
         hx-get="${ctx}/admin/products" hx-target="#product-list" hx-push-url="true"
         hx-trigger="input[target.type=='search'] delay:300ms, change[target.tagName=='SELECT'], submit"
@@ -51,6 +51,6 @@
 
   <%-- ===== VUNG 3: BANG SAN PHAM + PHAN TRANG (phan nay duoc htmx thay khi loc/doi trang) ===== --%>
   <div id="product-list" class="card bg-base-100 border border-base-300 overflow-hidden">
-    <jsp:include page="/WEB-INF/views/admin/fragments/product-list.jsp" />
+    <jsp:include page="/WEB-INF/views/admin/fragments/admin-product-table.jsp" />
   </div>
 </div>
