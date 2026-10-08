@@ -150,12 +150,15 @@ Nội dung tin nhắn luôn qua `<c:out>`.
 
 ## 7. Admin (Core trước; Quản lý sản phẩm đã code)
 
-Mọi URL `/admin/*` dùng `SessionUtil.requireAdmin` (chưa đăng nhập → `/login?next=`, khách hàng → 403). Khung trang (header + sidebar) nằm ở `WEB-INF/views/admin/admin-layout.jsp`;
+Mọi URL `/admin/*` (trừ `/admin/login`) dùng `SessionUtil.requireAdmin` (chưa đăng nhập → `/admin/login?next=`, khách hàng → 403). Khung trang (header + sidebar) nằm ở `WEB-INF/views/admin/admin-layout.jsp`;
 Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mục-sidebar")` — mở trực tiếp thì trả cả khung, bấm link qua htmx (`hx-boost`) thì chỉ trả nội dung.
 
 | Method | URL | Servlet | Tham số chính | Ghi chú |
 |---|---|---|---|---|
 | GET | `/admin` | `AdminDashboardServlet` | — | Optional: thống kê doanh thu, bán chạy |
+| GET | `/admin/login` | `AdminLoginServlet` | `next` | **Đã code.** Form đăng nhập quản trị (`admin-login.jsp`, trang riêng không có header/sidebar). Đã đăng nhập Admin → 302 vào CMS |
+| POST | `/admin/login` | `AdminLoginServlet` | `email`, `password`, `next` | **Đã code.** Dùng `AuthService.login`, thêm bước kiểm tra là `Admin` (khách hàng đúng mật khẩu → "không có quyền quản trị"). Thành công: huỷ session cũ, tạo session mới, 302 tới `next` (chỉ nhận đường dẫn bắt đầu bằng `/admin`, ngược lại `/admin/products`) |
+| POST | `/admin/logout` | `AdminLogoutServlet` | — | **Đã code.** Huỷ session, 302 `/admin/login`. Chỉ POST (GET → 405) |
 | GET | `/admin/products` | `AdminProductServlet` | `q`, `cat`, `stock=in\|low\|out`, `sort=new\|name\|asc\|desc\|stock`, `page` (10 SP/trang) | **Đã code.** Trang đầy đủ; request htmx có `HX-Target: product-list` (ô lọc, phân trang) chỉ trả bảng `fragments/admin-product-table.jsp` |
 | GET | `/admin/products/new` | `AdminProductServlet` | — | **Đã code.** Form thêm |
 | POST | `/admin/products/new` | `AdminProductServlet` | `name`, `description`, `price`, `stock`, `category`, `image` (`multipart/form-data`) | **Đã code.** Lỗi → vẽ lại form kèm lỗi từng ô; đúng → flash + 302 `/admin/products`. Ảnh: JPG/PNG/WEBP ≤ 2MB, nhận diện bằng byte đầu file, lưu ngoài webapp (`~/nongviet-uploads` hoặc biến môi trường `UPLOAD_DIR`), phục vụ qua `GET /uploads/<uuid>.<ext>` |
