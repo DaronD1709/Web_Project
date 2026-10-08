@@ -1,0 +1,8 @@
+<%-- Menu tai khoan chuyen tu mockup/layout.js; activeAccount do trang cha dat. --%>
+<ul class="menu menu-horizontal lg:menu-vertical flex-nowrap overflow-x-auto bg-base-100 rounded-box border border-base-300 w-full p-2">
+  <li><a href="${ctx}/account/profile" class="${activeAccount eq 'profile' ? 'menu-active' : ''}">Hồ sơ cá nhân</a></li>
+  <li><a href="${ctx}/account/addresses" class="${activeAccount eq 'addresses' ? 'menu-active' : ''}">Địa chỉ giao hàng</a></li>
+  <li><a href="${ctx}/orders" class="${activeAccount eq 'orders' ? 'menu-active' : ''}">Đơn hàng của tôi</a></li>
+  <li><a href="${ctx}/notifications" class="${activeAccount eq 'notifications' ? 'menu-active' : ''}">Thông báo</a></li>
+  <li><form action="${ctx}/logout" method="post" class="p-0"><button type="submit" class="text-error px-3 py-2 cursor-pointer">Đăng xuất</button></form></li>
+</ul>

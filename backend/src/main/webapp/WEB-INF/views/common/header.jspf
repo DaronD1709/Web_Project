@@ -17,8 +17,15 @@
         <span class="hidden sm:inline">Giỏ hàng</span></a>
       <c:choose>
         <c:when test="${not empty sessionScope.currentUser}">
-          <span class="text-sm hidden md:inline"><c:out value="${sessionScope.currentUser.fullName}"/></span>
-          <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm text-error">Đăng xuất</button></form>
+          <c:choose>
+            <c:when test="${sessionScope.currentUser['class'].simpleName eq 'Customer'}">
+              <jsp:include page="/WEB-INF/views/common/customer-account-menu.jsp" />
+            </c:when>
+            <c:otherwise>
+              <span class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate"><c:out value="${sessionScope.currentUser.fullName}"/></span>
+              <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm text-error">Đăng xuất</button></form>
+            </c:otherwise>
+          </c:choose>
         </c:when>
         <c:otherwise>
           <a href="${ctx}/login" class="btn btn-ghost btn-sm">Đăng nhập</a>
