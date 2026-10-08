@@ -3,7 +3,7 @@
   <label for="adm-drawer" class="drawer-overlay" aria-label="Đóng menu"></label>
   <aside class="w-64 min-h-full bg-neutral text-neutral-content flex flex-col">
     <%-- Logo --%>
-    <a href="${ctx}/admin" class="h-14 px-5 flex items-center gap-2 text-lg font-extrabold border-b border-white/10">🌾 NôngViệt
+    <a href="${ctx}/admin" class="h-14 px-5 flex items-center gap-2 text-lg font-extrabold border-b border-white/10">🌾 Nông Việt
       <span class="badge badge-sm badge-outline border-white/40 text-white/70">CMS</span></a>
     <%-- Danh sach muc menu --%>
     <%@ include file="/WEB-INF/views/admin/common/admin-nav.jspf" %>

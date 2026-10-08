@@ -16,6 +16,8 @@ public class HtmxUtil {
      * nen tieng Viet duoc ma hoa \\uXXXX trong JSON.
      */
     public static void toast(HttpServletResponse resp, String message, String type) {
+        // Header HX-Trigger chua JSON {"showToast": {message, type}}; htmx phat su kien "showToast" tren trang, JS bat de hien toast.
+        // Phai goi TRUOC khi forward/ghi noi dung (sau do response da gui di thi khong gan them header duoc).
         resp.setHeader("HX-Trigger", "{\"showToast\":{\"message\":\"" + jsonAscii(message) + "\",\"type\":\"" + type + "\"}}");
     }
 
@@ -24,6 +26,9 @@ public class HtmxUtil {
         resp.setHeader("HX-Redirect", url);
     }
 
+    // Doi chuoi sang dang an toan cho JSON trong header: dau " va dau gach cheo nguoc duoc them 1 gach cheo nguoc phia truoc;
+    // ky tu ngoai ASCII (tieng Viet co dau) doi thanh ma 4 so hex, vd chu D co gach -> backslash + "u0110".
+    // Trinh duyet doc JSON se giai ma lai thanh chu dung. (Khong viet ma do vao comment: Java doi no truoc ca khi bien dich.)
     private static String jsonAscii(String s) {
         StringBuilder sb = new StringBuilder();
         for (char c : s.toCharArray()) {

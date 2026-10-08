@@ -9,8 +9,10 @@
     categories : List<Category>
   Chuyen tu mockup/admin/product-form.html. Them: draft.id rong.
 --%>
+<%-- editing = true khi dang SUA (draft co id). action = URL form gui toi: /new (them) hoac /edit?id=.. (sua) --%>
 <c:set var="editing" value="${not empty draft.id}" />
 <c:set var="action" value="${ctx}/admin/products/${editing ? 'edit?id=' : 'new'}${draft.id}" />
+<%-- priceText: gia dang so nguyen khong dau phan cach (185000) de dien vao o type="number"; in thang draft.price se ra 1.2E7 voi so lon --%>
 <fmt:formatNumber value="${draft.price}" pattern="0" var="priceText" />
 
 <div class="max-w-5xl mx-auto space-y-4">
@@ -36,6 +38,7 @@
 
         <label class="form-control w-full">
           <div class="label"><span class="label-text">Tên sản phẩm <span class="text-error">*</span></span></div>
+          <%-- Moi o: value lay tu draft (c:out chong XSS), vien do + dong loi hien khi errors co khoa tuong ung (errors.name...) --%>
           <input name="name" value="<c:out value='${draft.name}'/>" class="input w-full ${not empty errors.name ? 'input-error' : ''}"
                  placeholder="VD: Phân bón NPK 20-20-15 (bao 5kg)" maxlength="255">
           <c:if test="${not empty errors.name}"><div class="label"><span class="label-text-alt text-error">${errors.name}</span></div></c:if>

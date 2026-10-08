@@ -20,6 +20,8 @@
 
   <%-- ===== VUNG 2: THANH LOC (tu tim khi go / doi o chon, khong tai lai trang) =====
        htmx: form tu gui GET /admin/products khi (a) go o tim kiem xong 0,3 giay, (b) doi 1 o chon, (c) nhan Enter.
+       hx-trigger gom 3 su kien cach nhau dau phay: (1) go o tim kiem roi cho 0,3s (delay: moi lan go lai dem lai nen khong gui moi phim),
+       (2) doi 1 o chon, (3) nhan Enter. Phan [...] la dieu kien loc su kien, de o tim kiem khong kich hoat 2 lan.
        Servlet thay HX-Target = product-list nen chi tra bang (fragments/admin-product-table.jsp); hx-push-url cap nhat thanh dia chi. --%>
   <form id="product-filter" method="get" action="${ctx}/admin/products"
         hx-get="${ctx}/admin/products" hx-target="#product-list" hx-push-url="true"

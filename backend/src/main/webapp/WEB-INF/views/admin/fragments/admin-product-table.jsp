@@ -8,6 +8,7 @@
   MANH: bang san pham + dong tong so + phan trang. Nam trong <div id="product-list"> cua admin-product-list.jsp; khi loc/doi trang
   AdminProductServlet chi tra rieng file nay de htmx thay noi dung #product-list. Attribute: filter, result.
 --%>
+<%-- Khong co san pham nao khop bo loc thi hien thong bao, nguoc lai hien bang --%>
 <c:choose>
   <%-- ===== Khong co ket qua ===== --%>
   <c:when test="${empty result.items}">
@@ -25,6 +26,7 @@
               <td>
                 <div class="flex items-center gap-3">
                   <c:choose>
+                    <%-- Co anh thi hien anh (duong dan /uploads/... do ImageServlet tra), chua co thi hien o gia lap --%>
                     <c:when test="${not empty p.imageUrl}"><img src="${ctx}/${p.imageUrl}" alt="" class="size-12 rounded-field object-cover shrink-0"></c:when>
                     <c:otherwise><div class="ph ph-sm size-12 rounded-field shrink-0">🌾</div></c:otherwise>
                   </c:choose>
@@ -61,7 +63,7 @@
   </c:otherwise>
 </c:choose>
 
-<%-- ===== CHAN BANG: dong tong so + phan trang ===== --%>
+<%-- ===== CHAN BANG: dong tong so + phan trang (nam ngoai c:choose nen luon hien) ===== --%>
 <div class="flex flex-wrap items-center justify-between gap-2 p-3 border-t border-base-300 text-sm">
   <jsp:include page="/WEB-INF/views/admin/fragments/admin-product-summary.jsp" />
   <c:if test="${result.totalPages > 1}">
