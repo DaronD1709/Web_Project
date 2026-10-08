@@ -17,7 +17,6 @@ public class AdminView {
 
     private static final String FLASH = "flash";
 
-    /** contentJsp: ten file trong WEB-INF/views/admin/ ; active: muc sidebar duoc to sang (products, orders, ...). */
     public static void render(HttpServletRequest req, HttpServletResponse resp, String contentJsp, String title, String active)
             throws ServletException, IOException {
 

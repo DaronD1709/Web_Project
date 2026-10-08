@@ -12,7 +12,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>NôngViệt — Hạt giống, phân bón, máy móc nông nghiệp</title>
+  <title>Nông Việt — Hạt giống, phân bón, máy móc nông nghiệp</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen">

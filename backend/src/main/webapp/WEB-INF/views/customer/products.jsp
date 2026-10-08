@@ -13,7 +13,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Sản phẩm — NôngViệt</title>
+  <title>Sản phẩm — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen">

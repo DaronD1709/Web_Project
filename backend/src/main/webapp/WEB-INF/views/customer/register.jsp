@@ -4,7 +4,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Đăng ký — NôngViệt</title>
+  <title>Đăng ký — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">

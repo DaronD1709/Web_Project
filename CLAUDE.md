@@ -1,7 +1,7 @@
 # Bối cảnh dự án — đọc trước khi code
 
 Đồ án web ecommerce (Java Servlet/JSP, NetBeans), **chủ đề nông nghiệp** (hạt giống, phân bón,
-thuốc BVTV, dụng cụ, máy móc & tưới tiêu, nông sản; tên shop giả lập: NôngViệt).
+thuốc BVTV, dụng cụ, máy móc & tưới tiêu, nông sản; tên shop giả lập: Nông Việt).
 Team 3 người, mỗi người 1 máy/1 DB Postgres riêng; 2 thành viên năm 3 chưa biết React. Deadline ~14 ngày kể từ đầu tháng 10/2026,
 có vấn đáp (oral exam) trên chính code — code càng dễ hiểu/giải thích được càng tốt,
 tránh magic/abstraction không cần thiết.

@@ -85,7 +85,7 @@ function renderHeader(auth, active) {
   return `
   <header class="bg-base-100 border-b border-base-300 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-3">
-      <a href="home.html" class="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">🌾 NôngViệt</a>
+      <a href="home.html" class="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">🌾 Nông Việt</a>
       <div class="dropdown hidden md:block">
         <div tabindex="0" role="button" class="btn btn-ghost btn-sm">Danh mục ▾</div>
         <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-56 p-2 shadow-lg border border-base-300 mt-2">${catLinks}</ul>
@@ -109,12 +109,12 @@ function renderFooter() {
   return `
   <footer class="bg-neutral text-neutral-content mt-16">
     <div class="max-w-7xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-4 text-sm">
-      <div><div class="text-lg font-bold mb-2">🌾 NôngViệt</div><p class="opacity-70">Hạt giống, phân bón, dụng cụ và máy móc cho nhà nông.</p></div>
+      <div><div class="text-lg font-bold mb-2">🌾 Nông Việt</div><p class="opacity-70">Hạt giống, phân bón, dụng cụ và máy móc cho nhà nông.</p></div>
       <div><div class="font-semibold mb-2">Mua sắm</div><ul class="space-y-1 opacity-70"><li><a href="products.html">Tất cả sản phẩm</a></li><li><a href="cart.html">Giỏ hàng</a></li><li><a href="orders.html">Tra cứu đơn hàng</a></li></ul></div>
       <div><div class="font-semibold mb-2">Hỗ trợ</div><ul class="space-y-1 opacity-70"><li><a href="chat.html">Chat với shop</a></li><li>Chính sách đổi trả</li><li>Hướng dẫn thanh toán</li></ul></div>
       <div><div class="font-semibold mb-2">Liên hệ</div><ul class="space-y-1 opacity-70"><li>0900 000 000</li><li>support@nongviet.vn</li></ul></div>
     </div>
-    <div class="text-center text-xs opacity-50 pb-6">© 2026 NôngViệt — đồ án môn học</div>
+    <div class="text-center text-xs opacity-50 pb-6">© 2026 Nông Việt — đồ án môn học</div>
   </footer>`;
 }
 

@@ -3,7 +3,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Quên mật khẩu — NôngViệt</title>
+  <title>Quên mật khẩu — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">

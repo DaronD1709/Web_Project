@@ -4,7 +4,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Đặt lại mật khẩu — NôngViệt</title>
+  <title>Đặt lại mật khẩu — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">
