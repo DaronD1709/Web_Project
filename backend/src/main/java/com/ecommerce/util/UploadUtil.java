@@ -14,15 +14,18 @@ import java.util.UUID;
  */
 public class UploadUtil {
 
-    public static final long MAX_BYTES = 2L * 1024 * 1024;
-    public static final String URL_PREFIX = "uploads/";
+    public static final long MAX_BYTES = 2L * 1024 * 1024; // anh toi da 2MB (L = kieu long)
+    public static final String URL_PREFIX = "uploads/";    // dau cua duong dan luu trong DB: "uploads/<uuid>.png"
 
+    // Thu muc chua anh tren o dia: bien moi truong UPLOAD_DIR neu co, khong thi ~/nongviet-uploads
     public static Path dir() {
         String env = System.getenv("UPLOAD_DIR");
         return (env != null && !env.isBlank()) ? Paths.get(env) : Paths.get(System.getProperty("user.home"), "nongviet-uploads");
     }
 
     /** "jpg" | "png" | "webp" theo byte dau, hoac null neu khong phai anh duoc phep. */
+    // Moi dinh dang anh co "chu ky" o dau file: JPEG = FF D8 FF, PNG = 89 'P' 'N' 'G', WEBP = "RIFF" .... "WEBP".
+    // (d[i] & 0xFF: byte trong Java co dau, can doi ve 0-255 de so sanh.) File gia mao (vd .png nhung that ra la HTML) khong khop -> null.
     public static String detectExtension(byte[] d) {
         if (d.length >= 3 && (d[0] & 0xFF) == 0xFF && (d[1] & 0xFF) == 0xD8 && (d[2] & 0xFF) == 0xFF) return "jpg";
         if (d.length >= 8 && (d[0] & 0xFF) == 0x89 && d[1] == 'P' && d[2] == 'N' && d[3] == 'G') return "png";
@@ -33,8 +36,8 @@ public class UploadUtil {
 
     /** Ghi file, tra ve gia tri luu vao Product.imageUrl, vd "uploads/3f2a....png". */
     public static String store(byte[] data, String extension) throws IOException {
-        Files.createDirectories(dir());
-        String name = UUID.randomUUID() + "." + extension;
+        Files.createDirectories(dir());   // chua co thu muc thi tao
+        String name = UUID.randomUUID() + "." + extension; // ten ngau nhien: khong trung nhau, khong dung ten file nguoi dung gui
         Files.write(dir().resolve(name), data);
         return URL_PREFIX + name;
     }
@@ -52,6 +55,8 @@ public class UploadUtil {
     }
 
     /** Duong dan that cua 1 ten file trong thu muc uploads; null neu ten khong an toan (chan "../"). */
+    // Chong path traversal: ten chua "/", "\\" hoac ".." (vd "../../etc/passwd") bi tu choi; roi kiem tra lai duong dan chuan hoa
+    // van nam TRONG thu muc uploads. ImageServlet va delete() deu di qua day truoc khi dong toi file.
     public static Path resolve(String fileName) {
         if (fileName == null || fileName.isEmpty() || fileName.contains("/") || fileName.contains("\\") || fileName.contains("..")) return null;
         Path base = dir().toAbsolutePath().normalize();
