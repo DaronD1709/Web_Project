@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -55,8 +56,11 @@ public class AuthService {
 
     /** Sai email hay sai mat khau deu bao CUNG 1 loi, de ke xau khong do duoc email nao da dang ky. */
     public User login(String email, String password) {
+        if (normalizeEmail(email).isEmpty() || password == null || password.isEmpty()) {
+            throw new BusinessException("Email hoặc mật khẩu không đúng.");
+        }
         User user = userDAO.findByEmail(normalizeEmail(email));
-        if (user == null || password == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
+        if (user == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
             throw new BusinessException("Email hoặc mật khẩu không đúng.");
         }
         return user;
@@ -121,7 +125,7 @@ public class AuthService {
     }
 
     private static String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase();
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private static String sha256Hex(String s) {

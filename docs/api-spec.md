@@ -52,8 +52,8 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 | GET | `/register` | `RegisterServlet` | — | `customer/register.jsp` | PUBLIC |
 | POST | `/register` | `RegisterServlet` | `fullName`, `email`, `phone`, `password`, `confirmPassword` | OK → tạo Customer + giỏ rỗng, **gửi email chào mừng**, 302 `/login?registered=1`; lỗi → form + `errors` (`email` trùng, `password` < 6 ký tự, không khớp) | PUBLIC |
 | GET | `/login` | `LoginServlet` | `next` (tuỳ chọn) | `customer/login.jsp` | PUBLIC |
-| POST | `/login` | `LoginServlet` | `email`, `password`, `next` | OK → lưu `currentUser`, 302 `next` hoặc `/`; sai → form + `error` | PUBLIC |
-| POST | `/logout` | `LogoutServlet` | — | `session.invalidate()`, 302 `/products`. Chỉ nhận POST (GET → 405) | CUSTOMER/ADMIN |
+| POST | `/login` | `LoginServlet` | `email`, `password`, `next`, `remember=on` (tuỳ chọn) | OK → session mới chứa `currentUser`, 302 `next` nội bộ hoặc `/`; sai → form + `error`, giữ email/next/remember, không giữ mật khẩu | PUBLIC |
+| POST | `/logout` | `LogoutServlet` | — | `session.invalidate()`, xoá cookie phiên, 302 `/`. Chỉ nhận POST (GET → 405) | CUSTOMER/ADMIN |
 | GET | `/forgot-password` | `ForgotPasswordServlet` | `sent=1` (sau khi gửi) | `customer/forgot-password.jsp` | PUBLIC |
 | POST | `/forgot-password` | `ForgotPasswordServlet` | `email` | Luôn 302 `/forgot-password?sent=1` dù email có tồn tại hay không; nếu tồn tại → tạo token, **gửi email chứa link** `/reset-password?token=…` | PUBLIC |
 | GET | `/reset-password` | `ResetPasswordServlet` | `token` | `customer/reset-password.jsp`: form mật khẩu mới, hoặc thông báo "liên kết không hợp lệ/hết hạn" (attr `invalid`) | PUBLIC |
@@ -69,7 +69,9 @@ Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/rese
 **Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chưa có: checkout, phía Admin của chat, AI tự trả lời.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
-`login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
+`login`: thiếu email/mật khẩu, sai email hay sai mật khẩu đều báo **cùng một** thông báo. Email được trim và chuyển chữ thường độc lập locale của máy; mật khẩu giữ nguyên. Tham số `next` chỉ nhận đường dẫn nội bộ bắt đầu bằng `/`, không nhận `//`, dấu `\` hoặc ký tự điều khiển.
+Đăng nhập thành công tạo session mới, bỏ dữ liệu phiên trước (chống session fixation và lẫn dữ liệu giữa tài khoản); Customer được nạp `cartCount` trước khi xác thực session, Admin không nhận badge giỏ của Customer trước đó.
+Ô **Ghi nhớ đăng nhập** giữ đúng mockup: `remember=on` đặt cookie phiên tối đa **7 ngày kể từ lúc đăng nhập**, session timeout không hoạt động là 7 ngày; không tích thì dùng cookie phiên trình duyệt và timeout mặc định của ứng dụng. Cookie chỉ chứa ID phiên, có HttpOnly, SameSite=Lax và Secure khi chạy HTTPS; không lưu mật khẩu. Đây là ghi nhớ dựa trên session Tomcat, không bảo đảm giữ đăng nhập khi session mất do redeploy/restart. Logout xoá cả session và cookie ghi nhớ. Login/logout gửi `Cache-Control: no-store`.
 Link trong email dùng `app.base.url` trong `mail.properties` (nếu có), nếu không thì suy từ request.
 Email không đổi được (chỉ đọc). Địa chỉ chỉ thao tác trên địa chỉ của `currentUser`.
 

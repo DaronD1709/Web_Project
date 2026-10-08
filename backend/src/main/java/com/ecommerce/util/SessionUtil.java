@@ -2,6 +2,8 @@ package com.ecommerce.util;
 
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.User;
+import jakarta.servlet.SessionCookieConfig;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -15,6 +17,22 @@ public class SessionUtil {
 
     public static final String CURRENT_USER = "currentUser";
     public static final String CART_COUNT = "cartCount";
+    public static final int REMEMBER_SECONDS = 7 * 24 * 60 * 60;
+
+    /** Cookie phien: maxAge=-1 la phien thuong, 7 ngay khi ghi nho, 0 de xoa khi dang xuat. */
+    public static void writeSessionCookie(HttpServletRequest req, HttpServletResponse resp, String value, int maxAge) {
+        SessionCookieConfig config = req.getServletContext().getSessionCookieConfig();
+        String name = config.getName() == null ? "JSESSIONID" : config.getName();
+        Cookie cookie = new Cookie(name, value);
+        String path = config.getPath();
+        cookie.setPath(path != null ? path : (req.getContextPath().isEmpty() ? "/" : req.getContextPath()));
+        if (config.getDomain() != null) cookie.setDomain(config.getDomain());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(req.isSecure() || config.isSecure());
+        cookie.setAttribute("SameSite", "Lax");
+        cookie.setMaxAge(maxAge);
+        resp.addCookie(cookie);
+    }
 
     public static User currentUser(HttpServletRequest req) {
         HttpSession s = req.getSession(false);

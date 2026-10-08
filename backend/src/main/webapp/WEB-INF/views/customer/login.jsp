@@ -27,10 +27,13 @@
 
     <input type="hidden" name="next" value="<c:out value='${next}'/>">
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
-      <input type="email" name="email" value="<c:out value='${email}'/>" class="input w-full" placeholder="ban@email.com" required></label>
+      <input type="email" name="email" value="<c:out value='${email}'/>" class="input w-full" placeholder="ban@email.com" autocomplete="username" required></label>
     <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
-      <input type="password" name="password" class="input w-full" required></label>
-    <div class="text-right text-sm"><a href="${ctx}/forgot-password" class="link link-primary">Quên mật khẩu?</a></div>
+      <input type="password" name="password" class="input w-full" placeholder="••••••••" autocomplete="current-password" required></label>
+    <div class="flex items-center justify-between text-sm">
+      <label class="flex items-center gap-2"><input type="checkbox" name="remember" class="checkbox checkbox-sm checkbox-primary" ${remember ? 'checked' : ''}> Ghi nhớ đăng nhập</label>
+      <a href="${ctx}/forgot-password" class="link link-primary">Quên mật khẩu?</a>
+    </div>
 
     <button class="btn btn-primary btn-block">Đăng nhập</button>
     <div class="text-center text-sm">Chưa có tài khoản? <a href="${ctx}/register" class="link link-primary font-medium">Đăng ký</a></div>
