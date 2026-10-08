@@ -19,11 +19,13 @@
         <c:when test="${not empty sessionScope.currentUser}">
           <c:choose>
             <c:when test="${sessionScope.currentUser['class'].simpleName eq 'Customer'}">
-              <a id="current-user-name" href="${ctx}/account/profile" class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate" title="<c:out value='${sessionScope.currentUser.fullName}'/>"><c:out value="${sessionScope.currentUser.fullName}"/></a>
+              <jsp:include page="/WEB-INF/views/common/customer-account-menu.jsp" />
             </c:when>
-            <c:otherwise><span class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate"><c:out value="${sessionScope.currentUser.fullName}"/></span></c:otherwise>
+            <c:otherwise>
+              <span class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate"><c:out value="${sessionScope.currentUser.fullName}"/></span>
+              <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm text-error">Đăng xuất</button></form>
+            </c:otherwise>
           </c:choose>
-          <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm text-error">Đăng xuất</button></form>
         </c:when>
         <c:otherwise>
           <a href="${ctx}/login" class="btn btn-ghost btn-sm">Đăng nhập</a>

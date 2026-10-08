@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -34,7 +35,7 @@ public class ProfileServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return;
         }
-        Customer customer = SessionUtil.requireCustomer(req, resp);
+        Customer customer = requireCustomer(req, resp);
         if (customer == null) return;
         try {
             Customer fresh = userService.getProfile(customer.getId());
@@ -50,7 +51,7 @@ public class ProfileServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         resp.setHeader("Cache-Control", "no-store");
-        Customer customer = SessionUtil.requireCustomer(req, resp);
+        Customer customer = requireCustomer(req, resp);
         if (customer == null) return;
         try {
             customer = userService.getProfile(customer.getId());
@@ -118,6 +119,18 @@ public class ProfileServlet extends HttpServlet {
         }
         req.setAttribute("initials", initials);
         req.setAttribute("joinedMonth", user.getCreatedAt() == null ? "" : user.getCreatedAt().format(DateTimeFormatter.ofPattern("MM/yyyy")));
+    }
+
+    /** Sau khi login, luon quay ve trang GET ho so, ke ca khi phien het han luc POST doi mat khau. */
+    private Customer requireCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        if (SessionUtil.currentUser(req) == null) {
+            String login = req.getContextPath() + "/login?next="
+                    + URLEncoder.encode("/account/profile", StandardCharsets.UTF_8);
+            if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
+            else resp.sendRedirect(login);
+            return null;
+        }
+        return SessionUtil.requireCustomer(req, resp);
     }
 
     private static String firstLetter(String word) {

@@ -74,7 +74,8 @@ Link trong email dùng `app.base.url` trong `mail.properties` (nếu có), nếu
 Email không đổi được (chỉ đọc). Địa chỉ chỉ thao tác trên địa chỉ của `currentUser`.
 
 **Manage Profile đã triển khai:** `ProfileServlet → UserService → UserDAO`; dùng `SessionUtil.requireCustomer`
-trong khi chờ AuthFilter. Khách chưa đăng nhập → `/login?next=...`, Admin → 403. GET `/account/password` → 405.
+trong khi chờ AuthFilter. Khách chưa đăng nhập → `/login?next=/account/profile` (next được URL encode),
+kể cả khi hết phiên lúc POST `/account/password`, để sau login quay về trang GET hợp lệ. Admin → 403. GET `/account/password` → 405.
 ID lấy từ session; tham số `id`, `email`, `role` gửi thêm không được dùng để cập nhật.
 Họ tên bắt buộc, trim và tối đa 255 ký tự; số điện thoại tùy chọn, nếu nhập cần 8–15 chữ số,
 cho phép dấu `+` ở đầu và ký tự phân cách khoảng trắng, `.`, `-`, `(`, `)`.
@@ -83,7 +84,9 @@ không trim hay đưa mật khẩu trở lại HTML. Đổi thành công xóa to
 các phiên đăng nhập khác chưa được thu hồi tự động. Cập nhật chỉ tác động các cột cần thiết, không merge toàn bộ Customer.
 Hai POST yêu cầu token CSRF gắn với session (thiếu/sai → 403). GET/POST gửi `Cache-Control: no-store`.
 Form thường dùng PRG; htmx trả fragment, lỗi 422 được trang Profile cho phép swap để hiện lỗi tại ô nhập.
-Sau khi lưu, session `currentUser` được cập nhật và `cartCount` giữ nguyên. UI chuyển từ `mockup/profile.html`,
+Sau khi lưu, session `currentUser` được cập nhật và `cartCount` giữ nguyên; menu tài khoản trên header được thay qua OOB.
+Menu dropdown từ `mockup/layout.js` mở được Hồ sơ trên cả mobile và desktop, Logout vẫn dùng POST.
+UI chuyển từ `mockup/profile.html`,
 menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơn hàng/thông báo giữ URL theo hợp đồng để các nhánh tương ứng nối sau.
 
 ---

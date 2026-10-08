@@ -26,5 +26,5 @@
   <div class="flex justify-end gap-2"><button type="reset" class="btn btn-ghost">Huỷ</button><button type="submit" class="btn btn-primary">Lưu thay đổi</button></div>
 </form>
 <c:if test="${updateHeader}">
-  <a id="current-user-name" hx-swap-oob="outerHTML" href="${ctx}/account/profile" class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate" title="<c:out value='${user.fullName}'/>"><c:out value="${user.fullName}"/></a>
+  <jsp:include page="/WEB-INF/views/common/customer-account-menu.jsp" />
 </c:if>
