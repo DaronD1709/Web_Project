@@ -28,14 +28,14 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - `docs/api-spec.md` — danh sách endpoint (Servlet) theo từng màn hình: URL, method, tham số, attr truyền cho JSP,
   quyền truy cập, rule nghiệp vụ, thứ tự code. **Không phải REST/JSON** — Servlet trả JSP hoặc htmx fragment.
   Khi thêm/đổi Servlet phải cập nhật file này.
-- `docs/class-diagram.md` — thiết kế đầy đủ 20 class/entity, bảng quan hệ (loại + multiplicity + label),
+- `docs/class-diagram.md` — thiết kế đầy đủ 21 class/entity, bảng quan hệ (loại + multiplicity + label),
   và mermaid source để vẽ lại nếu cần. **Đây là nguồn chân lý (source of truth) cho cấu trúc dữ liệu** —
   code trong `backend/src/main/java/com/ecommerce/entity/` phải khớp với file này.
 
 ## 3. Trạng thái hiện tại (đã code)
 
 - `backend/pom.xml`, `persistence.xml`, `web.xml` — skeleton Maven đã chạy được.
-- `backend/src/main/java/com/ecommerce/entity/` — đủ 20 entity + 4 enum, đúng theo class-diagram.md.
+- `backend/src/main/java/com/ecommerce/entity/` — đủ 21 entity + 4 enum, đúng theo class-diagram.md.
 - `backend/src/main/java/com/ecommerce/dao/AbstractDAO.java` — generic CRUD dùng chung cho mọi entity.
 - **Vertical slice mẫu chạy đầy đủ (đã test trên Tomcat + Postgres):** `GET /products` có tìm kiếm/lọc/sắp xếp/phân trang:
   `ProductServlet` (đọc tham số → `ProductFilter` DTO) → `ProductService.search` → `ProductDAO.search/countSearch`
@@ -107,6 +107,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - **Admin > Chat với khách (nhánh `feat/chat-with-shop`, đã test 50 kiểm tra):** `AdminChatServlet` (`/admin/chat`, `/list`, `/messages`, `/send`, `/mode`) → `AdminChatService` → `MessageDAO` (`findLatestPerCustomer` = tin cuối mỗi khách, sắp theo thời gian), `ChatService.setHandledByHuman`.
   Không WebSocket: danh sách hỏi lại mỗi 5 giây, khung chat mỗi 3 giây (htmx polling). **Bẫy đã gặp:** phần tử polling nằm trong vùng `hx-target="#adm-main"` (thuộc tính được KẾ THỪA) nên PHẢI tự khai `hx-target="this"`, nếu không kết quả polling thay vào cả trang. Admin gửi tin ⇒ tự chuyển chế độ Nhân viên.
   `Customer.handledByHuman` (cột `users.handled_by_human`) là cờ nhân viên tiếp quản. `DemoDataSeeder` nạp 3 cuộc trò chuyện mẫu khi bảng `messages` trống.
+- **Admin > Trả lời tự động (nhánh `feat/admin-auto-reply`, đã test 49 kiểm tra + chạy lại 52 kiểm tra chat):** `AdminAutoReplyServlet` (`/admin/auto-replies`, `/new`, `/edit`, `/toggle`, `/delete`, `/test`) → `AdminAutoReplyService` → `AutoReplyDAO`; ô "Thử câu hỏi" (htmx) gọi `ChatBotService.match` nên Admin thấy đúng cái chatbot sẽ trả lời.
+  Từ khoá phải ≥ 3 chữ/số để không khớp nhầm; `*` đứng một mình = bắt mọi câu (đặt ưu tiên lớn nhất làm câu mặc định). Mỗi tin khách gửi sẽ đọc luật từ DB (1 query).
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
@@ -152,8 +154,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `quantityUsed < quantityIssued`) vào đúng 1 chỗ, gọi khi áp dụng voucher lúc checkout — tránh if-else rải rác.
 - **Notification:** tạo tự động mỗi khi `Order.updateStatus()` được gọi (ví dụ trong `NotificationService`
   gọi kèm theo `OrderService.updateStatus()`).
-- **Chatbot (không có class AIBot/Conversation, KHÔNG gọi AI ngoài):** tin của bot gửi bằng tài khoản hệ thống loại Admin ("Trợ lý AI"); `ChatBotService.reply()` trả lời theo luật từ khoá (bỏ dấu + chữ thường).
-  Không hiểu hoặc khách xin gặp nhân viên ⇒ chuyển cuộc trò chuyện sang chế độ Nhân viên (`Customer.handledByHuman = true`) và bot im lặng cho tới khi Admin bật lại AI. Muốn dùng AI thật chỉ cần sửa `reply()`.
+- **Chatbot (không có class AIBot/Conversation, KHÔNG gọi AI ngoài):** tin của bot gửi bằng tài khoản hệ thống loại Admin ("Trợ lý AI"). `ChatBotService.reply()` đọc các luật **Admin tự soạn** ở bảng `auto_replies` (entity `AutoReply`: từ khoá → câu trả lời, ưu tiên, cờ chuyển nhân viên),
+  chọn luật đầu tiên khớp (khớp nguyên từ, bỏ dấu + chữ thường); không luật nào khớp ⇒ câu mặc định trong code + chuyển nhân viên. Luật `handoff` hoặc không hiểu ⇒ `Customer.handledByHuman = true` và bot im lặng cho tới khi Admin bật lại AI. `DataSeeder` nạp 10 luật mặc định (gồm luật `*`). Muốn dùng AI thật chỉ cần sửa `reply()`.
 - **Không có class `Account` riêng:** Admin/Customer đều là `User` — "khoá/mở tài khoản" dùng field `User.active` (cột `users.is_active`, mặc định true; `Boolean` + `isActive()` coi null là true để các dòng cũ không hỏng).
 
 ## 6. Quy ước code khi mở rộng

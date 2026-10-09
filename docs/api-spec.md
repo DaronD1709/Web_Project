@@ -182,6 +182,12 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 | GET | `/admin/chat/messages` | `AdminChatServlet` | `c`, `after` (id tin cuối đã có) | **Đã code (htmx).** Các tin mới hơn + thẻ `#poll` hỏi tiếp mỗi 3 giây (polling, không WebSocket) |
 | POST | `/admin/chat/send` | `AdminChatServlet` | `c`, `content` (≤ 1000 ký tự), `after` | **Đã code (htmx).** Lưu tin với `sender` = Admin đang đăng nhập, tự chuyển hội thoại sang chế độ Nhân viên; trả tin mới + đầu khung chat cập nhật (`hx-swap-oob`) |
 | POST | `/admin/chat/mode` | `AdminChatServlet` | `c`, `human=true\|false` (trạng thái MONG MUỐN) | **Đã code (htmx).** Bật/tắt chế độ nhân viên tiếp quản; trả lại đầu khung chat + toast |
+| GET | `/admin/auto-replies` | `AdminAutoReplyServlet` | — | **Đã code.** Danh sách luật trả lời tự động của chatbot (ưu tiên nhỏ trước) + ô "Thử câu hỏi" |
+| GET | `/admin/auto-replies/test` | `AdminAutoReplyServlet` | `text` | **Đã code (htmx).** Mô phỏng: luật nào khớp câu này và chatbot sẽ trả lời gì (dùng đúng `ChatBotService.match`) |
+| GET/POST | `/admin/auto-replies/new` | `AdminAutoReplyServlet` | `keywords`, `replyText`, `priority`, `handoff=on`, `active=on` | **Đã code.** Từ khoá: 1–20 cái, mỗi cái ≥ 3 chữ/số và ≤ 40 ký tự, `*` phải đứng một mình; trả lời ≤ 1000 ký tự; ưu tiên 1–9999 (gợi ý = luật thường lớn nhất + 10). Lỗi → vẽ lại form kèm lỗi từng ô |
+| GET/POST | `/admin/auto-replies/edit` | `AdminAutoReplyServlet` | `id` (query) + các trường như tạo | **Đã code** |
+| POST | `/admin/auto-replies/toggle` | `AdminAutoReplyServlet` | `id`, `active=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code (htmx).** Bật/tắt; `back` chỉ nhận đường dẫn bắt đầu bằng `/admin/auto-replies` |
+| POST | `/admin/auto-replies/delete` | `AdminAutoReplyServlet` | `id`, `back` | **Đã code** |
 | — | `/admin/reviews` | … | … | **Optional**, làm sau khi Core xong |
 
 ---
