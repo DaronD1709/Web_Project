@@ -1,0 +1,29 @@
+<%-- BIEU DO COT (doanh thu theo ngay). Dung bang <%@ include %>; truoc do phai c:set bien "chart" = ChartData (cac diem + max).
+     Ve bang HTML/CSS thuan (khong thu vien JS): moi cot la 1 <div> cao theo % so voi gia tri lon nhat; di chuot vao cot de xem so cu the (thuoc tinh title).
+     Co san 1 bang an (data-chart-table) de nut "Xem dang bang" bat len (admin.js: nvToggleChartTable). --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<fmt:setLocale value="vi_VN" />
+<c:set var="step" value="${fn:length(chart.points) > 14 ? 3 : 1}" /> <%-- nhieu cot thi chi ghi nhan ngay cach 3 cot cho do chat --%>
+<div data-chart>
+  <div class="text-xs text-base-content/50 mb-2">Cao nhất: <fmt:formatNumber value="${chart.max}" pattern="#,##0"/>₫ · Tổng: <fmt:formatNumber value="${chart.total}" pattern="#,##0"/>₫</div>
+  <div class="flex items-end gap-1 h-56" role="img" aria-label="Biểu đồ cột doanh thu theo ngày">
+    <c:forEach var="p" items="${chart.points}">
+      <%-- Chieu cao % (so nguyen, toi thieu 2% neu co doanh thu de van nhin thay) --%>
+      <c:set var="h" value="${chart.max > 0 ? (p.value * 100 / chart.max).intValue() : 0}" />
+      <div class="flex-1 min-w-0 h-full flex flex-col justify-end items-center group" title="${p.label}: <fmt:formatNumber value='${p.value}' pattern='#,##0'/>₫">
+        <div class="w-full max-w-6 rounded-t bg-primary/80 group-hover:bg-primary transition" style="height:${p.value > 0 and h < 2 ? 2 : h}%"></div>
+      </div>
+    </c:forEach>
+  </div>
+  <div class="flex gap-1 mt-1">
+    <c:forEach var="p" items="${chart.points}" varStatus="vs">
+      <div class="flex-1 min-w-0 text-[10px] text-center text-base-content/50 whitespace-nowrap overflow-visible">${vs.index % step == 0 ? p.label : ''}</div>
+    </c:forEach>
+  </div>
+</div>
+<div data-chart-table class="hidden overflow-x-auto mt-3">
+  <table class="table table-sm"><thead><tr><th>Ngày</th><th class="text-right">Doanh thu</th></tr></thead>
+    <tbody><c:forEach var="p" items="${chart.points}"><tr><td>${p.label}</td><td class="text-right tabular-nums"><fmt:formatNumber value="${p.value}" pattern="#,##0"/>₫</td></tr></c:forEach></tbody></table>
+</div>

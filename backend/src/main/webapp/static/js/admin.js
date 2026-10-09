@@ -82,3 +82,14 @@ function nvChatScroll() {
 }
 document.addEventListener('DOMContentLoaded', nvChatScroll);
 document.body.addEventListener('htmx:afterSettle', nvChatScroll);
+
+// ---- Bieu do (Tong quan, Thong ke) ----
+// Nut "Xem dang bang": an bieu do, hien bang so lieu tuong ung trong cung the (data-chart-card) va nguoc lai
+function nvToggleChartTable(btn) {
+  var card = btn.closest('[data-chart-card]');
+  var showTable = btn.getAttribute('aria-pressed') !== 'true';
+  card.querySelector('[data-chart]').classList.toggle('hidden', showTable);
+  card.querySelector('[data-chart-table]').classList.toggle('hidden', !showTable);
+  btn.setAttribute('aria-pressed', showTable ? 'true' : 'false');
+  btn.textContent = showTable ? 'Xem dạng biểu đồ' : 'Xem dạng bảng';
+}

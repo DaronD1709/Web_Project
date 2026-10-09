@@ -22,7 +22,7 @@ import java.io.IOException;
 public class AdminLoginServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/admin/admin-login.jsp";
-    private static final String DEFAULT_AFTER_LOGIN = "/admin/products"; // chua co trang tong quan thi vao thang quan ly san pham
+    private static final String DEFAULT_AFTER_LOGIN = "/admin"; // dang nhap xong vao trang Tong quan
 
     private final AuthService authService = new AuthService();
 
