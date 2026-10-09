@@ -169,7 +169,12 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 | GET | `/admin/orders` | `AdminOrderServlet` | `status=all\|pending\|confirmed\|shipping\|completed\|cancelled\|return`, `q` (mã đơn/tên/email), `pay=cod\|vnpay`, `from`, `to` (yyyy-MM-dd), `page` (10 đơn/trang) | **Đã code.** Mọi đơn của mọi khách. Trang đầy đủ; request htmx có `HX-Target: order-list` (ô lọc, tab, phân trang) chỉ trả tab + bảng `fragments/admin-order-table.jsp`. Tab "return" gồm `RETURN_REQUESTED` + `RETURNED` |
 | GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | **Đã code.** Chi tiết đơn (khách, dòng hàng, tiền, địa chỉ, thanh toán); id lạ → flash lỗi + 302 danh sách |
 | POST | `/admin/orders/status` | `AdminOrderServlet` | `id`, `status` (tên `OrderStatus`: CONFIRMED, SHIPPING, COMPLETED, CANCELLED, RETURNED), `back` (chỉ nhận đường dẫn bắt đầu bằng `/admin/orders`) | **Đã code.** Luật chuyển trạng thái ở `Order.canMoveTo`; Admin không tự đặt `RETURN_REQUESTED`/`PENDING`. `COMPLETED` từ `RETURN_REQUESTED` = từ chối hoàn hàng; `RETURNED` = duyệt hoàn hàng. Huỷ/duyệt hoàn ⇒ cộng lại kho từng dòng hàng (huỷ còn trả 1 lượt voucher); giao xong ⇒ thanh toán COD `SUCCESS`; huỷ ⇒ thanh toán đang chờ `FAILED`; tạo `Notification` cho khách. Tất cả trong 1 transaction, khoá dòng đơn (`PESSIMISTIC_WRITE`) nên 2 Admin bấm cùng lúc không cộng kho 2 lần. Kết quả: flash + 302 về `back` |
-| — | `/admin/vouchers`, `/admin/users`, `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
+| GET | `/admin/vouchers` | `AdminVoucherServlet` | `tab=all\|active\|soldout\|expired\|off` | **Đã code.** Danh sách + tab trạng thái (`Voucher.getState()`: tắt / hết hạn hoặc chưa tới hạn / hết lượt / đang dùng) |
+| GET/POST | `/admin/vouchers/new` | `AdminVoucherServlet` | `code`, `type=percent\|fixed`, `value`, `min`, `issued`, `start`, `end`, `active=on` | **Đã code.** Mã chữ+số 3–20 ký tự (lưu IN HOA, không trùng, không phân biệt hoa thường); % ≤ 100; hết hạn ≥ bắt đầu (lưu 23:59:59 ngày cuối). Lỗi → vẽ lại form kèm lỗi từng ô |
+| GET/POST | `/admin/vouchers/edit` | `AdminVoucherServlet` | `id` (query) + các trường như tạo | **Đã code.** Không giảm số lượng phát hành dưới số lượt đã dùng |
+| POST | `/admin/vouchers/toggle` | `AdminVoucherServlet` | `id`, `active=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code (htmx).** Bật/tắt; `back` chỉ nhận đường dẫn bắt đầu bằng `/admin/vouchers` |
+| POST | `/admin/vouchers/delete` | `AdminVoucherServlet` | `id`, `back` | **Đã code.** Voucher đã có đơn dùng → từ chối (hãy tắt thay vì xoá) |
+| — | `/admin/users`, `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
 
 ---
 

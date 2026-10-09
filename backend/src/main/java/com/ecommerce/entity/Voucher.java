@@ -60,11 +60,28 @@ public class Voucher {
     public boolean isActive() { return isActive; }
     public void setActive(boolean isActive) { this.isActive = isActive; }
 
-    public boolean isValid() {
+    /**
+     * Trang thai voucher cho giao dien: "active" (dang dung duoc) | "expired" (chua toi han hoac het han) | "soldout" (het luot) | "off" (admin tat).
+     * Day la NOI DUY NHAT dinh nghia 3 dieu kien hop le (bat + trong han + con luot); isValid() chi la "state == active".
+     */
+    public String getState() {
+        if (!isActive) return "off";
         LocalDateTime now = LocalDateTime.now();
-        return isActive
-                && quantityUsed < quantityIssued
-                && !now.isBefore(startDate)
-                && !now.isAfter(endDate);
+        if (startDate == null || endDate == null || now.isBefore(startDate) || now.isAfter(endDate)) return "expired";
+        if (quantityUsed >= quantityIssued) return "soldout";
+        return "active";
+    }
+
+    public boolean isValid() {
+        return "active".equals(getState());
+    }
+
+    /** Ngay bat dau / het han dang "2026-10-31" cho o <input type="date"> (JSP khong doc truc tiep duoc LocalDateTime); rong neu chua co. */
+    public String getStartDateText() {
+        return startDate == null ? "" : startDate.toLocalDate().toString();
+    }
+
+    public String getEndDateText() {
+        return endDate == null ? "" : endDate.toLocalDate().toString();
     }
 }

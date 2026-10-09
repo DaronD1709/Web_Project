@@ -96,6 +96,11 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   (`search/countSearch` lọc theo tab trạng thái + từ khoá + COD/VNPay + khoảng ngày; `findDetail` JOIN FETCH đủ; `applyStatusChange` = 1 transaction đổi trạng thái + hoàn kho + COD thành công + tạo `Notification`, khoá dòng đơn bằng JPQL `setLockMode(PESSIMISTIC_WRITE)` — KHÔNG dùng `em.find(..., lock)` vì Hibernate đọc trước khi khoá).
   Luật chuyển trạng thái nằm DUY NHẤT ở `Order.canMoveTo/updateStatus`. `Order` có thêm `discountAmount`, `shippingFee` (snapshot lúc đặt; Lộc phải điền khi checkout: `totalAmount = tổng hàng − discountAmount + shippingFee`), `OrderStatus.getLabel()`, `Payment.getMethod()`, `Order.getOrderDateText()` (JSTL không đọc được `LocalDateTime`).
   Thao tác đổi trạng thái là form POST nhỏ + `hx-confirm` + PRG (redirect về `back` + flash), danh sách tự lọc bằng htmx giống trang sản phẩm. `util/DemoDataSeeder` nạp 3 khách + 10 đơn mẫu đủ trạng thái khi bảng `orders` trống (đơn mẫu không trừ kho).
+- **Admin > Quản lý voucher (nhánh `feat/admin-manage-voucher`, đã test 39 kiểm tra):** `AdminVoucherServlet` (`/admin/vouchers`, `/new`, `/edit`, `/toggle`, `/delete`) → `AdminVoucherService` → `VoucherDAO`.
+  `Voucher.getState()` (`active|expired|soldout|off`) là NƠI DUY NHẤT định nghĩa 3 điều kiện hợp lệ, `isValid()` chỉ là `state == active` — Lộc dùng `isValid()` khi checkout, KHÔNG viết lại điều kiện.
+  Không có "giới hạn mỗi khách" (entity không có `perUser`). Chặn xoá voucher đã có đơn dùng (`Order.voucher` là khoá ngoại). Công tắc bật/tắt gửi trạng thái MONG MUỐN (không đảo ngược) để bấm nhanh không lệch.
+  Bẫy đã gặp: (1) `atTime(LocalTime.MAX)` bị Postgres làm tròn sang 00:00 ngày hôm sau → dùng `23:59:59`; (2) `fmt:formatNumber` locale `vi_VN` in `12,5` làm `<input type="number">` không đọc được → đặt `en_US` quanh các ô số trong form.
+  `DemoDataSeeder` nạp thêm 5 voucher mẫu đủ 4 trạng thái khi bảng `vouchers` trống.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
