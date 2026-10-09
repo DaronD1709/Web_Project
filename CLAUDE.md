@@ -92,6 +92,10 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - **Admin Login/Logout (nhánh `feat/admin-login-logout`, đã test):** `/admin/login` (`AdminLoginServlet` + `admin/admin-login.jsp`, trang riêng theo mockup) dùng lại `AuthService.login` rồi kiểm tra `instanceof Admin`;
   `/admin/logout` (`AdminLogoutServlet`, chỉ POST) về lại `/admin/login`. `SessionUtil.requireAdmin` giờ chuyển tới `/admin/login?next=...` (htmx: `HX-Redirect`). Không sửa `LoginServlet`/`LogoutServlet` của khách hàng để tránh xung đột.
   Nhánh này đã merge sẵn `feat/admin-manage-product` (cần khung CMS và `requireAdmin`), nên merge nhánh sản phẩm vào `dev` trước.
+- **Admin > Quản lý đơn hàng (nhánh `feat/admin-manage-order`, đã test 50+ kiểm tra, gồm cả đua nhau huỷ đơn):** `AdminOrderServlet` (`/admin/orders`, `/detail`, `/status`) → `AdminOrderService` → `OrderDAO`
+  (`search/countSearch` lọc theo tab trạng thái + từ khoá + COD/VNPay + khoảng ngày; `findDetail` JOIN FETCH đủ; `applyStatusChange` = 1 transaction đổi trạng thái + hoàn kho + COD thành công + tạo `Notification`, khoá dòng đơn bằng JPQL `setLockMode(PESSIMISTIC_WRITE)` — KHÔNG dùng `em.find(..., lock)` vì Hibernate đọc trước khi khoá).
+  Luật chuyển trạng thái nằm DUY NHẤT ở `Order.canMoveTo/updateStatus`. `Order` có thêm `discountAmount`, `shippingFee` (snapshot lúc đặt; Lộc phải điền khi checkout: `totalAmount = tổng hàng − discountAmount + shippingFee`), `OrderStatus.getLabel()`, `Payment.getMethod()`, `Order.getOrderDateText()` (JSTL không đọc được `LocalDateTime`).
+  Thao tác đổi trạng thái là form POST nhỏ + `hx-confirm` + PRG (redirect về `back` + flash), danh sách tự lọc bằng htmx giống trang sản phẩm. `util/DemoDataSeeder` nạp 3 khách + 10 đơn mẫu đủ trạng thái khi bảng `orders` trống (đơn mẫu không trừ kho).
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 

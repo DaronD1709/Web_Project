@@ -2,6 +2,7 @@ package com.ecommerce.listener;
 
 import com.ecommerce.service.EmailService;
 import com.ecommerce.util.DataSeeder;
+import com.ecommerce.util.DemoDataSeeder;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -14,6 +15,7 @@ public class AppInitListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         DataSeeder.seedIfEmpty();
+        DemoDataSeeder.seedIfEmpty(); // don hang/khach mau de demo trang Admin (chi khi chua co don nao)
     }
 
     // Dung app: doi gui not cac email dang xep hang.

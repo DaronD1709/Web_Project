@@ -166,10 +166,9 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 | POST | `/admin/products/edit` | `AdminProductServlet` | `id` (query), các trường như thêm, `removeImage=on` | **Đã code.** Ảnh mới thay ảnh cũ (file cũ bị xoá) |
 | POST | `/admin/products/delete` | `AdminProductServlet` | `id`, (kèm bộ lọc hiện tại), `redirect` (từ trang form) | **Đã code (htmx).** SP đã có trong đơn hàng → từ chối (toast lỗi, `HX-Reswap: none`); còn trong giỏ → gỡ khỏi giỏ rồi xoá; đánh giá xoá theo. Từ bảng: trả mảnh rỗng (dòng biến mất) + `#product-summary` cập nhật bằng `hx-swap-oob` |
 | GET/POST | `/admin/categories` | `AdminCategoryServlet` | `action=create\|update\|delete`, `id`, `name`, `description` | Không xoá danh mục còn sản phẩm |
-| GET | `/admin/orders` | `AdminOrderServlet` | `status`, `page` | Mọi đơn của mọi khách |
-| GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | — |
-| POST | `/admin/orders/status` | `AdminOrderServlet` | `id`, `status` | Đi qua `Order.updateStatus()`; huỷ ⇒ hoàn kho; tạo Notification |
-| POST | `/admin/orders/return` | `AdminOrderServlet` | `id`, `decision=approve\|reject` | `RETURN_REQUESTED → RETURNED` (hoàn kho) hoặc về `COMPLETED` |
+| GET | `/admin/orders` | `AdminOrderServlet` | `status=all\|pending\|confirmed\|shipping\|completed\|cancelled\|return`, `q` (mã đơn/tên/email), `pay=cod\|vnpay`, `from`, `to` (yyyy-MM-dd), `page` (10 đơn/trang) | **Đã code.** Mọi đơn của mọi khách. Trang đầy đủ; request htmx có `HX-Target: order-list` (ô lọc, tab, phân trang) chỉ trả tab + bảng `fragments/admin-order-table.jsp`. Tab "return" gồm `RETURN_REQUESTED` + `RETURNED` |
+| GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | **Đã code.** Chi tiết đơn (khách, dòng hàng, tiền, địa chỉ, thanh toán); id lạ → flash lỗi + 302 danh sách |
+| POST | `/admin/orders/status` | `AdminOrderServlet` | `id`, `status` (tên `OrderStatus`: CONFIRMED, SHIPPING, COMPLETED, CANCELLED, RETURNED), `back` (chỉ nhận đường dẫn bắt đầu bằng `/admin/orders`) | **Đã code.** Luật chuyển trạng thái ở `Order.canMoveTo`; Admin không tự đặt `RETURN_REQUESTED`/`PENDING`. `COMPLETED` từ `RETURN_REQUESTED` = từ chối hoàn hàng; `RETURNED` = duyệt hoàn hàng. Huỷ/duyệt hoàn ⇒ cộng lại kho từng dòng hàng (huỷ còn trả 1 lượt voucher); giao xong ⇒ thanh toán COD `SUCCESS`; huỷ ⇒ thanh toán đang chờ `FAILED`; tạo `Notification` cho khách. Tất cả trong 1 transaction, khoá dòng đơn (`PESSIMISTIC_WRITE`) nên 2 Admin bấm cùng lúc không cộng kho 2 lần. Kết quả: flash + 302 về `back` |
 | — | `/admin/vouchers`, `/admin/users`, `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
 
 ---

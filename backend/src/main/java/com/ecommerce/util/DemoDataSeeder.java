@@ -1,0 +1,132 @@
+package com.ecommerce.util;
+
+import com.ecommerce.dao.OrderDAO;
+import com.ecommerce.dao.ProductDAO;
+import com.ecommerce.dao.UserDAO;
+import com.ecommerce.entity.Address;
+import com.ecommerce.entity.Cart;
+import com.ecommerce.entity.CODPayment;
+import com.ecommerce.entity.Customer;
+import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderItem;
+import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.entity.Payment;
+import com.ecommerce.entity.PaymentStatus;
+import com.ecommerce.entity.Product;
+import com.ecommerce.entity.VNPayPayment;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Du lieu mau "dang vao viec" de DEMO trang Admin khi chua co chuc nang dat hang that: vai khach hang kem dia chi va ~10 don o du cac trang thai.
+ * Tu nap luc khoi dong (AppInitListener) CHI KHI bang orders con trong; xoa don trong DB roi restart app de nap lai.
+ * Don mau KHONG tru kho (chi la lich su), mat khau cac khach mau giong khach dev trong DataSeeder.
+ */
+public class DemoDataSeeder {
+
+    private static final OrderDAO orderDAO = new OrderDAO();
+    private static final ProductDAO productDAO = new ProductDAO();
+    private static final UserDAO userDAO = new UserDAO();
+
+    public static void seedIfEmpty() {
+        if (orderDAO.count() > 0) return;
+        List<Product> products = productDAO.findAll();
+        if (products.size() < 6) return; // chua co san pham mau thi thoi
+
+        Customer a = customer("khach@nongviet.vn", "Nguyễn Văn Khách", "0901234567", "12 Lê Lợi", "TP. Hồ Chí Minh");
+        Customer b = customer("mai.tran@gmail.com", "Trần Thị Mai", "0912345678", "45 Nguyễn Huệ", "TP. Hồ Chí Minh");
+        Customer c = customer("nam.le@gmail.com", "Lê Hoàng Nam", "0987654321", "8 Trần Phú", "Đà Nẵng");
+        Customer d = customer("lan.vo@gmail.com", "Võ Thị Lan", "0977888999", "101 Hùng Vương", "Cần Thơ");
+
+        // order(khach, so ngay truoc, trang thai, phuong thuc thanh toan, san pham, cac dong {chi so san pham, so luong}, ly do hoan hang)
+        order(a, 0, OrderStatus.PENDING, "COD", products, new int[][]{{4, 1}, {2, 4}, {8, 2}}, null);
+        order(b, 0, OrderStatus.PENDING, "VNPAY", products, new int[][]{{0, 10}, {1, 3}}, null);
+        order(c, 1, OrderStatus.CONFIRMED, "COD", products, new int[][]{{7, 1}}, null);
+        order(a, 2, OrderStatus.SHIPPING, "COD", products, new int[][]{{5, 1}}, null);
+        order(d, 2, OrderStatus.SHIPPING, "VNPAY", products, new int[][]{{3, 5}, {2, 2}}, null);
+        order(b, 3, OrderStatus.COMPLETED, "COD", products, new int[][]{{6, 2}}, null);
+        order(d, 5, OrderStatus.COMPLETED, "VNPAY", products, new int[][]{{0, 1}, {1, 1}}, null);
+        order(c, 7, OrderStatus.RETURN_REQUESTED, "COD", products, new int[][]{{7, 1}}, "Máy chạy không ổn định, động cơ phát tiếng ồn lớn ngay khi khởi động.");
+        order(d, 9, OrderStatus.CANCELLED, "COD", products, new int[][]{{8, 3}}, null);
+        order(b, 12, OrderStatus.RETURNED, "COD", products, new int[][]{{11, 4}}, null);
+    }
+
+    // Tao khach hang (kem gio rong va 1 dia chi mac dinh) neu chua co; da co thi lay lai. Dia chi cascade luu theo khach.
+    private static Customer customer(String email, String name, String phone, String street, String city) {
+        Customer existing = (Customer) userDAO.findByEmail(email);
+        if (existing != null) {
+            existing.setAddresses(new java.util.ArrayList<>());
+            return ensureAddress(existing, name, phone, street, city);
+        }
+        Customer c = new Customer();
+        c.setEmail(email);
+        c.setPasswordHash(PasswordUtil.hash("Khach@123"));
+        c.setFullName(name);
+        c.setPhone(phone);
+        c.setCreatedAt(LocalDateTime.now().minusDays(20));
+        Cart cart = new Cart();
+        cart.setCustomer(c);
+        c.setCart(cart);
+        Address ad = address(c, name, phone, street, city);
+        c.getAddresses().add(ad);
+        userDAO.save(c);
+        return c;
+    }
+
+    // Khach da co san (khach dev) nhung chua co dia chi: them 1 dia chi bang cach luu rieng
+    private static Customer ensureAddress(Customer c, String name, String phone, String street, String city) {
+        Address ad = address(c, name, phone, street, city);
+        new com.ecommerce.dao.AbstractDAO<Address, Integer>(Address.class) { }.save(ad);
+        c.getAddresses().add(ad);
+        return c;
+    }
+
+    private static Address address(Customer c, String name, String phone, String street, String city) {
+        Address ad = new Address();
+        ad.setCustomer(c);
+        ad.setRecipientName(name);
+        ad.setPhone(phone);
+        ad.setStreet(street);
+        ad.setCity(city);
+        ad.setDefault(true);
+        return ad;
+    }
+
+    private static Order order(Customer customer, int daysAgo, OrderStatus status, String pay, List<Product> products, int[][] lines, String returnReason) {
+        Order o = new Order();
+        o.setCustomer(customer);
+        o.setOrderDate(LocalDateTime.now().minusDays(daysAgo).minusMinutes(daysAgo * 37L));
+        o.setStatus(status);
+        o.setReturnReason(returnReason); // chi co o don RETURN_REQUESTED
+        o.setShippingAddress(customer.getAddresses().get(0));
+
+        double sub = 0;
+        for (int[] line : lines) {
+            Product p = products.get(line[0] % products.size());
+            OrderItem item = new OrderItem();
+            item.setOrder(o);
+            item.setProduct(p);
+            item.setQuantity(line[1]);
+            item.setPriceAtOrder(p.getPrice()); // snapshot gia luc dat
+            o.getItems().add(item);
+            sub += p.getPrice() * line[1];
+        }
+        o.setShippingFee(sub >= 500_000 ? 0 : 30_000); // mien phi van chuyen tu 500.000d (khop CartService.FREE_SHIPPING_FROM)
+        o.setDiscountAmount(0);
+        o.setTotalAmount(sub + o.getShippingFee());
+
+        Payment payment = "VNPAY".equals(pay) ? new VNPayPayment() : new CODPayment();
+        payment.setOrder(o);
+        payment.setAmount(o.getTotalAmount());
+        boolean paid = status == OrderStatus.COMPLETED || status == OrderStatus.RETURN_REQUESTED || status == OrderStatus.RETURNED
+                || ("VNPAY".equals(pay) && status != OrderStatus.CANCELLED);
+        payment.setStatus(status == OrderStatus.CANCELLED ? PaymentStatus.FAILED : paid ? PaymentStatus.SUCCESS : PaymentStatus.PENDING);
+        if (paid) payment.setPaymentDate(o.getOrderDate());
+        if (payment instanceof VNPayPayment vn) vn.setTransactionId("VNP" + (100000 + daysAgo * 7919 + lines.length));
+        o.setPayment(payment);
+
+        orderDAO.save(o);
+        return o;
+    }
+}
