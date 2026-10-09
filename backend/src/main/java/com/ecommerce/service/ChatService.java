@@ -22,6 +22,7 @@ public class ChatService {
 
     private final MessageDAO messageDAO = new MessageDAO();
     private final UserDAO userDAO = new UserDAO();
+    private final ChatBotService chatBot = new ChatBotService();
 
     /** Tin nhan moi hon `afterId` cua khach. Lan dau khach mo chat (chua co tin nao) thi chen loi chao cua chatbot. */
     public List<Message> getMessagesAfter(Integer customerId, int afterId) {
@@ -39,6 +40,24 @@ public class ChatService {
         if (text.length() > MAX_LENGTH) throw new BusinessException("Tin nhắn tối đa " + MAX_LENGTH + " ký tự.");
         Customer customer = requireCustomer(customerId);
         addMessage(customer, customer, text);
+
+        // Nhan vien dang tiep quan thi chatbot im lang; nguoc lai chatbot tra loi, neu khong hieu/khach xin gap nguoi thi chuyen cho nhan vien
+        if (!customer.isHandledByHuman()) {
+            User bot = userDAO.findByEmail(BOT_EMAIL);
+            if (bot != null) {
+                ChatBotService.Reply reply = chatBot.reply(text);
+                addMessage(customer, bot, reply.text());
+                if (reply.handoff()) setHandledByHuman(customerId, true);
+            }
+        }
+    }
+
+    /** Dat che do cuoc tro chuyen: true = nhan vien tiep quan (chatbot im), false = chatbot tra loi. Dung chung cho khach va Admin. */
+    public void setHandledByHuman(Integer customerId, boolean human) {
+        Customer customer = requireCustomer(customerId);
+        if (customer.isHandledByHuman() == human) return; // khong doi thi khong ghi DB
+        customer.setHandledByHuman(human);
+        userDAO.update(customer);
     }
 
     private void greet(Integer customerId) {

@@ -1,5 +1,6 @@
 package com.ecommerce.util;
 
+import com.ecommerce.dao.MessageDAO;
 import com.ecommerce.dao.OrderDAO;
 import com.ecommerce.dao.ProductDAO;
 import com.ecommerce.dao.UserDAO;
@@ -9,6 +10,8 @@ import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.CODPayment;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.DiscountType;
+import com.ecommerce.entity.Message;
+import com.ecommerce.entity.User;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
@@ -32,10 +35,12 @@ public class DemoDataSeeder {
     private static final ProductDAO productDAO = new ProductDAO();
     private static final UserDAO userDAO = new UserDAO();
     private static final VoucherDAO voucherDAO = new VoucherDAO();
+    private static final MessageDAO messageDAO = new MessageDAO();
 
     public static void seedIfEmpty() {
         seedVouchers();
         seedExtraCustomers();
+        seedChats();
         if (orderDAO.count() > 0) return;
         List<Product> products = productDAO.findAll();
         if (products.size() < 6) return; // chua co san pham mau thi thoi
@@ -56,6 +61,44 @@ public class DemoDataSeeder {
         order(c, 7, OrderStatus.RETURN_REQUESTED, "COD", products, new int[][]{{7, 1}}, "Máy chạy không ổn định, động cơ phát tiếng ồn lớn ngay khi khởi động.");
         order(d, 9, OrderStatus.CANCELLED, "COD", products, new int[][]{{8, 3}}, null);
         order(b, 12, OrderStatus.RETURNED, "COD", products, new int[][]{{11, 4}}, null);
+    }
+
+    // 3 cuoc tro chuyen mau (chi khi bang messages trong): 1 nhan vien dang tiep quan + khach cho phan hoi, 1 do chatbot tra loi, 1 khach moi hoi chua ai tra loi
+    private static void seedChats() {
+        if (messageDAO.count() > 0) return;
+        User bot = userDAO.findByEmail("bot@nongviet.vn");
+        User admin = userDAO.findByEmail("admin@nongviet.vn");
+        Customer nam = (Customer) userDAO.findByEmail("nam.le@gmail.com");
+        Customer mai = (Customer) userDAO.findByEmail("mai.tran@gmail.com");
+        Customer lan = (Customer) userDAO.findByEmail("lan.vo@gmail.com");
+        if (bot == null || admin == null || nam == null || mai == null || lan == null) return;
+
+        chat(nam, bot, "Xin chào! Mình là trợ lý AI của Nông Việt. Bạn cần tư vấn gì?", 40);
+        chat(nam, nam, "Mình muốn mua máy cắt cỏ, còn hàng không?", 38);
+        chat(nam, bot, "Máy cắt cỏ cầm tay chạy xăng hiện còn 3 máy. Bạn muốn mình chuyển nhân viên hỗ trợ không?", 38);
+        chat(nam, nam, "Có, gọi nhân viên giúp mình", 37);
+        chat(nam, admin, "Chào bạn, mình là nhân viên Nông Việt. Bạn cần hỗ trợ gì về máy cắt cỏ ạ?", 30);
+        chat(nam, nam, "Cho mình hỏi máy cắt cỏ còn bảo hành bao lâu?", 25);
+        setHuman(nam, true);
+
+        chat(mai, mai, "Rau màu nên bón phân gì?", 120);
+        chat(mai, bot, "Với rau màu, bạn có thể dùng phân NPK 20-20-15 để bón thúc kết hợp phân hữu cơ vi sinh bón lót.", 120);
+
+        chat(lan, lan, "Đơn #5 bao giờ giao vậy shop?", 5);
+    }
+
+    private static void chat(Customer owner, User sender, String content, int minutesAgo) {
+        Message m = new Message();
+        m.setCustomer(owner);
+        m.setSender(sender);
+        m.setContent(content);
+        m.setSentAt(LocalDateTime.now().minusMinutes(minutesAgo));
+        messageDAO.save(m);
+    }
+
+    private static void setHuman(Customer c, boolean human) {
+        c.setHandledByHuman(human);
+        userDAO.update(c);
     }
 
     // Them 2 khach mau chua co don (1 dang hoat dong, 1 bi KHOA) de demo trang Khach hang; chi tao khi email chua co
