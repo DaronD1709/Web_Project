@@ -30,6 +30,15 @@ public class ParamUtil {
         }
     }
 
+    // "2026-10-05" -> LocalDate; thieu/sai dinh dang -> null (o <input type="date"> luon gui dung dang yyyy-MM-dd)
+    public static java.time.LocalDate dateOrNull(String s) {
+        try {
+            return (s == null || s.isBlank()) ? null : java.time.LocalDate.parse(s.trim());
+        } catch (java.time.format.DateTimeParseException e) {
+            return null;
+        }
+    }
+
     // Bo khoang trang 2 dau; chuoi rong coi nhu khong nhap (null) -> khong loc theo tu khoa
     public static String trimOrNull(String s) {
         return (s == null || s.isBlank()) ? null : s.trim();

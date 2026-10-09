@@ -129,10 +129,13 @@ public class Order {
     private Address shippingAddress;
     private Voucher voucher; // null nếu không dùng mã giảm giá
     private String returnReason; // null nếu không có yêu cầu hoàn hàng
+    private double discountAmount; // snapshot số tiền giảm lúc đặt (voucher có thể đổi/tắt sau này)
+    private double shippingFee; // snapshot phí vận chuyển lúc đặt; totalAmount = tổng hàng − discountAmount + shippingFee
 
     public void confirmOrder() { ... }
     public void cancelOrder() { ... } // Customer (chủ đơn) hoặc Admin đều gọi được — check quyền ở tầng service
-    public void updateStatus(OrderStatus status) { ... }
+    public boolean canMoveTo(OrderStatus next) { ... } // luật chuyển trạng thái hợp lệ (nơi duy nhất định nghĩa)
+    public void updateStatus(OrderStatus next) { ... } // ném lỗi nếu !canMoveTo(next); hoàn kho do Service/DAO lo
     public double calculateTotal() { ... }
     public void requestReturn(String reason) { ... } // Customer gọi, chỉ hợp lệ khi status = COMPLETED
     public void approveReturn() { ... } // Admin gọi, chuyển RETURN_REQUESTED -> RETURNED, restock
@@ -408,6 +411,8 @@ classDiagram
         -payment : Payment
         -shippingAddress : Address
         -returnReason : String
+        -discountAmount : double
+        -shippingFee : double
         -customer : Customer
         -voucher : Voucher
         +confirmOrder() void
