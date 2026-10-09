@@ -66,7 +66,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
-**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chưa có: checkout, phía Admin của chat, AI tự trả lời.
+**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Chưa có: checkout.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
@@ -140,7 +140,7 @@ Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. M
 | POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` | 302 `/notifications` |
 | GET | `/notifications/count` | `NotificationServlet` | — | htmx fragment số chưa đọc (badge header), `hx-trigger="every 30s"` |
 | GET | `/chat` | `ChatServlet` | — | `customer/chat.jsp` (attr `messages`, `conversation`) |
-| POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi trả lời AI nếu chưa có Admin tiếp quản) |
+| POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi **chatbot trả lời theo luật từ khoá** nếu chưa có Admin tiếp quản; không hiểu / xin gặp nhân viên ⇒ chuyển sang chế độ Nhân viên) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
 
 `Message` gắn với khách qua `Message.customer`; `Message.sender` là `User` (Customer hoặc Admin; chatbot dùng tài khoản hệ thống loại Admin) — JSP phân biệt bubble theo người gửi.
@@ -177,7 +177,12 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 | GET | `/admin/users` | `AdminCustomerServlet` | `q` (tên/email/SĐT), `status=active\|locked`, `page` (10/trang) | **Đã code.** Danh sách khách (không gồm Admin/chatbot) kèm số đơn + tổng chi tiêu (không tính đơn huỷ). Request htmx có `HX-Target: customer-list` chỉ trả bảng |
 | GET | `/admin/users/detail` | `AdminCustomerServlet` | `id` | **Đã code.** Hồ sơ + 3 số liệu + 5 đơn gần nhất (không có mật khẩu); id lạ → flash lỗi + 302 danh sách |
 | POST | `/admin/users/lock` | `AdminCustomerServlet` | `id`, `locked=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code.** Chỉ khoá được `Customer` (không khoá Admin/chatbot). Khách bị khoá: không đăng nhập được (`AuthService.login`, chỉ báo "bị khoá" SAU KHI đúng mật khẩu) và đang dùng thì bị đăng xuất ở lần gọi `requireCustomer` kế tiếp; đơn đang xử lý vẫn chạy bình thường |
-| — | `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
+| GET | `/admin/chat` | `AdminChatServlet` | `c` (id khách đang mở, mặc định hội thoại mới nhất), `filter=all\|human\|ai`, `q` (tên/email) | **Đã code.** 3 cột: danh sách hội thoại (mỗi khách 1 dòng = tin cuối; "Chờ" nếu tin cuối là của khách) / khung chat / thông tin khách + 3 đơn gần nhất |
+| GET | `/admin/chat/list` | `AdminChatServlet` | `c`, `filter`, `q` | **Đã code (htmx).** Chỉ danh sách hội thoại, tự hỏi lại mỗi 5 giây (`hx-target="this"` để không thay nhầm `#adm-main`) và khi gõ ô tìm kiếm |
+| GET | `/admin/chat/messages` | `AdminChatServlet` | `c`, `after` (id tin cuối đã có) | **Đã code (htmx).** Các tin mới hơn + thẻ `#poll` hỏi tiếp mỗi 3 giây (polling, không WebSocket) |
+| POST | `/admin/chat/send` | `AdminChatServlet` | `c`, `content` (≤ 1000 ký tự), `after` | **Đã code (htmx).** Lưu tin với `sender` = Admin đang đăng nhập, tự chuyển hội thoại sang chế độ Nhân viên; trả tin mới + đầu khung chat cập nhật (`hx-swap-oob`) |
+| POST | `/admin/chat/mode` | `AdminChatServlet` | `c`, `human=true\|false` (trạng thái MONG MUỐN) | **Đã code (htmx).** Bật/tắt chế độ nhân viên tiếp quản; trả lại đầu khung chat + toast |
+| — | `/admin/reviews` | … | … | **Optional**, làm sau khi Core xong |
 
 ---
 

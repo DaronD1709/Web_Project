@@ -62,3 +62,23 @@ function nvVoucherPreview() {
   document.getElementById('pv-val').textContent = 'Giảm ' + (v ? (percent ? v + '%' : money(v)) : '…');
   document.getElementById('pv-min').textContent = min ? 'Đơn từ ' + money(min) : 'Không yêu cầu đơn tối thiểu';
 }
+
+// ---- Chat voi khach (admin-chat.jsp) ----
+// Dien cau tra loi nhanh vao o nhap
+function nvChatChip(btn) {
+  var input = document.getElementById('chat-input');
+  if (input) { input.value = btn.textContent; input.focus(); }
+}
+
+// Cuon khung chat xuong tin cuoi, nhung CHI khi co tin MOI (polling 3 giay khong lam nhay khung neu dang doc tin cu)
+function nvChatScroll() {
+  var box = document.getElementById('chat-msgs');
+  if (!box) return;
+  var n = box.querySelectorAll('.chat-bubble-row').length;
+  if (String(n) !== box.dataset.count) { // so bong bong doi (hoac lan dau mo) -> cuon xuong cuoi
+    box.dataset.count = n;
+    box.scrollTop = box.scrollHeight;
+  }
+}
+document.addEventListener('DOMContentLoaded', nvChatScroll);
+document.body.addEventListener('htmx:afterSettle', nvChatScroll);

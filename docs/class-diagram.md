@@ -34,6 +34,7 @@ public class Customer extends User {
     private List<Address> addresses = new ArrayList<>();
     private List<Order> orders = new ArrayList<>();
     private Cart cart;
+    private boolean handledByHuman; // true = nhân viên đang tiếp quản chat (chatbot im lặng); cột users.handled_by_human, mặc định false
 
     public void addToCart(Product product, int qty) { ... }
     public Order placeOrder() { ... }

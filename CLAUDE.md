@@ -48,7 +48,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   (`util/HtmxUtil.toast`, tiếng Việt mã hoá `\uXXXX` vì header chỉ ASCII), listener ở `common/footer.jspf`. Chưa đăng nhập: `util/SessionUtil.requireCustomer`
   → `/login?next=...` (htmx: `HX-Redirect`); Admin vào `/cart`,`/chat` → 403. Mọi thao tác giỏ kiểm tra dòng thuộc **đúng giỏ của khách** (không sửa được giỏ người khác).
   Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản hệ thống loại **Admin** "Trợ lý AI" (bot@nongviet.vn) để chatbot gửi lời chào (không có class AIBot/Conversation: `Message` gắn thẳng với khách qua `Message.customer`).
-  **Chưa làm:** nút "Thanh toán" (disabled, chờ `feat/place-order-pay`), AI tự trả lời và phía Admin của chat (`feat/chat-with-shop`).
+  **Chưa làm:** nút "Thanh toán" (disabled, chờ `feat/place-order-pay`). Chatbot + phía Admin của chat đã xong (xem mục Admin > Chat bên dưới).
 - **Trang chủ thật:** `GET /` và `/home` → `HomeServlet` (map `""` + `/home`, không còn `welcome-file` trong `web.xml`) → `customer/home.jsp`
   (chuyển từ `mockup/home.html`: hero, danh mục, 8 sản phẩm mới nhất qua `ProductService.getLatestProducts`). Thẻ sản phẩm dùng chung ở
   `common/product-card.jspf` (include trong `<c:forEach var="p">`), dùng cho cả trang chủ và `/products`. Sau đăng nhập/đăng xuất, logo → về `/`.
@@ -104,6 +104,9 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - **Admin > Quản lý tài khoản khách hàng (nhánh `feat/admin-manage-customer-account`, đã test 50 kiểm tra):** `AdminCustomerServlet` (`/admin/users`, `/detail`, `/lock`) → `AdminCustomerService` → `CustomerDAO` (lọc tên/email/SĐT + trạng thái, thống kê số đơn/tổng chi tiêu bằng 1 query gộp) và `OrderDAO.findRecentByCustomer`.
   `User` có thêm `active` (xem mục 5). **`AuthService.login` từ chối tài khoản bị khoá** (chỉ báo sau khi đúng mật khẩu), và `SessionUtil.requireCustomer` hỏi lại DB mỗi lần để đăng xuất khách bị khoá giữa phiên — Lộc/Thang viết trang cần đăng nhập phải đi qua `requireCustomer`. Chỉ khoá được `Customer` (không khoá Admin/chatbot).
   `DemoDataSeeder` nạp thêm 2 khách mẫu chưa có đơn (1 bị khoá). `User.getCreatedAtText()` cho JSP (JSTL không đọc được `LocalDateTime`).
+- **Admin > Chat với khách (nhánh `feat/chat-with-shop`, đã test 50 kiểm tra):** `AdminChatServlet` (`/admin/chat`, `/list`, `/messages`, `/send`, `/mode`) → `AdminChatService` → `MessageDAO` (`findLatestPerCustomer` = tin cuối mỗi khách, sắp theo thời gian), `ChatService.setHandledByHuman`.
+  Không WebSocket: danh sách hỏi lại mỗi 5 giây, khung chat mỗi 3 giây (htmx polling). **Bẫy đã gặp:** phần tử polling nằm trong vùng `hx-target="#adm-main"` (thuộc tính được KẾ THỪA) nên PHẢI tự khai `hx-target="this"`, nếu không kết quả polling thay vào cả trang. Admin gửi tin ⇒ tự chuyển chế độ Nhân viên.
+  `Customer.handledByHuman` (cột `users.handled_by_human`) là cờ nhân viên tiếp quản. `DemoDataSeeder` nạp 3 cuộc trò chuyện mẫu khi bảng `messages` trống.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
@@ -149,9 +152,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `quantityUsed < quantityIssued`) vào đúng 1 chỗ, gọi khi áp dụng voucher lúc checkout — tránh if-else rải rác.
 - **Notification:** tạo tự động mỗi khi `Order.updateStatus()` được gọi (ví dụ trong `NotificationService`
   gọi kèm theo `OrderService.updateStatus()`).
-- **Chatbot AI (không có class AIBot/Conversation):** tin của bot gửi bằng tài khoản hệ thống loại Admin; logic gọi API AI ngoài thật
-  (OpenAI/Anthropic...) nằm ở tầng Service (`ChatBotService.generateReply`). Cần quyết định khi nào AI tự trả lời vs để nhân viên trả lời tay
-  (nếu cần, thêm cờ vào `Customer` hoặc `Message`, hiện chưa có).
+- **Chatbot (không có class AIBot/Conversation, KHÔNG gọi AI ngoài):** tin của bot gửi bằng tài khoản hệ thống loại Admin ("Trợ lý AI"); `ChatBotService.reply()` trả lời theo luật từ khoá (bỏ dấu + chữ thường).
+  Không hiểu hoặc khách xin gặp nhân viên ⇒ chuyển cuộc trò chuyện sang chế độ Nhân viên (`Customer.handledByHuman = true`) và bot im lặng cho tới khi Admin bật lại AI. Muốn dùng AI thật chỉ cần sửa `reply()`.
 - **Không có class `Account` riêng:** Admin/Customer đều là `User` — "khoá/mở tài khoản" dùng field `User.active` (cột `users.is_active`, mặc định true; `Boolean` + `isActive()` coi null là true để các dòng cũ không hỏng).
 
 ## 6. Quy ước code khi mở rộng
