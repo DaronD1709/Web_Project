@@ -19,7 +19,9 @@
     <c:set var="waiting" value="${m.sender.id == cu.id}" />
     <li>
       <c:url var="openUrl" value="/admin/chat"><c:param name="c" value="${cu.id}" /><c:param name="filter" value="${filter}" /><c:param name="q" value="${q}" /></c:url>
-      <a href="${openUrl}"
+      <%-- Link mo hoi thoai nam TRONG <ul> co hx-target="this" + hx-swap="outerHTML" (de polling thay chinh danh sach) nen se KE THUA 2 thuoc tinh do:
+           neu khong khai lai, bam vao se nhet CA TRANG chat vao trong danh sach (trang long trang). Vi vay phai tu dat lai dich la #adm-main. --%>
+      <a href="${openUrl}" hx-target="#adm-main" hx-swap="innerHTML show:window:top"
          class="w-full text-left px-5 py-4 flex gap-3 items-start border-b border-base-300/70 hover:bg-base-200/70 transition ${cu.id == selectedId ? 'bg-primary/10 shadow-[inset_3px_0_0_var(--color-primary)]' : ''}">
         <div class="avatar avatar-placeholder shrink-0"><div class="bg-primary/15 text-primary w-10 rounded-full text-sm font-semibold"><span>${fn:toUpperCase(fn:substring(cu.fullName, 0, 1))}</span></div></div>
         <div class="min-w-0 flex-1 space-y-1">
