@@ -174,7 +174,10 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 | GET/POST | `/admin/vouchers/edit` | `AdminVoucherServlet` | `id` (query) + các trường như tạo | **Đã code.** Không giảm số lượng phát hành dưới số lượt đã dùng |
 | POST | `/admin/vouchers/toggle` | `AdminVoucherServlet` | `id`, `active=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code (htmx).** Bật/tắt; `back` chỉ nhận đường dẫn bắt đầu bằng `/admin/vouchers` |
 | POST | `/admin/vouchers/delete` | `AdminVoucherServlet` | `id`, `back` | **Đã code.** Voucher đã có đơn dùng → từ chối (hãy tắt thay vì xoá) |
-| — | `/admin/users`, `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
+| GET | `/admin/users` | `AdminCustomerServlet` | `q` (tên/email/SĐT), `status=active\|locked`, `page` (10/trang) | **Đã code.** Danh sách khách (không gồm Admin/chatbot) kèm số đơn + tổng chi tiêu (không tính đơn huỷ). Request htmx có `HX-Target: customer-list` chỉ trả bảng |
+| GET | `/admin/users/detail` | `AdminCustomerServlet` | `id` | **Đã code.** Hồ sơ + 3 số liệu + 5 đơn gần nhất (không có mật khẩu); id lạ → flash lỗi + 302 danh sách |
+| POST | `/admin/users/lock` | `AdminCustomerServlet` | `id`, `locked=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code.** Chỉ khoá được `Customer` (không khoá Admin/chatbot). Khách bị khoá: không đăng nhập được (`AuthService.login`, chỉ báo "bị khoá" SAU KHI đúng mật khẩu) và đang dùng thì bị đăng xuất ở lần gọi `requireCustomer` kế tiếp; đơn đang xử lý vẫn chạy bình thường |
+| — | `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
 
 ---
 

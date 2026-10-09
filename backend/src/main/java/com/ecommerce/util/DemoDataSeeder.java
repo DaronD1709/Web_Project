@@ -35,6 +35,7 @@ public class DemoDataSeeder {
 
     public static void seedIfEmpty() {
         seedVouchers();
+        seedExtraCustomers();
         if (orderDAO.count() > 0) return;
         List<Product> products = productDAO.findAll();
         if (products.size() < 6) return; // chua co san pham mau thi thoi
@@ -55,6 +56,27 @@ public class DemoDataSeeder {
         order(c, 7, OrderStatus.RETURN_REQUESTED, "COD", products, new int[][]{{7, 1}}, "Máy chạy không ổn định, động cơ phát tiếng ồn lớn ngay khi khởi động.");
         order(d, 9, OrderStatus.CANCELLED, "COD", products, new int[][]{{8, 3}}, null);
         order(b, 12, OrderStatus.RETURNED, "COD", products, new int[][]{{11, 4}}, null);
+    }
+
+    // Them 2 khach mau chua co don (1 dang hoat dong, 1 bi KHOA) de demo trang Khach hang; chi tao khi email chua co
+    private static void seedExtraCustomers() {
+        extraCustomer("hanh.ht@gmail.com", "Hoàng Thị Hạnh", "0966777000", 10, true);
+        extraCustomer("bao.pq@outlook.com", "Phạm Quốc Bảo", "0933111222", 18, false);
+    }
+
+    private static void extraCustomer(String email, String name, String phone, int joinedDaysAgo, boolean active) {
+        if (userDAO.findByEmail(email) != null) return;
+        Customer c = new Customer();
+        c.setEmail(email);
+        c.setPasswordHash(PasswordUtil.hash("Khach@123"));
+        c.setFullName(name);
+        c.setPhone(phone);
+        c.setCreatedAt(LocalDateTime.now().minusDays(joinedDaysAgo));
+        c.setActive(active);
+        Cart cart = new Cart();
+        cart.setCustomer(c);
+        c.setCart(cart);
+        userDAO.save(c);
     }
 
     // 5 voucher mau du 4 trang thai (dang dung / het luot / het han / da tat), chi nap khi bang vouchers trong
