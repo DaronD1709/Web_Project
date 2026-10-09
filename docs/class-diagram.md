@@ -18,6 +18,7 @@ public abstract class User {
     protected String fullName;
     protected String phone;
     protected Date createdAt;
+    protected boolean isActive = true; // false = Admin đã khoá tài khoản (không đăng nhập được); cột users.is_active, mặc định true
     protected String resetTokenHash;   // băm SHA-256 của token quên mật khẩu (null nếu không có yêu cầu)
     protected Date resetTokenExpiry;   // hết hạn sau 30 phút
 

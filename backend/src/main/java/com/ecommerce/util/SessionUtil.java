@@ -1,5 +1,6 @@
 package com.ecommerce.util;
 
+import com.ecommerce.dao.UserDAO;
 import com.ecommerce.entity.Admin;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.User;
@@ -29,6 +30,13 @@ public class SessionUtil {
     public static Customer requireCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User user = currentUser(req);
         if (user == null) {
+            redirectToLogin(req, resp, "/login");
+            return null;
+        }
+        // Tai khoan bi Admin khoa trong luc dang dang nhap: user trong session la ban cu nen phai hoi lai DB, khoa thi dang xuat ngay
+        User fresh = new UserDAO().findById(user.getId());
+        if (fresh == null || !fresh.isActive()) {
+            req.getSession().invalidate();
             redirectToLogin(req, resp, "/login");
             return null;
         }

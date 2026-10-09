@@ -59,6 +59,10 @@ public class AuthService {
         if (user == null || password == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
             throw new BusinessException("Email hoặc mật khẩu không đúng.");
         }
+        // Chi bao "bi khoa" SAU KHI mat khau dung (nguoi la khong biet duoc email nao co/khong co/bi khoa)
+        if (!user.isActive()) {
+            throw new BusinessException("Tài khoản của bạn đã bị khoá. Vui lòng liên hệ cửa hàng để được hỗ trợ.");
+        }
         return user;
     }
 

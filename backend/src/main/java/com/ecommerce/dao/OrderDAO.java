@@ -135,6 +135,19 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         }
     }
 
+    /** Cac don gan day nhat cua 1 khach (moi nhat truoc), toi da `limit` don. Dung o trang chi tiet khach hang cua Admin. */
+    public List<Order> findRecentByCustomer(Integer customerId, int limit) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT o FROM Order o WHERE o.customer.id = :cid ORDER BY o.id DESC", Order.class)
+                    .setParameter("cid", customerId)
+                    .setMaxResults(limit)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     // ------------------------------------------------------------------ chi tiet
 
     /** 1 don kem day du: khach, cac dong hang + san pham, thanh toan, dia chi, voucher (JOIN FETCH vi EntityManager dong ngay sau khi tra ve). */
