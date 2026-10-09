@@ -304,6 +304,21 @@ public enum DiscountType {
 }
 ```
 
+## 21. AutoReply (mới)
+```java
+public class AutoReply {
+    private int id;
+    private String keywords;   // các từ khoá/cụm từ cách nhau bằng dấu phẩy; "*" (đứng một mình) = khớp mọi câu
+    private String replyText;  // câu chatbot trả lời
+    private boolean handoff;   // true = sau khi trả lời chuyển cuộc trò chuyện sang nhân viên
+    private boolean isActive;
+    private int priority;      // số nhỏ được xét trước; luật đầu tiên khớp thắng
+
+    public List<String> getKeywordList() { ... }
+}
+```
+Luật trả lời tự động do Admin soạn ở CMS (Admin > Trả lời tự động); `ChatBotService` đọc các luật đang bật theo `priority` và chọn luật đầu tiên có từ khoá khớp (khớp nguyên từ, không phân biệt hoa thường/dấu). Không quan hệ với entity nào khác.
+
 ---
 
 ---
@@ -500,6 +515,17 @@ classDiagram
         -sentAt : Date
         -customer : Customer
         -sender : User
+        +Getters/Setters
+    }
+
+    class AutoReply {
+        -id : int
+        -keywords : String
+        -replyText : String
+        -handoff : boolean
+        -isActive : boolean
+        -priority : int
+        +getKeywordList() List~String~
         +Getters/Setters
     }
 
