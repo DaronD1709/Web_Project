@@ -1,0 +1,22 @@
+<%-- BIEU DO THANH NGANG (don theo trang thai, doanh thu theo danh muc, san pham ban chay). Dung bang <%@ include %>; truoc do phai c:set:
+       chart = ChartData     unit = hau to cua con so (vd " đơn", " đã bán"; rong neu la tien)     money = true neu gia tri la tien (hien kem ₫)
+     Moi dong: nhan (+ dong phu neu co) | thanh dai theo % so voi gia tri lon nhat | gia tri. Co bang an cho nut "Xem dang bang". --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="vi_VN" />
+<div data-chart class="space-y-3">
+  <c:if test="${empty chart.points}"><div class="text-sm text-base-content/50">Chưa có dữ liệu.</div></c:if>
+  <c:forEach var="p" items="${chart.points}">
+    <c:set var="w" value="${chart.max > 0 ? (p.value * 100 / chart.max).intValue() : 0}" />
+    <div class="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 text-sm">
+      <div class="min-w-0"><div class="truncate" title="<c:out value='${p.label}'/>"><c:out value="${p.label}"/></div>
+        <c:if test="${not empty p.sub}"><div class="text-xs text-base-content/50 truncate"><c:out value="${p.sub}"/></div></c:if></div>
+      <div class="h-3 rounded-r bg-base-200"><div class="h-3 rounded-r bg-primary" style="width:${p.value > 0 and w < 3 ? 3 : w}%"></div></div>
+      <div class="tabular-nums text-right whitespace-nowrap"><fmt:formatNumber value="${p.value}" pattern="#,##0"/>${money ? '₫' : unit}</div>
+    </div>
+  </c:forEach>
+</div>
+<div data-chart-table class="hidden overflow-x-auto mt-3">
+  <table class="table table-sm"><thead><tr><th>Mục</th><th class="text-right">Giá trị</th></tr></thead>
+    <tbody><c:forEach var="p" items="${chart.points}"><tr><td><c:out value="${p.label}"/></td><td class="text-right tabular-nums"><fmt:formatNumber value="${p.value}" pattern="#,##0"/>${money ? '₫' : unit}</td></tr></c:forEach></tbody></table>
+</div>

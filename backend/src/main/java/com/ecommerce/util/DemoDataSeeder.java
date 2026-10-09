@@ -61,6 +61,19 @@ public class DemoDataSeeder {
         order(c, 7, OrderStatus.RETURN_REQUESTED, "COD", products, new int[][]{{7, 1}}, "Máy chạy không ổn định, động cơ phát tiếng ồn lớn ngay khi khởi động.");
         order(d, 9, OrderStatus.CANCELLED, "COD", products, new int[][]{{8, 3}}, null);
         order(b, 12, OrderStatus.RETURNED, "COD", products, new int[][]{{11, 4}}, null);
+
+        // Lich su ~35 don rai deu 30 ngay qua (da hoan tat, vai don huy) de cac bieu do doanh thu o Tong quan / Thong ke co du lieu thuc te.
+        // Random co hat giong co dinh nen moi lan nap ra cung 1 bo du lieu.
+        java.util.Random rnd = new java.util.Random(7);
+        Customer[] buyers = {a, b, c, d};
+        for (int i = 0; i < 35; i++) {
+            int daysAgo = 1 + rnd.nextInt(29);
+            int items = 1 + rnd.nextInt(3);
+            int[][] lines = new int[items][];
+            for (int j = 0; j < items; j++) lines[j] = new int[]{rnd.nextInt(products.size()), 1 + rnd.nextInt(3)};
+            OrderStatus st = rnd.nextInt(12) == 0 ? OrderStatus.CANCELLED : OrderStatus.COMPLETED;
+            order(buyers[rnd.nextInt(buyers.length)], daysAgo, st, rnd.nextBoolean() ? "COD" : "VNPAY", products, lines, null);
+        }
     }
 
     // 3 cuoc tro chuyen mau (chi khi bang messages trong): 1 nhan vien dang tiep quan + khach cho phan hoi, 1 do chatbot tra loi, 1 khach moi hoi chua ai tra loi

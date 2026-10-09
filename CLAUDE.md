@@ -111,6 +111,9 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   Từ khoá phải ≥ 3 chữ/số để không khớp nhầm; `*` đứng một mình = bắt mọi câu (đặt ưu tiên lớn nhất làm câu mặc định). Mỗi tin khách gửi sẽ đọc luật từ DB (1 query).
 - **Admin > Quản lý danh mục (nhánh `feat/admin-manage-category`, đã test 35 kiểm tra):** `AdminCategoryServlet` (`/admin/categories`, `/new`, `/edit`, `/delete`) → `AdminCategoryService` → `CategoryDAO` (`countProducts()` gộp 1 query đếm sản phẩm mỗi danh mục).
   Tên danh mục không trùng (không phân biệt hoa thường, gộp khoảng trắng thừa), mô tả ≤ 255 (đúng độ dài cột); **không xoá danh mục còn sản phẩm** (cả nút lẫn server). Danh mục mới tự xuất hiện ở ô chọn của form sản phẩm và bộ lọc trang khách.
+- **Admin > Tổng quan + Thống kê doanh thu (nhánh `feat/admin-dashboard`, đã test 49 kiểm tra đối chiếu số liệu với SQL):** `AdminDashboardServlet` (`/admin`) và `AdminStatisticsServlet` (`/admin/statistics`, `/export` CSV) → `AdminStatsService` → `StatsDAO` (chỉ đọc).
+  Doanh thu = đơn `PENDING/CONFIRMED/SHIPPING/COMPLETED` (`StatsDAO.COUNTED`), không tính huỷ/hoàn hàng; tính theo giá lúc đặt (`priceAtOrder`). Biểu đồ vẽ bằng HTML/CSS thuần (`common/admin-chart-columns.jspf`, `admin-chart-bars.jspf`, không thư viện JS) kèm bảng ẩn cho nút "Xem dạng bảng" (`admin.js`).
+  DTO chỉ để vẽ: `ChartPoint`, `ChartData` (kèm `max` vì EL không tính max của danh sách), `TopProduct`. `DemoDataSeeder` nạp thêm ~35 đơn lịch sử rải 30 ngày cho biểu đồ có dữ liệu. Sidebar đã bỏ mục "Đánh giá" (chưa làm).
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 

@@ -155,7 +155,9 @@ Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mụ
 
 | Method | URL | Servlet | Tham số chính | Ghi chú |
 |---|---|---|---|---|
-| GET | `/admin` | `AdminDashboardServlet` | — | Optional: thống kê doanh thu, bán chạy |
+| GET | `/admin` | `AdminDashboardServlet` | — | **Đã code.** Tổng quan: việc cần xử lý (đơn chờ, yêu cầu hoàn hàng, khách chờ chat), 4 thẻ số liệu (doanh thu hôm nay so với hôm qua, đơn chờ, đang giao, sản phẩm sắp hết), biểu đồ doanh thu 14 ngày, đơn theo trạng thái, 6 đơn mới nhất, hàng sắp hết, sản phẩm bán chạy. Đăng nhập admin xong vào trang này |
+| GET | `/admin/statistics` | `AdminStatisticsServlet` | `days=7\|14\|30` (mặc định 30) | **Đã code.** 4 thẻ số liệu kèm % so với kỳ trước cùng độ dài, biểu đồ doanh thu theo ngày / theo danh mục, top 10 sản phẩm. Doanh thu = đơn đang xử lý + hoàn tất, KHÔNG tính huỷ / hoàn hàng |
+| GET | `/admin/statistics/export` | `AdminStatisticsServlet` | `days` | **Đã code.** Tải CSV doanh thu theo ngày (UTF-8 có BOM để Excel đọc đúng tiếng Việt) |
 | GET | `/admin/login` | `AdminLoginServlet` | `next` | **Đã code.** Form đăng nhập quản trị (`admin-login.jsp`, trang riêng không có header/sidebar). Đã đăng nhập Admin → 302 vào CMS |
 | POST | `/admin/login` | `AdminLoginServlet` | `email`, `password`, `next` | **Đã code.** Dùng `AuthService.login`, thêm bước kiểm tra là `Admin` (khách hàng đúng mật khẩu → "không có quyền quản trị"). Thành công: huỷ session cũ, tạo session mới, 302 tới `next` (chỉ nhận đường dẫn bắt đầu bằng `/admin`, ngược lại `/admin/products`) |
 | POST | `/admin/logout` | `AdminLogoutServlet` | — | **Đã code.** Huỷ session, 302 `/admin/login`. Chỉ POST (GET → 405) |
