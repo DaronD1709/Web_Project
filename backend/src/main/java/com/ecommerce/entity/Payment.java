@@ -40,4 +40,7 @@ public abstract class Payment {
 
     // Moi loai thanh toan tu override - day la Strategy pattern dua tren ke thua.
     public abstract boolean processPayment();
+
+    /** Ten phuong thuc de hien thi ("COD", "VNPay"); JSP doc bang ${order.payment.method}. */
+    public abstract String getMethod();
 }
