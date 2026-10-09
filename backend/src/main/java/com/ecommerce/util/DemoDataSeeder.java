@@ -3,10 +3,12 @@ package com.ecommerce.util;
 import com.ecommerce.dao.OrderDAO;
 import com.ecommerce.dao.ProductDAO;
 import com.ecommerce.dao.UserDAO;
+import com.ecommerce.dao.VoucherDAO;
 import com.ecommerce.entity.Address;
 import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.CODPayment;
 import com.ecommerce.entity.Customer;
+import com.ecommerce.entity.DiscountType;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
@@ -14,6 +16,7 @@ import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.entity.Product;
 import com.ecommerce.entity.VNPayPayment;
+import com.ecommerce.entity.Voucher;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,8 +31,10 @@ public class DemoDataSeeder {
     private static final OrderDAO orderDAO = new OrderDAO();
     private static final ProductDAO productDAO = new ProductDAO();
     private static final UserDAO userDAO = new UserDAO();
+    private static final VoucherDAO voucherDAO = new VoucherDAO();
 
     public static void seedIfEmpty() {
+        seedVouchers();
         if (orderDAO.count() > 0) return;
         List<Product> products = productDAO.findAll();
         if (products.size() < 6) return; // chua co san pham mau thi thoi
@@ -50,6 +55,32 @@ public class DemoDataSeeder {
         order(c, 7, OrderStatus.RETURN_REQUESTED, "COD", products, new int[][]{{7, 1}}, "Máy chạy không ổn định, động cơ phát tiếng ồn lớn ngay khi khởi động.");
         order(d, 9, OrderStatus.CANCELLED, "COD", products, new int[][]{{8, 3}}, null);
         order(b, 12, OrderStatus.RETURNED, "COD", products, new int[][]{{11, 4}}, null);
+    }
+
+    // 5 voucher mau du 4 trang thai (dang dung / het luot / het han / da tat), chi nap khi bang vouchers trong
+    private static void seedVouchers() {
+        if (voucherDAO.count() > 0) return;
+        LocalDateTime now = LocalDateTime.now();
+        voucher("NONG10", DiscountType.PERCENTAGE, 10, 300_000, 100, 37, now.minusDays(5), now.plusDays(25), true);
+        voucher("FREESHIP", DiscountType.FIXED_AMOUNT, 30_000, 200_000, 200, 148, now.minusDays(20), now.plusDays(80), true);
+        voucher("KHAITRUONG50", DiscountType.FIXED_AMOUNT, 50_000, 500_000, 50, 50, now.minusDays(30), now.plusDays(10), true);   // het luot
+        voucher("THU15", DiscountType.PERCENTAGE, 15, 400_000, 80, 21, now.minusDays(60), now.minusDays(20), true);                // het han
+        voucher("VIP20", DiscountType.PERCENTAGE, 20, 1_000_000, 30, 4, now.minusDays(5), now.plusDays(80), false);                 // da tat
+    }
+
+    private static void voucher(String code, DiscountType type, double value, double min, int issued, int used,
+                                LocalDateTime start, LocalDateTime end, boolean active) {
+        Voucher v = new Voucher();
+        v.setCode(code);
+        v.setDiscountType(type);
+        v.setDiscountValue(value);
+        v.setMinOrderValue(min);
+        v.setQuantityIssued(issued);
+        v.setQuantityUsed(used);
+        v.setStartDate(start);
+        v.setEndDate(end);
+        v.setActive(active);
+        voucherDAO.save(v);
     }
 
     // Tao khach hang (kem gio rong va 1 dia chi mac dinh) neu chua co; da co thi lay lai. Dia chi cascade luu theo khach.

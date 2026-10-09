@@ -50,3 +50,15 @@ function nvProductPreview() {
 // Dien san the "Xem truoc" theo gia tri hien co cua form (vd badge ton kho) khi mo trang, ke ca khi trang duoc htmx nhet vao
 document.addEventListener('DOMContentLoaded', nvProductPreview);
 document.body.addEventListener('htmx:afterSettle', nvProductPreview);
+
+// Xem truoc the voucher trong form tao/sua voucher: goi tu oninput/onchange cua form (admin-voucher-form.jsp)
+function nvVoucherPreview() {
+  var f = document.getElementById('voucher-form');
+  if (!f) return; // trang hien tai khong co form voucher
+  var money = function (n) { return Number(n).toLocaleString('vi-VN') + '₫'; };
+  var percent = f.elements.type.value === 'percent', v = f.elements.value.value, min = Number(f.elements.min.value);
+  document.getElementById('unit').textContent = percent ? '%' : '₫';
+  document.getElementById('pv-code').textContent = f.elements.code.value.toUpperCase() || 'MÃ';
+  document.getElementById('pv-val').textContent = 'Giảm ' + (v ? (percent ? v + '%' : money(v)) : '…');
+  document.getElementById('pv-min').textContent = min ? 'Đơn từ ' + money(min) : 'Không yêu cầu đơn tối thiểu';
+}
