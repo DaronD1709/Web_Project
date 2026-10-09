@@ -12,7 +12,7 @@
 <div class="max-w-3xl mx-auto space-y-4">
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI ===== --%>
-  <a href="${ctx}/admin/users" class="text-sm link link-primary">← Danh sách khách hàng</a>
+  <a href="${ctx}/admin/users" class="btn btn-outline btn-sm mb-2">← Danh sách khách hàng</a>
 
   <%-- ===== VUNG 2: THE KHACH HANG (ten, lien he, trang thai, nut khoa/mo khoa) ===== --%>
   <section class="card bg-base-100 border border-base-300 p-5 flex flex-row flex-wrap items-center gap-4">

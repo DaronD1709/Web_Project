@@ -22,7 +22,7 @@
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI + TIEU DE ===== --%>
   <div>
-    <a href="${ctx}/admin/vouchers" class="text-sm link link-primary">← Danh sách voucher</a>
+    <a href="${ctx}/admin/vouchers" class="btn btn-outline btn-sm mb-2">← Danh sách voucher</a>
     <h1 class="text-2xl font-bold">${editing ? 'Sửa voucher ' : 'Tạo voucher'}<c:out value="${editing ? draft.code : ''}"/></h1>
   </div>
 

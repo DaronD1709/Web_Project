@@ -16,7 +16,7 @@
   <%-- ===== VUNG 1: TIEU DE (ma don, ngay dat, nhan trang thai) ===== --%>
   <div class="flex flex-wrap items-start justify-between gap-2">
     <div>
-      <a href="${ctx}/admin/orders" class="text-sm link link-primary">← Danh sách đơn hàng</a>
+      <a href="${ctx}/admin/orders" class="btn btn-outline btn-sm mb-2">← Danh sách đơn hàng</a>
       <h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary">#${order.id}</span></h1>
       <div class="text-sm text-base-content/60">Đặt lúc ${order.orderDateText}</div>
     </div>

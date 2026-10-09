@@ -41,7 +41,7 @@
       <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
         <input type="password" name="password" class="input w-full" required></label>
       <button class="btn btn-primary btn-block">Đăng nhập</button>
-      <div class="text-center text-sm"><a href="${ctx}/" class="link link-hover text-base-content/60">← Về cửa hàng</a></div>
+      <a href="${ctx}/" class="btn btn-ghost btn-sm btn-block">← Về cửa hàng</a>
     </form>
   </div>
 </div>

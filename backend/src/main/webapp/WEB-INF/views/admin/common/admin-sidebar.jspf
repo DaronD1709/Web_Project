@@ -8,6 +8,6 @@
     <%-- Danh sach muc menu --%>
     <%@ include file="/WEB-INF/views/admin/common/admin-nav.jspf" %>
     <%-- Chan menu: ve cua hang --%>
-    <div class="p-4 border-t border-white/10"><a href="${ctx}/" hx-boost="false" class="text-xs text-neutral-content/60 hover:text-white">← Xem cửa hàng</a></div>
+    <div class="p-4 border-t border-white/10"><a href="${ctx}/" hx-boost="false" class="btn btn-sm btn-outline btn-block border-white/30 text-neutral-content hover:bg-white/10">← Xem cửa hàng</a></div>
   </aside>
 </div>

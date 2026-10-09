@@ -29,7 +29,7 @@
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
       <input type="email" name="email" class="input w-full" placeholder="ban@email.com" required></label>
     <button class="btn btn-primary btn-block">Gửi liên kết đặt lại</button>
-    <div class="text-center text-sm"><a href="${ctx}/login" class="link link-primary">← Quay lại đăng nhập</a></div>
+    <a href="${ctx}/login" class="btn btn-ghost btn-sm btn-block">← Quay lại đăng nhập</a>
   </form>
   </div>
 </main>

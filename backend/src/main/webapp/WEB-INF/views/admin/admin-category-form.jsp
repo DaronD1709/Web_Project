@@ -12,7 +12,7 @@
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI + TIEU DE ===== --%>
   <div>
-    <a href="${ctx}/admin/categories" class="text-sm link link-primary">← Danh sách danh mục</a>
+    <a href="${ctx}/admin/categories" class="btn btn-outline btn-sm mb-2">← Danh sách danh mục</a>
     <h1 class="text-2xl font-bold">${editing ? 'Sửa danh mục' : 'Thêm danh mục'}</h1>
   </div>
 

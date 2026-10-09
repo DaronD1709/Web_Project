@@ -19,7 +19,7 @@
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI + TIEU DE ===== --%>
   <div>
-    <a href="${ctx}/admin/products" class="text-sm link link-primary">← Danh sách sản phẩm</a>
+    <a href="${ctx}/admin/products" class="btn btn-outline btn-sm mb-2">← Danh sách sản phẩm</a>
     <h1 class="text-2xl font-bold">${editing ? 'Sửa sản phẩm #' : 'Thêm sản phẩm'}${draft.id}</h1>
   </div>
 
