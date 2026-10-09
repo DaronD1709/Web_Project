@@ -3,6 +3,25 @@
 Mỗi tính năng bên dưới liệt kê **file nào đã được tạo (A) hoặc sửa (M)**, chia **BE** (Java chạy phía server) và **FE** (JSP / JS / CSS), kèm **thứ tự nên đọc**.
 Đường dẫn rút gọn: `java/` = `backend/src/main/java/com/ecommerce/`, `views/` = `backend/src/main/webapp/WEB-INF/views/`, `static/` = `backend/src/main/webapp/static/`.
 
+## Mục lục theo nhánh
+
+| # | Nhánh | Tính năng | Mục |
+|---|---|---|---|
+| 1 | `feat/admin-manage-product` | Quản lý sản phẩm (kèm khung CMS dùng chung) | [Mục 1](#1-quản-lý-sản-phẩm--nhánh-featadmin-manage-product) |
+| 2 | `feat/admin-login-logout` | Đăng nhập / đăng xuất Admin | [Mục 2](#2-đăng-nhập--đăng-xuất-admin--nhánh-featadmin-login-logout) |
+| 3 | `feat/admin-manage-order` | Quản lý đơn hàng | [Mục 3](#3-quản-lý-đơn-hàng--nhánh-featadmin-manage-order-core) |
+| 4 | `feat/admin-manage-voucher` | Quản lý voucher | [Mục 4](#4-quản-lý-voucher--nhánh-featadmin-manage-voucher) |
+| 5 | `feat/admin-manage-customer-account` | Quản lý tài khoản khách hàng | [Mục 5](#5-quản-lý-tài-khoản-khách-hàng--nhánh-featadmin-manage-customer-account) |
+| 6 | `feat/chat-with-shop` | Chat với khách | [Mục 6](#6-chat-với-khách--nhánh-featchat-with-shop) |
+| 7 | `feat/admin-auto-reply` | Trả lời tự động của chatbot | [Mục 7](#7-trả-lời-tự-động-của-chatbot--nhánh-featadmin-auto-reply) |
+| 8 | `feat/admin-manage-category` | Quản lý danh mục | [Mục 8](#8-quản-lý-danh-mục--nhánh-featadmin-manage-category-core) |
+| 9 | `feat/admin-dashboard` | Tổng quan + Thống kê doanh thu | [Mục 9](#9-tổng-quan--thống-kê-doanh-thu--nhánh-featadmin-dashboard) |
+| — | (làm trực tiếp trên `dev`) | Sửa lỗi / chỉnh giao diện sau khi merge | [Cuối tài liệu](#các-sửa-làm-trực-tiếp-trên-dev-sau-khi-merge) |
+
+Thứ tự merge vào `dev` đúng như bảng (nhánh sau dựa trên nhánh trước).
+
+---
+
 ## Cách một request đi (áp dụng cho mọi trang Admin)
 
 ```
@@ -207,3 +226,14 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 1. Chạy app, đăng nhập `/admin/login` bằng tài khoản admin trong `util/DataSeeder.java`.
 2. Với mỗi tính năng: mở trang, thao tác, xem Tomcat log (Hibernate in sẵn câu SQL) để thấy Servlet → Service → DAO chạy thế nào.
 3. Tra cứu URL, tham số, quyền ở `docs/api-spec.md` (mục 7).
+
+---
+
+## Các sửa làm trực tiếp trên `dev` sau khi merge
+
+| Việc | BE | FE |
+|---|---|---|
+| Nút "← Quay lại" thành nút thật (không còn là link chữ) | — | `admin-customer-detail.jsp`, `admin-product-form.jsp`, `admin-order-detail.jsp`, `admin-voucher-form.jsp`, `admin-category-form.jsp`, `admin-autoreply-form.jsp`, `admin-login.jsp`, `common/admin-sidebar.jspf`, `customer/forgot-password.jsp` |
+| Sửa lỗi trang chat bị lồng trang (link hội thoại kế thừa `hx-target` của `<ul>` polling) | — | `fragments/admin-chat-list.jsp` |
+| Sửa tràn ngang trên điện thoại (Tổng quan, Thống kê, Chi tiết đơn, form có dòng gợi ý dài) | — | `admin-dashboard.jsp`, `admin-statistics.jsp`, `admin-order-detail.jsp`, `common/admin-chart-columns.jspf`, `static/css/design.css` |
+| Chống trình duyệt dùng CSS/JS cũ trong cache (`?v=assetVersion`) | `java/listener/AppInitListener.java` | `views/common/head.jspf`, `views/admin/admin-layout.jsp` |
