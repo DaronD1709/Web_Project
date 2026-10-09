@@ -46,3 +46,9 @@ html[data-theme="nongnghiep"] {
 .form-control > .label { padding: 0; min-height: 0; }
 .form-control .label-text { font-size: 0.875rem; font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 80%, transparent); }
 .form-control .label-text-alt { font-size: 0.75rem; }
+
+/* Nhan "Het hang"/"Con 3" khong duoc xuong dong trong o bang hep */
+.badge { white-space: nowrap; }
+/* Admin: link khong gach chan (chi gach khi re chuot vao) */
+#adm-main .link { text-decoration: none; }
+#adm-main .link:hover { text-decoration: underline; }

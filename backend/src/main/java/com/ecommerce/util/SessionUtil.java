@@ -1,5 +1,6 @@
 package com.ecommerce.util;
 
+import com.ecommerce.entity.Admin;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +29,7 @@ public class SessionUtil {
     public static Customer requireCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User user = currentUser(req);
         if (user == null) {
-            String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
-            String login = req.getContextPath() + "/login?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
-            if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
-            else resp.sendRedirect(login);
+            redirectToLogin(req, resp);
             return null;
         }
         if (!(user instanceof Customer customer)) {
@@ -39,5 +37,26 @@ public class SessionUtil {
             return null;
         }
         return customer;
+    }
+
+    /** Giong requireCustomer nhung cho cac trang /admin/*: chua dang nhap -> /login?next=..., la khach hang -> 403. */
+    public static Admin requireAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        User user = currentUser(req);
+        if (user == null) {
+            redirectToLogin(req, resp);
+            return null;
+        }
+        if (!(user instanceof Admin admin)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Chức năng này dành cho quản trị viên");
+            return null;
+        }
+        return admin;
+    }
+
+    private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
+        String login = req.getContextPath() + "/login?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
+        else resp.sendRedirect(login);
     }
 }

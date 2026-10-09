@@ -44,7 +44,7 @@ public class ChatService {
     private void greet(Integer customerId) {
         User bot = userDAO.findByEmail(BOT_EMAIL);
         if (bot == null) return; // chua seed tai khoan chatbot thi bo qua loi chao
-        addMessage(requireCustomer(customerId), bot, "Xin chào! Mình là trợ lý AI của NôngViệt. Bạn cần tư vấn gì về hạt giống, "
+        addMessage(requireCustomer(customerId), bot, "Xin chào! Mình là trợ lý AI của Nông Việt. Bạn cần tư vấn gì về hạt giống, "
                 + "phân bón, thuốc BVTV hay máy móc nông nghiệp? Nhân viên shop sẽ hỗ trợ thêm khi cần.");
     }
 

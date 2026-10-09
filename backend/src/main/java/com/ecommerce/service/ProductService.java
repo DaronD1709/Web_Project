@@ -27,10 +27,6 @@ public class ProductService {
         return productDAO.findLatest(limit);
     }
 
-    public Product createProduct(Product product) {
-        return productDAO.save(product);
-    }
-
     /** Trang /products: 1 query lay san pham cua trang + 1 query dem tong de tinh so trang. */
     public PageResult<Product> search(ProductFilter filter) {
         long total = productDAO.countSearch(filter);
