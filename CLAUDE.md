@@ -89,6 +89,9 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   JS dùng chung ở `static/js/admin.js` (toast, xem trước sản phẩm) — không đặt `<script>` trong trang nội dung vì lịch sử htmx không chạy lại script. `SessionUtil.requireAdmin` chặn `/admin/*`.
   Ảnh sản phẩm: `util/UploadUtil` lưu ngoài webapp (`~/nongviet-uploads` hoặc env `UPLOAD_DIR`), `controller/ImageServlet` phục vụ `/uploads/*`; khi deploy Docker phải mount volume cho thư mục này.
   Product chỉ có 1 cột `imageUrl` nên mỗi sản phẩm 1 ảnh (mockup vẽ tới 5 ảnh, chưa làm). `ProductFilter` có thêm `stock` + sort `name|stock` + `pageSize` cho trang admin.
+- **Admin Login/Logout (nhánh `feat/admin-login-logout`, đã test):** `/admin/login` (`AdminLoginServlet` + `admin/admin-login.jsp`, trang riêng theo mockup) dùng lại `AuthService.login` rồi kiểm tra `instanceof Admin`;
+  `/admin/logout` (`AdminLogoutServlet`, chỉ POST) về lại `/admin/login`. `SessionUtil.requireAdmin` giờ chuyển tới `/admin/login?next=...` (htmx: `HX-Redirect`). Không sửa `LoginServlet`/`LogoutServlet` của khách hàng để tránh xung đột.
+  Nhánh này đã merge sẵn `feat/admin-manage-product` (cần khung CMS và `requireAdmin`), nên merge nhánh sản phẩm vào `dev` trước.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 

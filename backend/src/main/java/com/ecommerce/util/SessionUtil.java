@@ -29,7 +29,7 @@ public class SessionUtil {
     public static Customer requireCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User user = currentUser(req);
         if (user == null) {
-            redirectToLogin(req, resp);
+            redirectToLogin(req, resp, "/login");
             return null;
         }
         if (!(user instanceof Customer customer)) {
@@ -39,11 +39,11 @@ public class SessionUtil {
         return customer;
     }
 
-    /** Giong requireCustomer nhung cho cac trang /admin/*: chua dang nhap -> /login?next=..., la khach hang -> 403. */
+    /** Giong requireCustomer nhung cho cac trang /admin/*: chua dang nhap -> /admin/login?next=..., la khach hang -> 403. */
     public static Admin requireAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         User user = currentUser(req);
         if (user == null) {
-            redirectToLogin(req, resp);
+            redirectToLogin(req, resp, "/admin/login"); // Admin co trang dang nhap rieng
             return null;
         }
         if (!(user instanceof Admin admin)) {
@@ -53,9 +53,10 @@ public class SessionUtil {
         return admin;
     }
 
-    private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    // loginPath: trang dang nhap can chuyen toi ("/login" cho khach hang, "/admin/login" cho Admin); next = trang dang truy cap de quay lai
+    private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String loginPath) throws IOException {
         String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
-        String login = req.getContextPath() + "/login?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        String login = req.getContextPath() + loginPath + "?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
         if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
         else resp.sendRedirect(login);
     }
