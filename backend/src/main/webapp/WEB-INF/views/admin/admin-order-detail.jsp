@@ -34,7 +34,7 @@
   </c:choose>
 
   <%-- ===== VUNG 3: THANH TIEN TRINH (don huy chi co 2 buoc: Dat hang, Da huy) ===== --%>
-  <div class="card bg-base-100 border border-base-300 p-5">
+  <div class="card bg-base-100 border border-base-300 p-5 overflow-x-auto">
     <ul class="steps w-full text-sm">
       <c:choose>
         <c:when test="${st == 'CANCELLED'}"><li class="step step-primary">Đặt hàng</li><li class="step step-error" data-content="✕">Đã huỷ</li></c:when>
@@ -47,7 +47,7 @@
   </div>
 
   <div class="grid lg:grid-cols-[1fr_20rem] gap-4">
-    <div class="space-y-4">
+    <div class="space-y-4 min-w-0"> <%-- min-w-0: o luoi 1fr khong bi noi dung ben trong ep rong hon man hinh --%>
 
       <%-- ===== VUNG 4: CAC DONG HANG + TONG TIEN ===== --%>
       <section class="card bg-base-100 border border-base-300 overflow-hidden">
@@ -114,7 +114,7 @@
       </div>
     </div>
 
-    <aside class="space-y-4">
+    <aside class="space-y-4 min-w-0">
       <%-- ===== VUNG 6: KHACH HANG ===== --%>
       <section class="card bg-base-100 border border-base-300 p-5 text-sm space-y-1">
         <h2 class="font-semibold mb-1">Khách hàng</h2>

@@ -14,6 +14,9 @@ public class AppInitListener implements ServletContextListener {
     // Khoi dong: nap du lieu mau neu DB con trong.
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        // So phien ban gan vao link CSS/JS (head.jspf, admin-layout.jsp: design.css?v=...) va doi MOI LAN khoi dong app:
+        // trinh duyet khong dung ban CSS/JS cu trong cache sau khi pull code hoac deploy lai.
+        sce.getServletContext().setAttribute("assetVersion", System.currentTimeMillis());
         DataSeeder.seedIfEmpty();
         DemoDataSeeder.seedIfEmpty(); // don hang/khach mau de demo trang Admin (chi khi chua co don nao)
     }

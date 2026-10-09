@@ -114,6 +114,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - **Admin > Tổng quan + Thống kê doanh thu (nhánh `feat/admin-dashboard`, đã test 49 kiểm tra đối chiếu số liệu với SQL):** `AdminDashboardServlet` (`/admin`) và `AdminStatisticsServlet` (`/admin/statistics`, `/export` CSV) → `AdminStatsService` → `StatsDAO` (chỉ đọc).
   Doanh thu = đơn `PENDING/CONFIRMED/SHIPPING/COMPLETED` (`StatsDAO.COUNTED`), không tính huỷ/hoàn hàng; tính theo giá lúc đặt (`priceAtOrder`). Biểu đồ vẽ bằng HTML/CSS thuần (`common/admin-chart-columns.jspf`, `admin-chart-bars.jspf`, không thư viện JS) kèm bảng ẩn cho nút "Xem dạng bảng" (`admin.js`).
   DTO chỉ để vẽ: `ChartPoint`, `ChartData` (kèm `max` vì EL không tính max của danh sách), `TopProduct`. `DemoDataSeeder` nạp thêm ~35 đơn lịch sử rải 30 ngày cho biểu đồ có dữ liệu. Sidebar đã bỏ mục "Đánh giá" (chưa làm).
+- **Cache CSS/JS:** `AppInitListener` gán `assetVersion` (thời điểm khởi động app) vào `application scope`; `head.jspf` và `admin-layout.jsp` nối `?v=${applicationScope.assetVersion}` vào link `design.css`/`admin.js` nên sau khi pull code hoặc deploy lại, trình duyệt không dùng bản cũ trong cache. File tĩnh mới thêm vào `static/` cũng nên link theo kiểu này.
+  **Kiểm tra giao diện hẹp (điện thoại 390px, máy tính bảng 768px):** các ô lưới `1fr` cần `min-w-0` ở phần tử con, dòng gợi ý trong `.form-control > .label` được phép xuống dòng (đã sửa trong `design.css`), bảng rộng đặt trong `overflow-x-auto`.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 

@@ -43,7 +43,7 @@ html[data-theme="nongnghiep"] {
 /* daisyUI 5 da bo lop "form-control" va "label-text" nhung cac form dang dung chung.
    Them lai de: nhan nam tren o nhap, cac o cach nhau (label mac dinh la inline nen margin/space-y khong co tac dung). */
 .form-control { display: flex; flex-direction: column; gap: 0.375rem; }
-.form-control > .label { padding: 0; min-height: 0; }
+.form-control > .label { padding: 0; min-height: 0; white-space: normal; } /* cho phep dong goi y dai xuong dong, khong ep rong trang tren man hinh hep */
 .form-control .label-text { font-size: 0.875rem; font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 80%, transparent); }
 .form-control .label-text-alt { font-size: 0.75rem; }
 

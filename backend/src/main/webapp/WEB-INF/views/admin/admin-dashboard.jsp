@@ -54,7 +54,7 @@
 
   <div class="grid xl:grid-cols-3 gap-4">
     <%-- ===== VUNG 4: BIEU DO DOANH THU 14 NGAY ===== --%>
-    <section class="card bg-base-100 border border-base-300 p-5 xl:col-span-2" data-chart-card>
+    <section class="min-w-0 card bg-base-100 border border-base-300 p-5 xl:col-span-2" data-chart-card>
       <div class="flex items-start justify-between gap-2">
         <div><h2 class="font-semibold">Doanh thu ${revenueDays} ngày gần nhất</h2><p class="text-xs text-base-content/60">Không tính đơn đã huỷ và hoàn hàng</p></div>
         <button class="btn btn-ghost btn-xs" onclick="nvToggleChartTable(this)" aria-pressed="false">Xem dạng bảng</button>
@@ -63,7 +63,7 @@
     </section>
 
     <%-- ===== VUNG 5: DON THEO TRANG THAI ===== --%>
-    <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+    <section class="min-w-0 card bg-base-100 border border-base-300 p-5" data-chart-card>
       <div class="flex items-start justify-between gap-2">
         <div><h2 class="font-semibold">Đơn hàng theo trạng thái</h2><p class="text-xs text-base-content/60">Tất cả đơn trong hệ thống</p></div>
         <button class="btn btn-ghost btn-xs" onclick="nvToggleChartTable(this)" aria-pressed="false">Xem dạng bảng</button>
@@ -74,7 +74,7 @@
 
   <div class="grid xl:grid-cols-3 gap-4">
     <%-- ===== VUNG 6: DON HANG MOI NHAT ===== --%>
-    <section class="card bg-base-100 border border-base-300 xl:col-span-2 overflow-hidden">
+    <section class="min-w-0 card bg-base-100 border border-base-300 xl:col-span-2 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4"><h2 class="font-semibold">Đơn hàng mới nhất</h2><a href="${ctx}/admin/orders" class="link link-primary text-sm">Xem tất cả</a></div>
       <div class="overflow-x-auto">
         <table class="table table-sm">
@@ -95,7 +95,7 @@
     </section>
 
     <%-- ===== VUNG 7: SAN PHAM SAP HET HANG (ton kho <= 15, it nhat truoc) ===== --%>
-    <section class="card bg-base-100 border border-base-300 overflow-hidden">
+    <section class="min-w-0 card bg-base-100 border border-base-300 overflow-hidden">
       <div class="flex items-center justify-between px-5 py-4"><h2 class="font-semibold">Sắp hết hàng</h2><a href="${ctx}/admin/products?stock=low" class="link link-primary text-sm">Xem tất cả</a></div>
       <div class="overflow-x-auto">
         <table class="table table-sm">
@@ -118,7 +118,7 @@
   </div>
 
   <%-- ===== VUNG 8: SAN PHAM BAN CHAY NHAT (30 ngay qua, theo so luong) ===== --%>
-  <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+  <section class="min-w-0 card bg-base-100 border border-base-300 p-5" data-chart-card>
     <div class="flex items-start justify-between gap-2">
       <div><h2 class="font-semibold">Sản phẩm bán chạy nhất</h2><p class="text-xs text-base-content/60">30 ngày qua, theo số lượng đã bán</p></div>
       <button class="btn btn-ghost btn-xs" onclick="nvToggleChartTable(this)" aria-pressed="false">Xem dạng bảng</button>

@@ -29,7 +29,7 @@
   <title><c:out value="${adminTitle}"/> — Quản trị Nông Việt</title>
   <%-- head.jspf dung chung: nap Tailwind, daisyUI, htmx, design.css. admin.js nap 1 lan (defer = chay sau khi trang doc xong) --%>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
-  <script src="${ctx}/static/js/admin.js" defer></script>
+  <script src="${ctx}/static/js/admin.js?v=${applicationScope.assetVersion}" defer></script>
 </head>
 <body class="bg-base-200 min-h-screen">
 <%-- KHUNG: hx-boost bien MOI link/form ben trong thanh request htmx; ket qua chi thay vao #adm-main (khong tai lai trang).

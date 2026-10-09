@@ -55,7 +55,7 @@
   </div>
 
   <%-- ===== VUNG 3: BIEU DO DOANH THU THEO NGAY ===== --%>
-  <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+  <section class="min-w-0 card bg-base-100 border border-base-300 p-5" data-chart-card>
     <div class="flex items-start justify-between gap-2">
       <div><h2 class="font-semibold">Doanh thu theo ngày</h2><p class="text-xs text-base-content/60">Đơn đang xử lý và hoàn tất, không tính đơn huỷ/hoàn hàng</p></div>
       <button class="btn btn-ghost btn-xs" onclick="nvToggleChartTable(this)" aria-pressed="false">Xem dạng bảng</button>
@@ -65,7 +65,7 @@
 
   <div class="grid xl:grid-cols-2 gap-4">
     <%-- ===== VUNG 4: DOANH THU THEO DANH MUC ===== --%>
-    <section class="card bg-base-100 border border-base-300 p-5" data-chart-card>
+    <section class="min-w-0 card bg-base-100 border border-base-300 p-5" data-chart-card>
       <div class="flex items-start justify-between gap-2">
         <div><h2 class="font-semibold">Doanh thu theo danh mục</h2><p class="text-xs text-base-content/60">Sắp xếp từ cao xuống thấp</p></div>
         <button class="btn btn-ghost btn-xs" onclick="nvToggleChartTable(this)" aria-pressed="false">Xem dạng bảng</button>
@@ -74,7 +74,7 @@
     </section>
 
     <%-- ===== VUNG 5: TOP 10 SAN PHAM BAN CHAY ===== --%>
-    <section class="card bg-base-100 border border-base-300 overflow-hidden">
+    <section class="min-w-0 card bg-base-100 border border-base-300 overflow-hidden">
       <div class="px-5 py-4"><h2 class="font-semibold">Top 10 sản phẩm bán chạy</h2></div>
       <div class="overflow-x-auto">
         <table class="table table-sm">
