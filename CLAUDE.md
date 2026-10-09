@@ -109,6 +109,8 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `Customer.handledByHuman` (cột `users.handled_by_human`) là cờ nhân viên tiếp quản. `DemoDataSeeder` nạp 3 cuộc trò chuyện mẫu khi bảng `messages` trống.
 - **Admin > Trả lời tự động (nhánh `feat/admin-auto-reply`, đã test 49 kiểm tra + chạy lại 52 kiểm tra chat):** `AdminAutoReplyServlet` (`/admin/auto-replies`, `/new`, `/edit`, `/toggle`, `/delete`, `/test`) → `AdminAutoReplyService` → `AutoReplyDAO`; ô "Thử câu hỏi" (htmx) gọi `ChatBotService.match` nên Admin thấy đúng cái chatbot sẽ trả lời.
   Từ khoá phải ≥ 3 chữ/số để không khớp nhầm; `*` đứng một mình = bắt mọi câu (đặt ưu tiên lớn nhất làm câu mặc định). Mỗi tin khách gửi sẽ đọc luật từ DB (1 query).
+- **Admin > Quản lý danh mục (nhánh `feat/admin-manage-category`, đã test 35 kiểm tra):** `AdminCategoryServlet` (`/admin/categories`, `/new`, `/edit`, `/delete`) → `AdminCategoryService` → `CategoryDAO` (`countProducts()` gộp 1 query đếm sản phẩm mỗi danh mục).
+  Tên danh mục không trùng (không phân biệt hoa thường, gộp khoảng trắng thừa), mô tả ≤ 255 (đúng độ dài cột); **không xoá danh mục còn sản phẩm** (cả nút lẫn server). Danh mục mới tự xuất hiện ở ô chọn của form sản phẩm và bộ lọc trang khách.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
