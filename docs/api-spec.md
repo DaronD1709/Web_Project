@@ -104,6 +104,23 @@ Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản p
 | GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình) |
 | GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | (Optional) cập nhật `PaymentStatus`, 302 `/checkout/success` |
 
+**Giỏ hàng:** cả 3 action yêu cầu tham số ID/số lượng đúng định dạng số nguyên trong phạm vi `int`;
+thiếu/sai không được tự đổi thành `qty=1`. Thêm/cập nhật yêu cầu số lượng ≥ 1 và không vượt tồn kho;
+`update` với 0/số âm báo lỗi, xoá chỉ dùng `action=remove`. Khi thêm sản phẩm đã có, tổng số lượng
+được cộng bằng `long` rồi kiểm tra trước khi chuyển về `int`, tránh tràn số. Dòng sửa/xoá phải thuộc giỏ của khách hiện tại;
+ID khách lấy từ session, không dùng `customerId` gửi thêm. Giỏ lưu DB, không trừ kho tại bước này;
+giữ `priceAtAdd` của dòng đã có khi tăng số lượng.
+Tạo giỏ và mỗi thao tác thêm/sửa/xoá chạy trong transaction của `CartDAO.changeCart`:
+khoá dòng Customer bằng JPQL `PESSIMISTIC_WRITE` trước khi đọc giỏ, để các request cùng khách
+không tạo trùng giỏ/dòng hoặc ghi đè số lượng của nhau. Service kiểm tra lại `Customer.isActive()`
+sau khi lấy khoá; lỗi nghiệp vụ rollback toàn bộ thao tác. Khoá này không giữ hàng;
+checkout vẫn phải kiểm tra và trừ tồn kho trong transaction riêng.
+GET/POST `/cart` gửi `Cache-Control: no-store`; GET làm mới session `cartCount` (số dòng sản phẩm khác nhau).
+Lỗi htmx trả **422**, `HX-Trigger` hiện toast và `HX-Reswap: none` giữ nội dung giỏ;
+request thường forward trang giỏ với `error`. POST thành công thường redirect `/cart`;
+htmx add trả badge, update/remove trả nội dung giỏ + badge OOB. Các nút dùng form POST
+để vẫn hoạt động khi htmx không tải được; màu/bố cục dựa trên mockup. Nút thanh toán giữ disabled tới nhánh checkout.
+
 Quy tắc `OrderService.checkout(user, addressId, method, voucherCode)` — **trong 1 transaction**:
 1. Validate mọi `CartItem.quantity <= Product.stockQuantity`, sai → `BusinessException` kèm tên sản phẩm.
 2. Nếu có voucher: `Voucher.isValid()` + kiểm tra theo thứ tự — **hết hạn → hết lượt → chưa đạt giá trị tối thiểu** (mỗi lỗi 1 thông báo riêng).
