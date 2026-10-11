@@ -4,7 +4,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Chat với shop — NôngViệt</title>
+  <title>Chat với shop — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen">
@@ -14,7 +14,7 @@
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <div class="flex items-center gap-3 px-5 py-3 border-b border-base-300">
       <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary text-primary-content w-10 rounded-full">🌾</div></div>
-      <div class="flex-1"><div class="font-semibold">NôngViệt</div><div class="text-xs text-success">Gửi tin nhắn cho shop — nhân viên sẽ phản hồi trong giờ làm việc</div></div>
+      <div class="flex-1"><div class="font-semibold">Nông Việt</div><div class="text-xs text-success">Gửi tin nhắn cho shop — nhân viên sẽ phản hồi trong giờ làm việc</div></div>
     </div>
 
     <div id="msgs" class="p-5 space-y-1 h-[26rem] overflow-y-auto bg-base-200/50">

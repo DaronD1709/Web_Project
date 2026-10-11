@@ -66,7 +66,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
-**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chưa có: checkout, phía Admin của chat, AI tự trả lời.
+**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Chưa có: checkout.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
@@ -156,7 +156,7 @@ Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. M
 | POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` | 302 `/notifications` |
 | GET | `/notifications/count` | `NotificationServlet` | — | htmx fragment số chưa đọc (badge header), `hx-trigger="every 30s"` |
 | GET | `/chat` | `ChatServlet` | — | `customer/chat.jsp` (attr `messages`, `conversation`) |
-| POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi trả lời AI nếu chưa có Admin tiếp quản) |
+| POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi **chatbot trả lời theo luật từ khoá** nếu chưa có Admin tiếp quản; không hiểu / xin gặp nhân viên ⇒ chuyển sang chế độ Nhân viên) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
 
 `Message` gắn với khách qua `Message.customer`; `Message.sender` là `User` (Customer hoặc Admin; chatbot dùng tài khoản hệ thống loại Admin) — JSP phân biệt bubble theo người gửi.
@@ -164,19 +164,53 @@ Nội dung tin nhắn luôn qua `<c:out>`.
 
 ---
 
-## 7. Admin (đề xuất — chưa có mockup, Core trước)
+## 7. Admin (Core trước; Quản lý sản phẩm đã code)
+
+Mọi URL `/admin/*` (trừ `/admin/login`) dùng `SessionUtil.requireAdmin` (chưa đăng nhập → `/admin/login?next=`, khách hàng → 403). Khung trang (header + sidebar) nằm ở `WEB-INF/views/admin/admin-layout.jsp`;
+Servlet chỉ gọi `AdminView.render(req, resp, "xxx.jsp", "Tiêu đề", "mục-sidebar")` — mở trực tiếp thì trả cả khung, bấm link qua htmx (`hx-boost`) thì chỉ trả nội dung.
 
 | Method | URL | Servlet | Tham số chính | Ghi chú |
 |---|---|---|---|---|
-| GET | `/admin` | `AdminDashboardServlet` | — | Optional: thống kê doanh thu, bán chạy |
-| GET | `/admin/products` | `AdminProductServlet` | `q`, `cat`, `page` | Danh sách + tồn kho |
-| POST | `/admin/products` | `AdminProductServlet` | `action=create\|update\|delete`, `id`, `name`, `description`, `price`, `stockQuantity`, `categoryId`, ảnh (`multipart/form-data`) | Upload ảnh lưu vào `webapp/static/uploads/`; xoá SP đã có trong đơn → từ chối |
+| GET | `/admin` | `AdminDashboardServlet` | — | **Đã code.** Tổng quan: việc cần xử lý (đơn chờ, yêu cầu hoàn hàng, khách chờ chat), 4 thẻ số liệu (doanh thu hôm nay so với hôm qua, đơn chờ, đang giao, sản phẩm sắp hết), biểu đồ doanh thu 14 ngày, đơn theo trạng thái, 6 đơn mới nhất, hàng sắp hết, sản phẩm bán chạy. Đăng nhập admin xong vào trang này |
+| GET | `/admin/statistics` | `AdminStatisticsServlet` | `days=7\|14\|30` (mặc định 30) | **Đã code.** 4 thẻ số liệu kèm % so với kỳ trước cùng độ dài, biểu đồ doanh thu theo ngày / theo danh mục, top 10 sản phẩm. Doanh thu = đơn đang xử lý + hoàn tất, KHÔNG tính huỷ / hoàn hàng |
+| GET | `/admin/statistics/export` | `AdminStatisticsServlet` | `days` | **Đã code.** Tải CSV doanh thu theo ngày (UTF-8 có BOM để Excel đọc đúng tiếng Việt) |
+| GET | `/admin/login` | `AdminLoginServlet` | `next` | **Đã code.** Form đăng nhập quản trị (`admin-login.jsp`, trang riêng không có header/sidebar). Đã đăng nhập Admin → 302 vào CMS |
+| POST | `/admin/login` | `AdminLoginServlet` | `email`, `password`, `next` | **Đã code.** Dùng `AuthService.login`, thêm bước kiểm tra là `Admin` (khách hàng đúng mật khẩu → "không có quyền quản trị"). Thành công: huỷ session cũ, tạo session mới, 302 tới `next` (chỉ nhận đường dẫn bắt đầu bằng `/admin`, ngược lại `/admin/products`) |
+| POST | `/admin/logout` | `AdminLogoutServlet` | — | **Đã code.** Huỷ session, 302 `/admin/login`. Chỉ POST (GET → 405) |
+| GET | `/admin/products` | `AdminProductServlet` | `q`, `cat`, `stock=in\|low\|out`, `sort=new\|name\|asc\|desc\|stock`, `page` (10 SP/trang) | **Đã code.** Trang đầy đủ; request htmx có `HX-Target: product-list` (ô lọc, phân trang) chỉ trả bảng `fragments/admin-product-table.jsp` |
+| GET | `/admin/products/new` | `AdminProductServlet` | — | **Đã code.** Form thêm |
+| POST | `/admin/products/new` | `AdminProductServlet` | `name`, `description`, `price`, `stock`, `category`, `image` (`multipart/form-data`) | **Đã code.** Lỗi → vẽ lại form kèm lỗi từng ô; đúng → flash + 302 `/admin/products`. Ảnh: JPG/PNG/WEBP ≤ 2MB, nhận diện bằng byte đầu file, lưu ngoài webapp (`~/nongviet-uploads` hoặc biến môi trường `UPLOAD_DIR`), phục vụ qua `GET /uploads/<uuid>.<ext>` |
+| GET | `/admin/products/edit` | `AdminProductServlet` | `id` | **Đã code.** Form sửa (id lạ → flash lỗi + 302 danh sách) |
+| POST | `/admin/products/edit` | `AdminProductServlet` | `id` (query), các trường như thêm, `removeImage=on` | **Đã code.** Ảnh mới thay ảnh cũ (file cũ bị xoá) |
+| POST | `/admin/products/delete` | `AdminProductServlet` | `id`, (kèm bộ lọc hiện tại), `redirect` (từ trang form) | **Đã code (htmx).** SP đã có trong đơn hàng → từ chối (toast lỗi, `HX-Reswap: none`); còn trong giỏ → gỡ khỏi giỏ rồi xoá; đánh giá xoá theo. Từ bảng: trả mảnh rỗng (dòng biến mất) + `#product-summary` cập nhật bằng `hx-swap-oob` |
 | GET/POST | `/admin/categories` | `AdminCategoryServlet` | `action=create\|update\|delete`, `id`, `name`, `description` | Không xoá danh mục còn sản phẩm |
-| GET | `/admin/orders` | `AdminOrderServlet` | `status`, `page` | Mọi đơn của mọi khách |
-| GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | — |
-| POST | `/admin/orders/status` | `AdminOrderServlet` | `id`, `status` | Đi qua `Order.updateStatus()`; huỷ ⇒ hoàn kho; tạo Notification |
-| POST | `/admin/orders/return` | `AdminOrderServlet` | `id`, `decision=approve\|reject` | `RETURN_REQUESTED → RETURNED` (hoàn kho) hoặc về `COMPLETED` |
-| — | `/admin/vouchers`, `/admin/users`, `/admin/reviews`, `/admin/chat` | … | … | **Optional**, làm sau khi Core xong |
+| GET | `/admin/categories` | `AdminCategoryServlet` | — | **Đã code.** Danh sách danh mục kèm số sản phẩm (bấm số → `/admin/products?cat=`) |
+| GET/POST | `/admin/categories/new` | `AdminCategoryServlet` | `name` (≤ 100, không trùng, không phân biệt hoa thường), `description` (≤ 255) | **Đã code.** Lỗi → vẽ lại form kèm lỗi từng ô |
+| GET/POST | `/admin/categories/edit` | `AdminCategoryServlet` | `id` (query) + các trường như thêm | **Đã code** |
+| POST | `/admin/categories/delete` | `AdminCategoryServlet` | `id` | **Đã code.** Danh mục còn sản phẩm → từ chối (nút cũng bị vô hiệu); xoá xong redirect + toast |
+| GET | `/admin/orders` | `AdminOrderServlet` | `status=all\|pending\|confirmed\|shipping\|completed\|cancelled\|return`, `q` (mã đơn/tên/email), `pay=cod\|vnpay`, `from`, `to` (yyyy-MM-dd), `page` (10 đơn/trang) | **Đã code.** Mọi đơn của mọi khách. Trang đầy đủ; request htmx có `HX-Target: order-list` (ô lọc, tab, phân trang) chỉ trả tab + bảng `fragments/admin-order-table.jsp`. Tab "return" gồm `RETURN_REQUESTED` + `RETURNED` |
+| GET | `/admin/orders/detail` | `AdminOrderServlet` | `id` | **Đã code.** Chi tiết đơn (khách, dòng hàng, tiền, địa chỉ, thanh toán); id lạ → flash lỗi + 302 danh sách |
+| POST | `/admin/orders/status` | `AdminOrderServlet` | `id`, `status` (tên `OrderStatus`: CONFIRMED, SHIPPING, COMPLETED, CANCELLED, RETURNED), `back` (chỉ nhận đường dẫn bắt đầu bằng `/admin/orders`) | **Đã code.** Luật chuyển trạng thái ở `Order.canMoveTo`; Admin không tự đặt `RETURN_REQUESTED`/`PENDING`. `COMPLETED` từ `RETURN_REQUESTED` = từ chối hoàn hàng; `RETURNED` = duyệt hoàn hàng. Huỷ/duyệt hoàn ⇒ cộng lại kho từng dòng hàng (huỷ còn trả 1 lượt voucher); giao xong ⇒ thanh toán COD `SUCCESS`; huỷ ⇒ thanh toán đang chờ `FAILED`; tạo `Notification` cho khách. Tất cả trong 1 transaction, khoá dòng đơn (`PESSIMISTIC_WRITE`) nên 2 Admin bấm cùng lúc không cộng kho 2 lần. Kết quả: flash + 302 về `back` |
+| GET | `/admin/vouchers` | `AdminVoucherServlet` | `tab=all\|active\|soldout\|expired\|off` | **Đã code.** Danh sách + tab trạng thái (`Voucher.getState()`: tắt / hết hạn hoặc chưa tới hạn / hết lượt / đang dùng) |
+| GET/POST | `/admin/vouchers/new` | `AdminVoucherServlet` | `code`, `type=percent\|fixed`, `value`, `min`, `issued`, `start`, `end`, `active=on` | **Đã code.** Mã chữ+số 3–20 ký tự (lưu IN HOA, không trùng, không phân biệt hoa thường); % ≤ 100; hết hạn ≥ bắt đầu (lưu 23:59:59 ngày cuối). Lỗi → vẽ lại form kèm lỗi từng ô |
+| GET/POST | `/admin/vouchers/edit` | `AdminVoucherServlet` | `id` (query) + các trường như tạo | **Đã code.** Không giảm số lượng phát hành dưới số lượt đã dùng |
+| POST | `/admin/vouchers/toggle` | `AdminVoucherServlet` | `id`, `active=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code (htmx).** Bật/tắt; `back` chỉ nhận đường dẫn bắt đầu bằng `/admin/vouchers` |
+| POST | `/admin/vouchers/delete` | `AdminVoucherServlet` | `id`, `back` | **Đã code.** Voucher đã có đơn dùng → từ chối (hãy tắt thay vì xoá) |
+| GET | `/admin/users` | `AdminCustomerServlet` | `q` (tên/email/SĐT), `status=active\|locked`, `page` (10/trang) | **Đã code.** Danh sách khách (không gồm Admin/chatbot) kèm số đơn + tổng chi tiêu (không tính đơn huỷ). Request htmx có `HX-Target: customer-list` chỉ trả bảng |
+| GET | `/admin/users/detail` | `AdminCustomerServlet` | `id` | **Đã code.** Hồ sơ + 3 số liệu + 5 đơn gần nhất (không có mật khẩu); id lạ → flash lỗi + 302 danh sách |
+| POST | `/admin/users/lock` | `AdminCustomerServlet` | `id`, `locked=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code.** Chỉ khoá được `Customer` (không khoá Admin/chatbot). Khách bị khoá: không đăng nhập được (`AuthService.login`, chỉ báo "bị khoá" SAU KHI đúng mật khẩu) và đang dùng thì bị đăng xuất ở lần gọi `requireCustomer` kế tiếp; đơn đang xử lý vẫn chạy bình thường |
+| GET | `/admin/chat` | `AdminChatServlet` | `c` (id khách đang mở, mặc định hội thoại mới nhất), `filter=all\|human\|ai`, `q` (tên/email) | **Đã code.** 3 cột: danh sách hội thoại (mỗi khách 1 dòng = tin cuối; "Chờ" nếu tin cuối là của khách) / khung chat / thông tin khách + 3 đơn gần nhất |
+| GET | `/admin/chat/list` | `AdminChatServlet` | `c`, `filter`, `q` | **Đã code (htmx).** Chỉ danh sách hội thoại, tự hỏi lại mỗi 5 giây (`hx-target="this"` để không thay nhầm `#adm-main`) và khi gõ ô tìm kiếm |
+| GET | `/admin/chat/messages` | `AdminChatServlet` | `c`, `after` (id tin cuối đã có) | **Đã code (htmx).** Các tin mới hơn + thẻ `#poll` hỏi tiếp mỗi 3 giây (polling, không WebSocket) |
+| POST | `/admin/chat/send` | `AdminChatServlet` | `c`, `content` (≤ 1000 ký tự), `after` | **Đã code (htmx).** Lưu tin với `sender` = Admin đang đăng nhập, tự chuyển hội thoại sang chế độ Nhân viên; trả tin mới + đầu khung chat cập nhật (`hx-swap-oob`) |
+| POST | `/admin/chat/mode` | `AdminChatServlet` | `c`, `human=true\|false` (trạng thái MONG MUỐN) | **Đã code (htmx).** Bật/tắt chế độ nhân viên tiếp quản; trả lại đầu khung chat + toast |
+| GET | `/admin/auto-replies` | `AdminAutoReplyServlet` | — | **Đã code.** Danh sách luật trả lời tự động của chatbot (ưu tiên nhỏ trước) + ô "Thử câu hỏi" |
+| GET | `/admin/auto-replies/test` | `AdminAutoReplyServlet` | `text` | **Đã code (htmx).** Mô phỏng: luật nào khớp câu này và chatbot sẽ trả lời gì (dùng đúng `ChatBotService.match`) |
+| GET/POST | `/admin/auto-replies/new` | `AdminAutoReplyServlet` | `keywords`, `replyText`, `priority`, `handoff=on`, `active=on` | **Đã code.** Từ khoá: 1–20 cái, mỗi cái ≥ 3 chữ/số và ≤ 40 ký tự, `*` phải đứng một mình; trả lời ≤ 1000 ký tự; ưu tiên 1–9999 (gợi ý = luật thường lớn nhất + 10). Lỗi → vẽ lại form kèm lỗi từng ô |
+| GET/POST | `/admin/auto-replies/edit` | `AdminAutoReplyServlet` | `id` (query) + các trường như tạo | **Đã code** |
+| POST | `/admin/auto-replies/toggle` | `AdminAutoReplyServlet` | `id`, `active=true\|false` (trạng thái MONG MUỐN), `back` | **Đã code (htmx).** Bật/tắt; `back` chỉ nhận đường dẫn bắt đầu bằng `/admin/auto-replies` |
+| POST | `/admin/auto-replies/delete` | `AdminAutoReplyServlet` | `id`, `back` | **Đã code** |
+| — | `/admin/reviews` | … | … | **Optional**, làm sau khi Core xong |
 
 ---
 

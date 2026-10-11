@@ -64,18 +64,18 @@ public class EmailService {
     /** Email xac nhan don hang, gui toi email cua khach dat don. */
     public void sendOrderConfirmation(Order order) {
         String to = order.getCustomer().getEmail();
-        String subject = "[NôngViệt] Xác nhận đơn hàng #" + order.getId();
+        String subject = "[Nông Việt] Xác nhận đơn hàng #" + order.getId();
         sendAsync(to, subject, buildOrderConfirmationHtml(order));
     }
 
     /** Email chao mung sau khi dang ky. */
     public void sendWelcome(User user) {
         String body = "<p>Xin chào <b>" + esc(user.getFullName()) + "</b>,</p>"
-                + "<p>Chào mừng bạn đến với NôngViệt! Tài khoản của bạn đã được tạo thành công với email <b>"
+                + "<p>Chào mừng bạn đến với Nông Việt! Tài khoản của bạn đã được tạo thành công với email <b>"
                 + esc(user.getEmail()) + "</b>.</p>"
                 + "<p>Bạn có thể đăng nhập để chọn mua hạt giống, phân bón, dụng cụ và máy móc nông nghiệp, "
                 + "theo dõi đơn hàng và chat với shop bất cứ lúc nào.</p>";
-        sendAsync(user.getEmail(), "[NôngViệt] Chào mừng bạn đến với NôngViệt", frame(body));
+        sendAsync(user.getEmail(), "[Nông Việt] Chào mừng bạn đến với Nông Việt", frame(body));
     }
 
     /** Email chua link dat lai mat khau (link het han sau 30 phut, dung 1 lan). */
@@ -89,7 +89,7 @@ public class EmailService {
                 + "<p style=\"font-size:12px;color:#666\">Nếu nút không bấm được, hãy sao chép liên kết này vào trình duyệt:<br>"
                 + esc(resetLink) + "</p>"
                 + "<p>Nếu bạn không yêu cầu, hãy bỏ qua email này — mật khẩu của bạn vẫn an toàn.</p>";
-        sendAsync(user.getEmail(), "[NôngViệt] Đặt lại mật khẩu", frame(body));
+        sendAsync(user.getEmail(), "[Nông Việt] Đặt lại mật khẩu", frame(body));
     }
 
     /**
@@ -141,7 +141,7 @@ public class EmailService {
                 : null);
 
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(config.getProperty("mail.from", username), "NôngViệt", "UTF-8"));
+        message.setFrom(new InternetAddress(config.getProperty("mail.from", username), "Nông Việt", "UTF-8"));
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
         message.setSubject(subject, "UTF-8");
         message.setContent(htmlBody, "text/html; charset=UTF-8");
@@ -173,7 +173,7 @@ public class EmailService {
                 "<p style=\"margin:4px 0\">Mã giảm giá: <b>" + esc(order.getVoucher().getCode()) + "</b></p>";
 
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222\">"
-                + "<h2 style=\"color:#2f7d3b\">🌾 NôngViệt</h2>"
+                + "<h2 style=\"color:#2f7d3b\">🌾 Nông Việt</h2>"
                 + "<p>Xin chào <b>" + esc(order.getCustomer().getFullName()) + "</b>,</p>"
                 + "<p>Cảm ơn bạn đã đặt hàng! Đơn <b>#" + order.getId() + "</b> (" + date + ") đã được ghi nhận "
                 + "và đang chờ shop xác nhận. Bạn sẽ nhận thông báo khi trạng thái đơn thay đổi.</p>"
@@ -187,16 +187,16 @@ public class EmailService {
                 + "<p style=\"margin:4px 0\">Thanh toán: <b>" + payment + "</b></p>"
                 + "<p style=\"margin:4px 0\">Giao tới: " + address + "</p>"
                 + "<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0\">"
-                + "<p style=\"color:#888;font-size:12px\">Email tự động từ NôngViệt, vui lòng không trả lời.</p>"
+                + "<p style=\"color:#888;font-size:12px\">Email tự động từ Nông Việt, vui lòng không trả lời.</p>"
                 + "</div>";
     }
 
     // Khung chung cho cac email don gian (tieu de thuong hieu + noi dung + chan trang)
     private static String frame(String bodyHtml) {
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222\">"
-                + "<h2 style=\"color:#2f7d3b\">🌾 NôngViệt</h2>" + bodyHtml
+                + "<h2 style=\"color:#2f7d3b\">🌾 Nông Việt</h2>" + bodyHtml
                 + "<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0\">"
-                + "<p style=\"color:#888;font-size:12px\">Email tự động từ NôngViệt, vui lòng không trả lời.</p></div>";
+                + "<p style=\"color:#888;font-size:12px\">Email tự động từ Nông Việt, vui lòng không trả lời.</p></div>";
     }
 
     private static String td(String content, String align) {

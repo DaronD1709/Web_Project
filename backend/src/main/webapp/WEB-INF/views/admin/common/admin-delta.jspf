@@ -1,0 +1,10 @@
+<%-- Dong "tang/giam % so voi ky truoc" duoi moi the so lieu. Dung bang <%@ include %>; truoc do c:set bien "delta" (Double %, null neu ky truoc = 0). --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:choose>
+  <c:when test="${empty delta}"><span class="text-base-content/50">Chưa có kỳ trước để so sánh</span></c:when>
+  <c:otherwise>
+    <span class="${delta >= 0 ? 'text-success' : 'text-error'}">${delta >= 0 ? '▲ +' : '▼ −'}<c:choose><c:when test="${delta > 999 or delta < -999}">999+</c:when><c:otherwise><fmt:formatNumber value="${delta >= 0 ? delta : -delta}" pattern="0.0"/></c:otherwise></c:choose>%</span> <%-- tren 999% thi ghi "999+" cho gon (ky truoc gan nhu khong co don) --%>
+    <span class="text-base-content/50">so với kỳ trước</span>
+  </c:otherwise>
+</c:choose>
