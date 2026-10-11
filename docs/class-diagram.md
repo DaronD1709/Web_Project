@@ -18,6 +18,7 @@ public abstract class User {
     protected String fullName;
     protected String phone;
     protected Date createdAt;
+    protected boolean isActive = true; // false = Admin đã khoá tài khoản (không đăng nhập được); cột users.is_active, mặc định true
     protected String resetTokenHash;   // băm SHA-256 của token quên mật khẩu (null nếu không có yêu cầu)
     protected Date resetTokenExpiry;   // hết hạn sau 30 phút
 
@@ -33,6 +34,7 @@ public class Customer extends User {
     private List<Address> addresses = new ArrayList<>();
     private List<Order> orders = new ArrayList<>();
     private Cart cart;
+    private boolean handledByHuman; // true = nhân viên đang tiếp quản chat (chatbot im lặng); cột users.handled_by_human, mặc định false
 
     public void addToCart(Product product, int qty) { ... }
     public Order placeOrder() { ... }
@@ -129,10 +131,13 @@ public class Order {
     private Address shippingAddress;
     private Voucher voucher; // null nếu không dùng mã giảm giá
     private String returnReason; // null nếu không có yêu cầu hoàn hàng
+    private double discountAmount; // snapshot số tiền giảm lúc đặt (voucher có thể đổi/tắt sau này)
+    private double shippingFee; // snapshot phí vận chuyển lúc đặt; totalAmount = tổng hàng − discountAmount + shippingFee
 
     public void confirmOrder() { ... }
     public void cancelOrder() { ... } // Customer (chủ đơn) hoặc Admin đều gọi được — check quyền ở tầng service
-    public void updateStatus(OrderStatus status) { ... }
+    public boolean canMoveTo(OrderStatus next) { ... } // luật chuyển trạng thái hợp lệ (nơi duy nhất định nghĩa)
+    public void updateStatus(OrderStatus next) { ... } // ném lỗi nếu !canMoveTo(next); hoàn kho do Service/DAO lo
     public double calculateTotal() { ... }
     public void requestReturn(String reason) { ... } // Customer gọi, chỉ hợp lệ khi status = COMPLETED
     public void approveReturn() { ... } // Admin gọi, chuyển RETURN_REQUESTED -> RETURNED, restock
@@ -299,6 +304,21 @@ public enum DiscountType {
 }
 ```
 
+## 21. AutoReply (mới)
+```java
+public class AutoReply {
+    private int id;
+    private String keywords;   // các từ khoá/cụm từ cách nhau bằng dấu phẩy; "*" (đứng một mình) = khớp mọi câu
+    private String replyText;  // câu chatbot trả lời
+    private boolean handoff;   // true = sau khi trả lời chuyển cuộc trò chuyện sang nhân viên
+    private boolean isActive;
+    private int priority;      // số nhỏ được xét trước; luật đầu tiên khớp thắng
+
+    public List<String> getKeywordList() { ... }
+}
+```
+Luật trả lời tự động do Admin soạn ở CMS (Admin > Trả lời tự động); `ChatBotService` đọc các luật đang bật theo `priority` và chọn luật đầu tiên có từ khoá khớp (khớp nguyên từ, không phân biệt hoa thường/dấu). Không quan hệ với entity nào khác.
+
 ---
 
 ---
@@ -408,6 +428,8 @@ classDiagram
         -payment : Payment
         -shippingAddress : Address
         -returnReason : String
+        -discountAmount : double
+        -shippingFee : double
         -customer : Customer
         -voucher : Voucher
         +confirmOrder() void
@@ -493,6 +515,17 @@ classDiagram
         -sentAt : Date
         -customer : Customer
         -sender : User
+        +Getters/Setters
+    }
+
+    class AutoReply {
+        -id : int
+        -keywords : String
+        -replyText : String
+        -handoff : boolean
+        -isActive : boolean
+        -priority : int
+        +getKeywordList() List~String~
         +Getters/Setters
     }
 

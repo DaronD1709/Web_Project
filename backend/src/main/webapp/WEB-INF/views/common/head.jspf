@@ -6,4 +6,4 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-<link href="${ctx}/static/css/design.css" rel="stylesheet">
+<link href="${ctx}/static/css/design.css?v=${applicationScope.assetVersion}" rel="stylesheet">

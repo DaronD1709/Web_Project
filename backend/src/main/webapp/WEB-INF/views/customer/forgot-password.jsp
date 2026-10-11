@@ -3,14 +3,15 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Quên mật khẩu — NôngViệt</title>
+  <title>Quên mật khẩu — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
-<body class="bg-base-200 min-h-screen">
+<body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-5xl mx-auto px-4 py-12">
-  <div class="card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+<%-- flex-1 + items-center: khung nam GIUA vung giua header va footer, footer luon sat day man hinh --%>
+<main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
+  <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
       <div class="text-7xl" aria-hidden="true">🔑</div>
       <h2 class="text-3xl font-extrabold mt-4">Quên mật khẩu?</h2>
@@ -28,7 +29,7 @@
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
       <input type="email" name="email" class="input w-full" placeholder="ban@email.com" required></label>
     <button class="btn btn-primary btn-block">Gửi liên kết đặt lại</button>
-    <div class="text-center text-sm"><a href="${ctx}/login" class="link link-primary">← Quay lại đăng nhập</a></div>
+    <a href="${ctx}/login" class="btn btn-ghost btn-sm btn-block">← Quay lại đăng nhập</a>
   </form>
   </div>
 </main>

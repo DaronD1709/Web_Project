@@ -1,0 +1,3 @@
+<%-- Tieu de trang tren header ("Quan tri / San pham"). Cung nhu admin-nav.jspf: chuyen trang bang htmx thi tu thay qua hx-swap-oob. --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<span id="adm-title" class="font-semibold"${partial ? ' hx-swap-oob="true"' : ''}><c:out value="${adminTitle}"/></span>
