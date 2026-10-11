@@ -98,11 +98,14 @@ Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản p
 | POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
 | POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty` | htmx: fragment tóm tắt giỏ; thường: 302 |
 | POST | `/cart` | `CartServlet` | `action=remove` + `itemId` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
-| GET | `/checkout` | `CheckoutServlet` | `voucherCode` (tuỳ chọn, sau POST preview thường) | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`, `selectedAddressId`, `checkoutToken`, `subtotal`, `shippingFee`, `voucherCode`, `appliedVoucherCode`, `voucher`, `voucherError`, `discountAmount`, `total`); giỏ rỗng → 302 `/cart` |
+| GET | `/checkout` | `CheckoutServlet` | `voucherCode` (tuỳ chọn, sau POST preview thường) | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`, `selectedAddressId`, `vnPayAvailable`, `checkoutToken`, `subtotal`, `shippingFee`, `voucherCode`, `appliedVoucherCode`, `voucher`, `voucherError`, `discountAmount`, `total`); giỏ rỗng → 302 `/cart` |
 | POST | `/checkout/voucher` | `VoucherServlet` | `code` | htmx fragment `#voucher-result`: thành công (số tiền giảm) hoặc **một** lỗi cụ thể |
-| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD`, `voucherCode` (tuỳ chọn), `checkoutToken` | OK → 302 `/checkout/success?orderId=..`; lỗi nghiệp vụ → trang checkout + `error`; token sai/thiếu → 403 |
-| GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình) |
-| GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | (Optional) cập nhật `PaymentStatus`, 302 `/checkout/success` |
+| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD\|VNPAY`, `voucherCode` (tuỳ chọn), `checkoutToken` | COD → 302 `/checkout/success?orderId=..`; VNPay → 302 `/payment/vnpay/start?orderId=..`; lỗi nghiệp vụ → checkout + `error`, `selectedPaymentMethod`; token sai/thiếu → 403 |
+| GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình); hiển thị kết quả theo trạng thái đã lưu, gồm VNPay chờ xác nhận/thành công/đơn huỷ |
+| GET | `/payment/vnpay/start` | `CheckoutServlet` | `orderId` | Customer xem đơn của mình; 302 tới URL VNPay đã ký khi đơn/thanh toán còn `PENDING` và chưa hết hạn; lỗi nghiệp vụ → trang kết quả theo DB, kèm `paymentError` khi còn chờ; ID sai → 400, đơn lạ → 404, đơn người khác/Admin → 403; POST → 405 |
+| POST | `/payment/vnpay/reconcile` | `CheckoutServlet` | `orderId`, `vnPayReconcileToken` | Customer đối soát đơn của mình qua API QueryDr; POST có token riêng trong session, chờ 5 phút giữa các lần gọi; PRG về trang kết quả DB với `paymentMessage` hoặc `paymentError`. Token sai/trùng → 403; ID sai/trùng → 400; đơn người khác/Admin → 403; GET → 405 |
+| GET | `/payment/vnpay/ipn` | `VNPayIpnServlet` | tham số `vnp_*` do VNPay gửi, gồm chữ ký | Server-to-server, không yêu cầu session Customer; HTTP 200 JSON `RspCode`/`Message` theo giao thức VNPay; Service xác thực và cập nhật trong transaction. POST → 405 |
+| GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | Yêu cầu Customer, kiểm tra chữ ký/merchant/đơn thuộc khách/số tiền; 302 `/checkout/success?orderId=..` để hiển thị trạng thái DB, **không cập nhật thanh toán**. Lỗi dữ liệu → 400; đơn lạ → 404; đơn người khác/Admin → 403; POST → 405 |
 
 **Giỏ hàng:** cả 3 action yêu cầu tham số ID/số lượng đúng định dạng số nguyên trong phạm vi `int`;
 thiếu/sai không được tự đổi thành `qty=1`. Thêm/cập nhật yêu cầu số lượng ≥ 1 và không vượt tồn kho;
@@ -121,14 +124,15 @@ request thường forward trang giỏ với `error`. POST thành công thường
 htmx add trả badge, update/remove trả nội dung giỏ + badge OOB. Các nút dùng form POST
 để vẫn hoạt động khi htmx không tải được; màu/bố cục dựa trên mockup. Nút thanh toán dẫn tới `/checkout`.
 
-**Checkout COD:** GET/POST gửi `Cache-Control: no-store`, luôn dùng `SessionUtil.requireCustomer`.
+**Checkout COD/VNPay:** GET/POST gửi `Cache-Control: no-store`, luôn dùng `SessionUtil.requireCustomer`. Attr `vnPaySandbox` điều khiển nhãn sandbox ở JSP; production hiển thị VNPay, không ghi sai môi trường.
 GET đọc giỏ/địa chỉ đúng khách, ưu tiên địa chỉ mặc định; giỏ trống redirect `/cart`.
-POST tạo đơn và thanh toán `PENDING`, chưa có `paymentDate`; từ chối `VNPAY` tới khi tích hợp sandbox.
+POST tạo đơn và thanh toán `PENDING`, chưa có `paymentDate`; VNPay chỉ được chọn khi cấu hình môi trường đang dùng sẵn sàng (`vnPayAvailable`). Service vẫn kiểm tra cấu hình khi POST, từ chối trước khi giữ hàng nếu chưa sẵn sàng. Lỗi form giữ lựa chọn VNPay khi còn khả dụng, ngược lại chọn COD.
 Giá/tổng tiền lấy từ DB, snapshot `CartItem.priceAtAdd` sang `OrderItem.priceAtOrder`.
 Thứ tự khoá: Customer giống CartDAO → địa chỉ thuộc khách → Product theo ID tăng dần trước khi fetch giỏ → voucher;
 kiểm tra tổng số lượng theo Product kể cả giỏ cũ có dòng trùng. Đơn, trừ kho, lượt voucher, xoá giỏ và Notification cùng transaction.
 POST kiểm tra token ngẫu nhiên trong session; lỗi giữ token để sửa form. Request cùng session được phối hợp
-bằng `synchronized(session)`; gửi lại token vừa thành công redirect tới đơn cũ, không dùng giỏ mới.
+bằng `synchronized(session)`; gửi lại token vừa thành công redirect tới đơn cũ, không dùng giỏ mới. Đích redirect dựa trên Payment của đơn đã lưu, không dựa trên phương thức gửi lại từ form.
+GET `/payment/vnpay/start` chỉ dựng URL thanh toán cho đơn hiện có, không tạo đơn hay ghi nhận đã trả tiền. Dùng IP từ `getRemoteAddr`, thời hạn cố định 15 phút từ ngày đặt (GMT+7); tải lại không gia hạn. Lỗi/hết hạn không tự huỷ đơn vì kết quả ngân hàng có thể chưa tới.
 GET `/checkout/success`: orderId sai → 400, không tồn tại → 404, đơn người khác → 403.
 `SessionUtil` giữ query của GET trong `next` khi chuyển tới login, để đăng nhập lại vẫn xem đúng `orderId`.
 POST `/checkout/voucher` khi chưa đăng nhập quay về GET `/checkout` sau login, tránh URL voucher chỉ nhận POST (GET → 405).
@@ -143,10 +147,23 @@ khi nội dung mã đang nhập khác mã đã được áp dụng. Địa chỉ
 Quy tắc `OrderService.checkout(user, addressId, method, voucherCode)` — **trong 1 transaction**:
 1. Validate mọi `CartItem.quantity <= Product.stockQuantity`, sai → `BusinessException` kèm tên sản phẩm.
 2. Nếu có voucher: `Voucher.isValid()` + kiểm tra theo thứ tự — **hết hạn → hết lượt → chưa đạt giá trị tối thiểu** (mỗi lỗi 1 thông báo riêng).
-3. Tạo `Order` (`PENDING`), `OrderItem` (snapshot `priceAtOrder`), `CODPayment` (`PENDING`). VNPay chưa được tích hợp và bị từ chối.
+3. Tạo `Order` (`PENDING`, ngày đặt GMT+7), `OrderItem` (snapshot `priceAtOrder`), `CODPayment` hoặc `VNPayPayment` (`PENDING`). VNPay kiểm tra số tiền biểu diễn chính xác theo đơn vị gateway trước khi trừ kho; không làm tròn âm thầm.
 4. **Trừ kho ngay** (`Product.updateStock(-qty)`), tăng `Voucher.quantityUsed`, xoá `CartItem`.
 5. Tạo `Notification` cho khách.
-6. **Sau khi commit**: `EmailService.sendOrderConfirmation(order)` gửi **email xác nhận đơn hàng** tới `customer.email` (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán; chạy nền, lỗi gửi mail không rollback đơn). Với VNPay: gửi sau khi thanh toán thành công (ở `/payment/vnpay/return`), COD gửi ngay khi đặt hàng. **Phải truyền `Order` còn nguyên items/address trong bộ nhớ**, không load lại từ DB.
+6. **Sau khi commit**: `EmailService.sendOrderConfirmation(order)` gửi **email xác nhận đơn hàng** tới `customer.email` (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán; chạy nền, lỗi gửi mail không rollback đơn). Với VNPay: gửi sau lần đầu ghi nhận thanh toán thành công qua IPN hoặc QueryDr cho đơn còn hiệu lực, COD gửi ngay khi đặt hàng. **Phải truyền `Order` còn nguyên items/address trong bộ nhớ**, không load lại từ DB.
+
+**VNPay IPN:** Servlet IPN gọi `VNPayService.processIpn`, không gọi DAO trực tiếp và không chuyển tới login. `VNPaySignature.readFields` từ chối tham số trùng; Service kiểm tra chữ ký, merchant, định dạng và số tiền. `VNPayDAO.processIpn` khoá cùng dòng Order với Admin, kiểm tra trạng thái thanh toán sau khoá, fetch đủ dữ liệu email và lưu Notification trong cùng transaction. `RspCode`: `00` đã xử lý IPN (khác với mã thanh toán thành công), `01` không tìm thấy đơn VNPay, `02` đã ghi nhận, `04` sai tiền, `97` lỗi xác thực, `99` chưa xử lý được. Trả JSON là giao thức server-to-server của gateway; các trang khách vẫn dùng JSP/htmx. GET gửi `Cache-Control: no-store`.
+
+Thanh toán thành công phải có cả `vnp_ResponseCode=00` và `vnp_TransactionStatus=00`. Thất bại đã xác định cần mã lỗi thanh toán đã biết và `vnp_TransactionStatus=02`; huỷ đơn và hoàn kho/voucher qua `OrderDAO.changeStatusInTransaction`, dùng chính transaction IPN. Phản hồi lặp không tạo thêm Notification/email. Kết quả chưa rõ, mã `07` hoặc trạng thái `09` (hoàn trả bị từ chối) giữ trạng thái để đối soát, không tự huỷ chỉ vì Return hoặc hết thời gian trên trình duyệt. Thành công đến sau khi đơn đã huỷ vẫn ghi nhận thanh toán, giữ đơn huỷ và thông báo cần liên hệ cửa hàng để đối soát/hoàn tiền; chưa có hoàn tiền tự động. Admin chỉ xử lý giao hàng VNPay đã `SUCCESS`; chỉ COD được tự ghi nhận thu tiền khi giao xong. Nếu gateway không gửi `vnp_PayDate` thì ghi thời điểm nhận kết quả tại GMT+7; ngày được gửi nhưng sai định dạng trả `99`.
+
+**Đối soát thiếu IPN:** nút “Kiểm tra thanh toán” gửi POST có token session riêng, không dùng lại token đặt hàng đã tiêu thụ. `OrderService.reconcileVNPay` kiểm tra chủ đơn trước khi gọi `VNPayService` → `VNPayQueryClient`. Client dùng API POST JSON chính thức, ký HMAC-SHA512 chuỗi theo đúng thứ tự QueryDr (khác chữ ký query URL), kiểm tra chữ ký phản hồi; thời điểm giao dịch là `vnp_CreateDate` của yêu cầu pay gốc. Chỉ gọi mạng trước transaction DB, timeout kết nối/đọc 5/10 giây, không đi theo redirect, phản hồi tối đa 16 KiB và từ chối JSON trùng tên/không phẳng. `vnp_ResponseCode=00` chỉ là truy vấn thành công: cần đúng merchant/ref/số tiền, loại `01` (pay) và trạng thái `00` (thành công) hoặc `02` (lỗi đã xác định). Các kết quả khác/lỗi mạng giữ nguyên thanh toán. Cập nhật dùng **cùng** `VNPayService.applyVerifiedResult` và transaction DAO với IPN, kiểm tra lại quyền/số tiền sau khoá; đua IPN/QueryDr không tạo hai email/Notification. Đơn đã SUCCESS bỏ qua truy vấn lại; thanh toán đến sau khi huỷ vẫn giữ huỷ và báo xử lý thủ công. Hết phiên khi POST đối soát: login xong quay về GET trang kết quả để lấy token mới. Chưa có đối soát tự động theo lịch hoặc hoàn tiền tự động.
+
+**Cấu hình khi deploy VNPay:** `vnpay.properties.example` là mẫu, `vnpay.properties` chứa bí mật riêng và không commit. `vnpay.environment=sandbox` là mặc định tương thích file cũ; `production` phải chọn rõ. Sandbox chỉ chấp nhận endpoint sandbox. Production yêu cầu cả `paymentUrl`/`queryUrl` do VNPay cấp trên HTTPS host `pay.vnpay.vn`, bộ merchant/key production và `queryIpAddress` là IPv4 công khai của server (đăng ký với VNPay theo yêu cầu kết nối). Không trộn credential/endpoint/môi trường. Hai callback cần cùng host/port/context path, không có userinfo/query/fragment; production từ chối callback localhost/private IPv4/quick tunnel. URL phải có context path nếu WAR không ở `/` (ví dụ `https://shop.example/ecommerce/payment/vnpay/ipn`); redirect nội bộ dùng `req.getContextPath()`. Đăng ký lại IPN với VNPay khi domain/context path đổi. Tuỳ chọn ghi đè VNPay bằng biến môi trường `VNPAY_*` nêu trong file mẫu, có ưu tiên hơn file local; không đổi cách đọc DB/SMTP của nhóm.
+
+Production dùng **deployment và DB riêng**, không chuyển môi trường trên DB còn đơn sandbox. Giữ `enabled=false` cho tới khi có merchant production được VNPay chấp thuận, cấu hình HTTPS/public IPN ổn định và kiểm thử triển khai. Proxy/tunnel trong `backend/tests/` chỉ dùng local, không đóng gói/chạy trên server; server phục vụ trực tiếp hai Servlet. Kiểm thử sandbox/cấu hình giả không chứng nhận thanh toán thật; chưa thực hiện giao dịch production trong nhánh này. Các việc deploy chung (DB production, seed accounts, HTTPS/proxy/session, SMTP) theo nhánh deploy của nhóm; tích hợp này không sửa Tomcat, build hay phiên bản thư viện.
+
+Tài liệu giao thức: [Thanh toán/IPN](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html), [QueryDr](https://sandbox.vnpayment.vn/apis/docs/truy-van-hoan-tien/querydr&refund.html).
+Hướng dẫn cấu hình sandbox/production theo code của dự án: [vnpay-setup.md](vnpay-setup.md).
 
 Phí ship: miễn phí khi tạm tính ≥ 500.000₫, ngược lại 30.000₫ (hằng số trong Service).
 

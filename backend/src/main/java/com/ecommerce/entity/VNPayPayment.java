@@ -21,8 +21,13 @@ public class VNPayPayment extends Payment {
 
     @Override
     public boolean processPayment() {
-        // TODO: goi API VNPay that o day, luu transactionId tra ve
-        this.status = PaymentStatus.SUCCESS;
-        return true;
+        // Chỉ khởi tạo trạng thái chờ thanh toán.
+        // IPN đã xác thực mới được ghi nhận kết quả từ VNPay.
+        if (this.status == null) {
+            this.status = PaymentStatus.PENDING;
+        }
+
+        // Gọi lại không ghi đè kết quả SUCCESS/FAILED đã có.
+        return this.status == PaymentStatus.PENDING;
     }
 }

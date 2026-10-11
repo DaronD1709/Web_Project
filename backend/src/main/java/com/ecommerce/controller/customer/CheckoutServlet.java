@@ -11,6 +11,7 @@ import com.ecommerce.util.ParamUtil;
 import com.ecommerce.util.SessionUtil;
 import com.ecommerce.entity.Voucher;
 import com.ecommerce.service.VoucherService;
+import com.ecommerce.entity.VNPayPayment;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,8 +22,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
-@WebServlet({"/checkout", "/checkout/success"})
+@WebServlet({"/checkout", "/checkout/success", "/payment/vnpay/start", "/payment/vnpay/reconcile"})
 public class CheckoutServlet extends HttpServlet {
 
     private static final String PAGE =
@@ -30,6 +32,14 @@ public class CheckoutServlet extends HttpServlet {
     private static final String SUCCESS_PAGE =
             "/WEB-INF/views/customer/order-success.jsp";
     private static final String CHECKOUT_TOKEN = "checkoutToken";
+    private static final String RECONCILE_TOKEN = "vnPayReconcileToken";
+    private static final String RECONCILE_NEXT = "vnPayReconcileNext";
+    private static final String RECONCILE_FLASH = "vnPayReconcileFlash";
+    private static final Logger LOG = Logger.getLogger(CheckoutServlet.class.getName());
+
+    private record PaymentFlash(int orderId, String message, boolean error)
+            implements java.io.Serializable {
+    }
 
     private static final String COMPLETED_TOKEN = "checkoutCompletedToken";
     private static final String COMPLETED_ORDER = "checkoutCompletedOrderId";
@@ -43,9 +53,21 @@ public class CheckoutServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setHeader("Cache-Control", "no-store");
+        resp.setHeader("Referrer-Policy", "no-referrer");
+
+        if ("/payment/vnpay/reconcile".equals(req.getServletPath())) {
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
 
         Customer user = SessionUtil.requireCustomer(req, resp);
         if (user == null) {
+            return;
+        }
+
+        // Chuyển đơn đã tạo sang cổng thanh toán, không tạo thêm đơn.
+        if ("/payment/vnpay/start".equals(req.getServletPath())) {
+            startVNPay(req, resp, user);
             return;
         }
 
@@ -75,6 +97,10 @@ public class CheckoutServlet extends HttpServlet {
 
         double subtotal = cart.calculateTotal();
         double shipping = cartService.getShippingFee(subtotal);
+
+        // JSP chỉ cho chọn VNPay khi cấu hình môi trường đang dùng sẵn sàng.
+        req.setAttribute("vnPayAvailable", orderService.isVNPayAvailable());
+        req.setAttribute("vnPaySandbox", orderService.isVNPaySandbox());
 
         req.setAttribute("cart", cart);
         req.setAttribute("addresses", addresses);
@@ -111,6 +137,14 @@ public class CheckoutServlet extends HttpServlet {
             throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         resp.setHeader("Cache-Control", "no-store");
+
+        if ("/payment/vnpay/reconcile".equals(req.getServletPath())) {
+            Customer user = SessionUtil.requireCustomer(req, resp);
+            if (user != null) {
+                reconcileVNPay(req, resp, user);
+            }
+            return;
+        }
 
         // Trang hoàn tất chỉ nhận GET.
         if (!"/checkout".equals(req.getServletPath())) {
@@ -175,11 +209,22 @@ public class CheckoutServlet extends HttpServlet {
                     SessionUtil.CART_COUNT,
                     cartService.countItems(user.getId()));
 
-            // Post/Redirect/Get: refresh trang hoàn tất không đặt thêm đơn.
-            resp.sendRedirect(req.getContextPath()
-                    + "/checkout/success?orderId=" + successfulOrderId);
+            // Dùng phương thức của đơn đã lưu.
+            // Gửi lại form dù đổi paymentMethod cũng vẫn quay về đúng đơn cũ.
+            Order saved = orderService.getOwnOrder(user, successfulOrderId);
+
+            String destination = saved.getPayment() instanceof VNPayPayment
+                    ? "/payment/vnpay/start?orderId="
+                    : "/checkout/success?orderId=";
+
+            resp.sendRedirect(req.getContextPath() + destination + successfulOrderId);
             return;
         }
+
+        // Khi form lỗi, giữ lựa chọn VNPay nếu vẫn khả dụng.
+        req.setAttribute("selectedPaymentMethod",
+                "VNPAY".equals(method) && orderService.isVNPayAvailable()
+                        ? "VNPAY" : "COD");
 
         req.setAttribute("error", error);
         req.setAttribute("selectedAddressId", addressId);
@@ -188,6 +233,33 @@ public class CheckoutServlet extends HttpServlet {
 
         if (prepareCheckout(req, resp, user)) {
             req.getRequestDispatcher(PAGE).forward(req, resp);
+        }
+    }
+
+    private void startVNPay(HttpServletRequest req,
+                            HttpServletResponse resp,
+                            Customer user)
+            throws ServletException, IOException {
+
+        Integer orderId = ParamUtil.intOrNull(req.getParameter("orderId"));
+        if (orderId == null || orderId < 1) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        try {
+            // Service kiểm tra chủ đơn, trạng thái và thời hạn thanh toán.
+            String url = orderService.getVNPayPaymentUrl(
+                    user, orderId, req.getRemoteAddr());
+
+            resp.sendRedirect(url);
+        } catch (SecurityException e) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+        } catch (BusinessException e) {
+            // Đơn đã tồn tại: hiển thị trạng thái mới nhất.
+            // Không tạo đơn khác hoặc tự kết luận thanh toán thất bại.
+            req.setAttribute("paymentError", e.getMessage());
+            showSuccess(req, resp, user);
         }
     }
 
@@ -206,12 +278,74 @@ public class CheckoutServlet extends HttpServlet {
         try {
             Order order = orderService.getOwnOrder(user, orderId);
             req.setAttribute("order", order);
+            req.setAttribute("vnPayAvailable", orderService.isVNPayAvailable());
+            HttpSession session = req.getSession();
+            synchronized (session) {
+                if (session.getAttribute(RECONCILE_TOKEN) == null) {
+                    session.setAttribute(RECONCILE_TOKEN, UUID.randomUUID().toString());
+                }
+                req.setAttribute(RECONCILE_TOKEN, session.getAttribute(RECONCILE_TOKEN));
+                PaymentFlash flash = (PaymentFlash) session.getAttribute(RECONCILE_FLASH);
+                if (flash != null && flash.orderId() == orderId) {
+                    req.setAttribute(flash.error() ? "paymentError" : "paymentMessage", flash.message());
+                    session.removeAttribute(RECONCILE_FLASH);
+                }
+            }
             req.getRequestDispatcher(SUCCESS_PAGE).forward(req, resp);
         } catch (SecurityException e) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
         } catch (BusinessException e) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    private void reconcileVNPay(HttpServletRequest req,
+            HttpServletResponse resp, Customer user) throws IOException {
+        Integer orderId = ParamUtil.intOrNull(req.getParameter("orderId"));
+        String[] ids = req.getParameterValues("orderId");
+        String[] tokens = req.getParameterValues(RECONCILE_TOKEN);
+        if (orderId == null || orderId < 1 || ids == null || ids.length != 1) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        HttpSession session = req.getSession();
+        String message = null;
+        boolean error = false;
+        synchronized (session) {
+            String expected = (String) session.getAttribute(RECONCILE_TOKEN);
+            if (expected == null || tokens == null || tokens.length != 1
+                    || !expected.equals(tokens[0])) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+            Long next = (Long) session.getAttribute(RECONCILE_NEXT);
+            long now = System.currentTimeMillis();
+            if (next != null && now < next) {
+                message = "Vui lòng chờ 5 phút giữa các lần kiểm tra thanh toán.";
+                error = true;
+            } else {
+                session.setAttribute(RECONCILE_NEXT, now + 300_000L);
+            }
+        }
+        if (message == null) {
+            try {
+                // Không giữ khoá session hoặc transaction DB khi gọi gateway.
+                orderService.reconcileVNPay(user, orderId);
+                message = "Đã kiểm tra thanh toán. Kết quả mới nhất được hiển thị bên dưới.";
+            } catch (SecurityException e) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            } catch (BusinessException e) {
+                message = e.getMessage();
+                error = true;
+            } catch (RuntimeException e) {
+                LOG.warning("Chưa đối soát được đơn #" + orderId + ": " + e.getClass().getSimpleName());
+                message = "Chưa kiểm tra được thanh toán. Vui lòng thử lại sau hoặc liên hệ cửa hàng.";
+                error = true;
+            }
+        }
+        session.setAttribute(RECONCILE_FLASH, new PaymentFlash(orderId, message, error));
+        resp.sendRedirect(req.getContextPath() + "/checkout/success?orderId=" + orderId);
     }
 
     private void prepareVoucher(HttpServletRequest req,

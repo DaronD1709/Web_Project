@@ -11,7 +11,9 @@ import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
 import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.dao.OrderDAO;
-
+import com.ecommerce.entity.Payment;
+import com.ecommerce.entity.VNPayPayment;
+import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +34,8 @@ public class OrderService {
     private final EmailService emailService = new EmailService();
 
     private final OrderDAO orderDAO = new OrderDAO();
+
+    private final VNPayService vnPayService = new VNPayService();
 
     public List<Address> getAddresses(Integer customerId) {
         return checkoutDAO.findAddressesByCustomer(customerId);
@@ -114,9 +118,16 @@ public class OrderService {
             throw new BusinessException("Vui lòng chọn địa chỉ giao hàng.");
         }
 
-        if (!"COD".equals(method)) {
+        boolean onlinePayment = "VNPAY".equals(method);
+
+        if (!onlinePayment && !"COD".equals(method)) {
             throw new BusinessException(
-                    "Hiện chỉ hỗ trợ thanh toán khi nhận hàng (COD).");
+                    "Phương thức thanh toán không hợp lệ.");
+        }
+
+        // Kiểm tra trước khi tạo đơn hoặc giữ tồn kho.
+        if (onlinePayment) {
+            vnPayService.requireReady();
         }
 
         boolean hasVoucher = voucherCode != null && !voucherCode.isBlank();
@@ -125,7 +136,9 @@ public class OrderService {
                 user.getId(),
                 addressId,
                 voucherCode,
-                "Đơn hàng của bạn đã được tiếp nhận.",
+                onlinePayment
+                    ? "Đơn hàng đã được tạo, đang chờ thanh toán VNPay."
+                    : "Đơn hàng của bạn đã được tiếp nhận.",
                 (customer, cart, address, voucher) -> {
                     // Chạy trong transaction, sau khi DAO đã lấy khoá.
                     validateCheckout(customer, cart, address);
@@ -148,10 +161,16 @@ public class OrderService {
                                 "Tổng thanh toán không hợp lệ.");
                     }
 
+                    // Kiểm tra số tiền trước khi trừ kho, dùng voucher và xoá giỏ.
+                    if (onlinePayment) {
+                        vnPayService.toGatewayAmount(total);
+                    }
+
                     Order created = new Order();
                     created.setCustomer(customer);
                     created.setShippingAddress(address);
-                    created.setOrderDate(LocalDateTime.now());
+                    created.setOrderDate(
+                        LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
                     created.setStatus(OrderStatus.PENDING);
                     created.setVoucher(voucher);
                     created.setDiscountAmount(discount);
@@ -172,10 +191,12 @@ public class OrderService {
                                 -cartItem.getQuantity());
                     }
 
-                    CODPayment payment = new CODPayment();
+                    Payment payment = onlinePayment
+                            ? new VNPayPayment() : new CODPayment();
+
                     payment.setOrder(created);
                     payment.setAmount(total);
-                    payment.processPayment(); // COD còn PENDING, chưa thu tiền.
+                    payment.processPayment(); // Khởi tạo PENDING, chưa ghi nhận thu tiền.
                     created.setPayment(payment);
 
                     if (voucher != null) {
@@ -188,14 +209,16 @@ public class OrderService {
                     return created;
                 });
 
-        // DAO đã commit trước khi trả order về đây.
-        try {
-            emailService.sendOrderConfirmation(order);
-        } catch (RuntimeException e) {
-            // Lỗi chuẩn bị/đưa email vào hàng đợi không làm hỏng đơn đã lưu.
-            LOG.log(Level.WARNING,
-                    "Không thể gửi email xác nhận cho đơn #" + order.getId(),
-                    e);
+        // COD gửi ngay sau commit.
+        // VNPay gửi khi IPN hoặc QueryDr xác nhận thanh toán thành công.
+        if (!onlinePayment) {
+            try {
+                emailService.sendOrderConfirmation(order);
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING,
+                        "Không thể gửi email xác nhận cho đơn #" + order.getId(),
+                        e);
+            }
         }
 
         return order;
@@ -225,5 +248,25 @@ public class OrderService {
         }
 
         return order;
+    }
+
+    public boolean isVNPayAvailable() {
+        return vnPayService.isAvailable();
+    }
+
+    public boolean isVNPaySandbox() {
+        return vnPayService.isSandbox();
+    }
+
+    public String getVNPayPaymentUrl(
+            Customer user, Integer orderId, String clientIp) {
+        // Kiểm tra quyền sở hữu trước khi tạo URL thanh toán.
+        Order order = getOwnOrder(user, orderId);
+        return vnPayService.buildPaymentUrl(order, clientIp);
+    }
+
+    public void reconcileVNPay(Customer user, Integer orderId) {
+        Order ownOrder = getOwnOrder(user, orderId);
+        vnPayService.reconcile(ownOrder, user.getId());
     }
 }

@@ -81,12 +81,12 @@ public class Order {
     public void setShippingFee(double shippingFee) { this.shippingFee = shippingFee; }
 
     public void confirmOrder() {
-        if (status == OrderStatus.PENDING) status = OrderStatus.CONFIRMED;
+        if (canMoveTo(OrderStatus.CONFIRMED)) updateStatus(OrderStatus.CONFIRMED);
     }
 
     public void cancelOrder() {
-        if (status == OrderStatus.PENDING || status == OrderStatus.CONFIRMED) {
-            status = OrderStatus.CANCELLED;
+        if (canMoveTo(OrderStatus.CANCELLED)) {
+            updateStatus(OrderStatus.CANCELLED);
             // TODO: goi Product.updateStock(+qty) cho tung OrderItem o tang Service
         }
     }
@@ -97,14 +97,37 @@ public class Order {
      * (Admin tu choi hoan hang thi RETURN_REQUESTED -> COMPLETED). CANCELLED va RETURNED la trang thai cuoi.
      */
     public boolean canMoveTo(OrderStatus next) {
-        if (status == null || next == null) return false;
+        if (status == null || next == null) {
+            return false;
+        }
+
+        // VNPay phải thanh toán thành công trước khi xử lý giao hàng.
+        // Vẫn cho huỷ nếu trạng thái đơn cho phép.
+        if (payment instanceof VNPayPayment
+                && payment.getStatus() != PaymentStatus.SUCCESS
+                && next != OrderStatus.CANCELLED) {
+            return false;
+        }
+
+        // Giữ luật chuyển trạng thái tại một nơi dùng chung.
         return switch (status) {
-            case PENDING -> next == OrderStatus.CONFIRMED || next == OrderStatus.CANCELLED;
-            case CONFIRMED -> next == OrderStatus.SHIPPING || next == OrderStatus.CANCELLED;
+            case PENDING ->
+                next == OrderStatus.CONFIRMED
+                || next == OrderStatus.CANCELLED;
+
+            case CONFIRMED ->
+                next == OrderStatus.SHIPPING
+                || next == OrderStatus.CANCELLED;
+
             case SHIPPING -> next == OrderStatus.COMPLETED;
+
             case COMPLETED -> next == OrderStatus.RETURN_REQUESTED;
-            case RETURN_REQUESTED -> next == OrderStatus.RETURNED || next == OrderStatus.COMPLETED;
-            default -> false; // CANCELLED, RETURNED
+
+            case RETURN_REQUESTED ->
+                next == OrderStatus.RETURNED
+                || next == OrderStatus.COMPLETED;
+
+            default -> false;
         };
     }
 
@@ -115,8 +138,8 @@ public class Order {
     }
 
     public void requestReturn(String reason) {
-        if (status == OrderStatus.COMPLETED) {
-            status = OrderStatus.RETURN_REQUESTED;
+        if (canMoveTo(OrderStatus.RETURN_REQUESTED)) {
+            updateStatus(OrderStatus.RETURN_REQUESTED);
             this.returnReason = reason;
         }
     }

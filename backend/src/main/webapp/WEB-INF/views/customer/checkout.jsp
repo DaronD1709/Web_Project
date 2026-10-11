@@ -52,13 +52,13 @@
       <section class="card bg-base-100 border border-base-300 p-5">
         <h2 class="font-bold mb-3">2. Phương thức thanh toán</h2>
         <div class="space-y-2">
-          <label class="border border-primary bg-primary/5 rounded-box p-4 cursor-pointer flex items-center gap-3">
-            <input type="radio" name="paymentMethod" value="COD" class="radio radio-primary radio-sm shrink-0" checked required>
+          <label data-payment-option class="border ${selectedPaymentMethod != 'VNPAY' ? 'border-primary bg-primary/5' : 'border-base-300'} rounded-box p-4 cursor-pointer flex items-center gap-3">
+            <input type="radio" name="paymentMethod" value="COD" class="radio radio-primary radio-sm shrink-0" ${selectedPaymentMethod != 'VNPAY' ? 'checked' : ''} required>
             <span class="text-2xl" aria-hidden="true">💵</span><div class="text-sm"><div class="font-semibold">Thanh toán khi nhận hàng (COD)</div><div class="text-base-content/60">Trả tiền mặt cho shipper</div></div>
           </label>
-          <label class="border border-base-300 rounded-box p-4 flex items-center gap-3 opacity-60" title="Chưa hỗ trợ thanh toán VNPay">
-            <input type="radio" name="paymentMethod" value="VNPAY" class="radio radio-primary radio-sm shrink-0" disabled>
-            <span class="text-2xl" aria-hidden="true">💳</span><div class="text-sm"><div class="font-semibold">VNPay (sandbox)</div><div class="text-base-content/60">Thẻ ATM / QR / Internet Banking</div></div>
+          <label data-payment-option class="border ${selectedPaymentMethod == 'VNPAY' ? 'border-primary bg-primary/5' : 'border-base-300'} rounded-box p-4 flex items-center gap-3 ${vnPayAvailable ? 'cursor-pointer' : 'opacity-60'}" title="${vnPayAvailable ? (vnPaySandbox ? 'Thanh toán qua VNPay sandbox' : 'Thanh toán qua VNPay') : 'VNPay chưa được cấu hình để thanh toán'}">
+            <input type="radio" name="paymentMethod" value="VNPAY" class="radio radio-primary radio-sm shrink-0" ${vnPayAvailable ? '' : 'disabled'} ${selectedPaymentMethod == 'VNPAY' ? 'checked' : ''}>
+            <span class="text-2xl" aria-hidden="true">💳</span><div class="text-sm"><div class="font-semibold">VNPay<c:if test="${vnPaySandbox}"> (sandbox)</c:if></div><div class="text-base-content/60">Thẻ ATM / QR / Internet Banking</div></div>
           </label>
         </div>
       </section>

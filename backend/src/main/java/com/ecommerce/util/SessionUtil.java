@@ -77,6 +77,13 @@ public class SessionUtil {
         } else if ("/checkout/voucher".equals(path)) {
             // Login xong trình duyệt gửi GET; quay về trang checkout.
             path = "/checkout";
+        } else if ("/payment/vnpay/reconcile".equals(path)) {
+            // Đối soát chỉ POST: sau login quay về GET kết quả để lấy token mới.
+            Integer orderId = ParamUtil.intOrNull(req.getParameter("orderId"));
+            path = "/checkout/success";
+            if (orderId != null && orderId > 0) {
+                path += "?orderId=" + orderId;
+            }
         }
 
         String login = req.getContextPath() + loginPath + "?next="

@@ -13,8 +13,10 @@
     if (event.target.id === 'voucher-code') updateSubmit();
   });
   document.addEventListener('change', function (event) {
-    if (event.target.name !== 'addressId') return;
-    document.querySelectorAll('[data-address-option]').forEach(function (label) {
+    const selector = event.target.name === 'addressId' ? '[data-address-option]'
+      : event.target.name === 'paymentMethod' ? '[data-payment-option]' : null;
+    if (!selector) return;
+    document.querySelectorAll(selector).forEach(function (label) {
       const checked = label.querySelector('input').checked;
       label.classList.toggle('border-primary', checked);
       label.classList.toggle('bg-primary/5', checked);
