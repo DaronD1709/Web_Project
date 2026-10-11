@@ -27,15 +27,27 @@ public class CartServlet extends HttpServlet {
     private final CartService cartService = new CartService();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        // Giỏ hàng phụ thuộc tài khoản, không lưu response vào cache.
+        resp.setHeader("Cache-Control", "no-store");
+
         Customer user = SessionUtil.requireCustomer(req, resp);
         if (user == null) return;
         showCart(req, user);
+
+        // Đồng bộ badge với DB mỗi khi khách mở lại trang giỏ.
+        refreshCartCount(req, user);
+
         req.getRequestDispatcher(PAGE).forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+
         Customer user = SessionUtil.requireCustomer(req, resp);
         if (user == null) return;
         boolean htmx = HtmxUtil.isHtmx(req);
@@ -45,28 +57,54 @@ public class CartServlet extends HttpServlet {
         try {
             switch (action == null ? "" : action) {
                 case "add" -> {
-                    cartService.addItem(user.getId(), ParamUtil.intOr(req.getParameter("productId"), -1), ParamUtil.intOr(req.getParameter("qty"), 1));
+                    int productId = readIntParameter(
+                            req, "productId", "Mã sản phẩm");
+                    int qty = readIntParameter(
+                            req, "qty", "Số lượng");
+
+                    // Chủ giỏ lấy từ session đã xác thực,
+                    // không lấy customerId do trình duyệt gửi lên.
+                    cartService.addItem(user.getId(), productId, qty);
                     message = "Đã thêm vào giỏ hàng";
                 }
-                case "update" -> cartService.updateQuantity(user.getId(), ParamUtil.intOr(req.getParameter("itemId"), -1), ParamUtil.intOr(req.getParameter("qty"), 1));
+
+                case "update" -> {
+                    int itemId = readIntParameter(
+                            req, "itemId", "Mã dòng giỏ hàng");
+                    int qty = readIntParameter(
+                            req, "qty", "Số lượng");
+
+                    cartService.updateQuantity(user.getId(), itemId, qty);
+                }
+
                 case "remove" -> {
-                    cartService.removeItem(user.getId(), ParamUtil.intOr(req.getParameter("itemId"), -1));
+                    int itemId = readIntParameter(
+                            req, "itemId", "Mã dòng giỏ hàng");
+
+                    cartService.removeItem(user.getId(), itemId);
                     message = "Đã xoá khỏi giỏ hàng";
                 }
+
                 default -> {
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                     return;
                 }
             }
         } catch (BusinessException e) {
-            // Vd: vuot ton kho. htmx -> bao toast loi, giu nguyen giao dien; thuong -> quay lai gio kem thong bao.
             if (htmx) {
+                // 422: dữ liệu không hợp lệ, theo docs/api-spec.md.
+                resp.setStatus(422);
+
+                // Báo lỗi bằng toast, giữ nguyên nội dung giỏ hiện tại.
                 HtmxUtil.toast(resp, e.getMessage(), "error");
                 resp.setHeader("HX-Reswap", "none");
                 return;
             }
+
+            // Request thường: dựng lại trang giỏ cùng thông báo lỗi.
             req.setAttribute("error", e.getMessage());
             showCart(req, user);
+            refreshCartCount(req, user);
             req.getRequestDispatcher(PAGE).forward(req, resp);
             return;
         }
@@ -94,6 +132,22 @@ public class CartServlet extends HttpServlet {
         req.setAttribute("subtotal", subtotal);
         req.setAttribute("shippingFee", shipping);
         req.setAttribute("total", subtotal + shipping);
+    }
+
+    private int readIntParameter(HttpServletRequest req,
+                                  String parameterName,
+                                  String fieldLabel) {
+        // Tham số HTTP là chuỗi; ParamUtil trả null nếu thiếu,
+        // sai định dạng hoặc vượt phạm vi int.
+        Integer value = ParamUtil.intOrNull(
+                req.getParameter(parameterName));
+
+        // Không tự thay dữ liệu sai bằng số mặc định khi sửa giỏ.
+        if (value == null) {
+            throw new BusinessException(
+                    fieldLabel + " phải là số nguyên hợp lệ.");
+        }
+        return value;
     }
 
     private void refreshCartCount(HttpServletRequest req, Customer user) {
