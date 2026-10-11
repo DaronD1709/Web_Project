@@ -66,7 +66,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
-**Đã code & test (giỏ hàng, checkout COD, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `/checkout`, `/checkout/voucher`, `/checkout/success`, `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Checkout hiện chỉ hỗ trợ COD; VNPay chờ tích hợp sandbox.
+**Đã code & test (giỏ hàng, checkout COD/VNPay, lịch sử đơn, chat):** xem mục 4, 5 và 6 — `GET/POST /cart` (add/update/remove, htmx), `/checkout`, `/checkout/voucher`, `/checkout/success`, các tuyến `/payment/vnpay/*`, `GET /orders`, `GET /orders/detail`, `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). VNPay đã kiểm thử sandbox; cấu hình production và điều kiện triển khai xem mục 4 cùng `docs/vnpay-setup.md`.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
