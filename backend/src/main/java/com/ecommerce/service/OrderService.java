@@ -262,6 +262,45 @@ public class OrderService {
         }
     }
 
+    public void cancelOwnOrder(Customer user, Integer orderId) {
+        changeOwnStatus(user, orderId, OrderStatus.CANCELLED, null,
+                "Đơn hàng #" + orderId + " đã được huỷ theo yêu cầu của bạn.");
+    }
+
+    public void requestOwnReturn(Customer user, Integer orderId, String reason) {
+        changeOwnStatus(user, orderId, OrderStatus.RETURN_REQUESTED, reason,
+                "Yêu cầu hoàn hàng của đơn #" + orderId + " đang chờ cửa hàng duyệt.");
+    }
+
+    private void changeOwnStatus(Customer user, Integer orderId, OrderStatus next,
+            String reason, String notificationText) {
+        if (user == null || user.getId() == null || !user.isActive()) {
+            throw new BusinessException("Vui lòng đăng nhập để thao tác đơn hàng.");
+        }
+        if (orderId == null || orderId < 1) throw new BusinessException("Mã đơn hàng không hợp lệ.");
+        orderDAO.changeCustomerStatus(orderId, next, notificationText, order -> {
+            if (order == null) throw new BusinessException("Đơn hàng không tồn tại.");
+            if (!user.getId().equals(order.getCustomer().getId())) {
+                throw new SecurityException("Bạn không có quyền thao tác đơn hàng này.");
+            }
+            if (!order.getCustomer().isActive()) {
+                throw new BusinessException("Tài khoản của bạn đã bị khoá.");
+            }
+            // Luật chuyển trạng thái dùng chính Order.canMoveTo của Admin.
+            if (!order.canMoveTo(next)) {
+                throw new BusinessException(next == OrderStatus.CANCELLED
+                        ? "Chỉ được huỷ đơn đang chờ xác nhận hoặc đã xác nhận."
+                        : "Chỉ được yêu cầu hoàn đơn đã hoàn tất.");
+            }
+            if (next == OrderStatus.RETURN_REQUESTED) {
+                String text = reason == null ? "" : reason.trim();
+                if (text.isBlank()) throw new BusinessException("Vui lòng nhập lý do hoàn hàng.");
+                if (text.length() > 255) throw new BusinessException("Lý do hoàn hàng tối đa 255 ký tự.");
+                order.setReturnReason(text);
+            }
+        });
+    }
+
     public PageResult<Order> getOwnHistory(Customer user, String rawStatus, int page) {
         if (user == null || user.getId() == null || !user.isActive()) {
             throw new BusinessException("Vui lòng đăng nhập để xem đơn hàng.");

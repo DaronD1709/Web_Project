@@ -74,6 +74,11 @@ public class SessionUtil {
             if (query != null && !query.isBlank()) {
                 path += "?" + query;
             }
+        } else if ("/orders/cancel".equals(path) || "/orders/return".equals(path)) {
+            Integer id = ParamUtil.intOrNull(req.getParameter("id"));
+            path = id != null && id > 0 ? "/orders/detail?id=" + id : "/orders";
+        } else if ("/notifications/read".equals(path)) {
+            path = "/notifications";
         } else if ("/checkout/voucher".equals(path)) {
             // Login xong trình duyệt gửi GET; quay về trang checkout.
             path = "/checkout";

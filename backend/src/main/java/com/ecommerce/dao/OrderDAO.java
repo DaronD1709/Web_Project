@@ -22,6 +22,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /** Đọc đơn của Customer/Admin; đổi trạng thái và hoàn kho trong một transaction. */
 public class OrderDAO extends AbstractDAO<Order, Integer> {
@@ -205,6 +206,34 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
     }
 
     // ------------------------------------------------------------------ doi trang thai
+
+    /** Customer: kiểm tra chủ đơn/trạng thái dưới cùng khoá Order với Admin/IPN. */
+    public void changeCustomerStatus(Integer orderId, OrderStatus next,
+            String notificationText, Consumer<Order> validate) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            List<Order> matches = em.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
+                    .setParameter("id", orderId)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getResultList();
+            Order order = matches.isEmpty() ? null : matches.get(0);
+            if (order != null) {
+                em.refresh(order.getCustomer());
+                if (order.getPayment() != null) em.refresh(order.getPayment());
+            }
+            // Service kiểm tra quyền, trạng thái và đặt lý do hoàn; lỗi rollback.
+            validate.accept(order);
+            changeStatusInTransaction(em, order, next, notificationText);
+            tx.commit();
+        } catch (RuntimeException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 
     /**
      * Doi trang thai don va moi viec di kem trong CUNG 1 transaction: hoac xong het hoac khong gi ca.
