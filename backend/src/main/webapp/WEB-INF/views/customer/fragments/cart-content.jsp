@@ -42,6 +42,7 @@
                   <form method="post" action="${ctx}/cart" class="join flex justify-center"
                         hx-post="${ctx}/cart" hx-target="#cart-content" hx-swap="innerHTML" hx-disabled-elt="#cart-content button">
                     <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="cartCsrfToken" value="<c:out value='${cartCsrfToken}'/>">
                     <input type="hidden" name="itemId" value="${i.id}">
                     <button type="submit" name="qty" value="${i.quantity - 1}" class="join-item btn btn-xs" ${i.quantity <= 1 ? 'disabled' : ''} aria-label="Giảm số lượng">−</button>
                     <span class="join-item btn btn-xs pointer-events-none w-10">${i.quantity}</span>
@@ -52,6 +53,7 @@
                 <td>
                   <form method="post" action="${ctx}/cart" hx-post="${ctx}/cart" hx-target="#cart-content" hx-swap="innerHTML" hx-disabled-elt="#cart-content button">
                     <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="cartCsrfToken" value="<c:out value='${cartCsrfToken}'/>">
                     <input type="hidden" name="itemId" value="${i.id}">
                     <button type="submit" class="btn btn-ghost btn-xs text-error">Xoá</button>
                   </form>
