@@ -177,8 +177,8 @@ Phí ship: miễn phí khi tạm tính ≥ 500.000₫, ngược lại 30.000₫ 
 |---|---|---|---|---|
 | GET | `/orders` | `OrderServlet` | `status` (tuỳ chọn: `ALL` hoặc tên `OrderStatus`), `page` (số nguyên ≥ 1, mặc định 1) | `customer/orders.jsp` (attr `result: PageResult<Order>`, `orders`, `selectedStatus`, `activeAccount=orders`) — chỉ đơn của Customer đăng nhập |
 | GET | `/orders/detail` | `OrderServlet` | `id` (số nguyên dương) | `customer/order-detail.jsp` (attr `order`, `activeAccount=orders`); đơn người khác → 403, không tồn tại → 404 |
-| POST *(dự kiến: Track Order Status)* | `/orders/cancel` | `OrderServlet` | `id` | 302 `/orders/detail?id=..`; chỉ khi `PENDING`/`CONFIRMED` và đúng chủ đơn |
-| POST *(dự kiến: Track Order Status)* | `/orders/return` | `OrderServlet` | `id`, `reason` (bắt buộc) | 302; chỉ khi `COMPLETED` → `RETURN_REQUESTED` |
+| POST | `/orders/cancel` | `OrderServlet` | `id`, `trackingCsrfToken` | Thường: flash + 302 `/orders/detail?id=..`; htmx: fragment chi tiết + toast. Chỉ `PENDING`/`CONFIRMED`, đúng chủ đơn |
+| POST | `/orders/return` | `OrderServlet` | `id`, `reason` (sau trim: 1–255 ký tự), `trackingCsrfToken` | Thường: flash + 302 chi tiết; htmx: fragment + toast. Chỉ `COMPLETED` → `RETURN_REQUESTED` |
 
 **View Order History đã triển khai:** hai GET trên đi qua `SessionUtil.requireCustomer`; guest → login giữ query (htmx dùng `HX-Redirect`), Admin → 403, Customer bị khoá giữa phiên → đăng xuất. Phản hồi `Cache-Control: no-store`. ID/page/status sai hoặc tham số trùng → 400; POST vào hai URL GET → 405.
 
@@ -186,7 +186,11 @@ Danh sách mới nhất trước (ID giảm dần), 10 đơn/trang; page vượt
 
 Tab/phân trang gửi `HX-Request: true` + `HX-Target: order-history` → `customer/fragments/order-history.jsp`; các request khác trả trang đầy đủ. Link vẫn chạy khi không có htmx, URL được cập nhật để F5/back giữ bộ lọc. Vùng lịch sử đặt `hx-history="false"` để htmx không lưu HTML đơn hàng vào localStorage; khôi phục lịch sử phải hỏi lại server và kiểm tra phiên. Menu header của Customer dẫn vào `/orders`; chi tiết có link tới `/checkout/success?orderId=..` để xem lại kết quả COD/VNPay. Giá từng dòng dùng `priceAtOrder`; phí/giảm/tổng tiền dùng snapshot trên Order. Đọc lịch sử không gọi gateway, gửi email, thay đổi kho/voucher/giỏ hay trạng thái đơn.
 
-Huỷ/yêu cầu hoàn thuộc `feat/track-order-status`; `canCancel`/`canReturn` và nút thao tác sẽ nối ở nhánh đó. Review/mua lại chưa triển khai. Menu hồ sơ/địa chỉ/thông báo dùng URL đã thống nhất, phụ thuộc nhánh tương ứng; không thêm CRUD của người khác vào nhánh này.
+**Track Order Status:** GET chi tiết có `canCancel`/`canReturn` từ `Order.canMoveTo`, kèm token phiên `trackingCsrfToken`. `HX-Request: true` + `HX-Target: order-detail-body` trả `customer/fragments/order-tracking.jsp`; trang chi tiết hỏi lại mỗi 15 giây, dừng hỏi khi dialog huỷ/hoàn đang mở. Poll chỉ đọc DB, không gọi gateway/gửi email. Dialog theo mockup; không thêm Review/mua lại hoặc CRUD địa chỉ.
+
+POST kiểm tra đúng một ID/lý do/token; ID sai hoặc tham số trùng → 400, token thiếu/sai/trùng → 403, đơn lạ → 404, đơn người khác → 403. Lỗi nghiệp vụ giữ nội dung lý do và vẽ lại trang (htmx: 422 + toast, JS chỉ cho thay vùng chi tiết khi 422). Guest/phiên hết hạn đăng nhập lại tới GET chi tiết hoặc danh sách, không tới URL POST; Admin → 403; tài khoản bị khoá bị đăng xuất. `TrackingCsrf` dùng chung cho thao tác đơn và đánh dấu đọc thông báo trong nhánh này, không thay token của Cart/Profile/Checkout.
+
+`OrderService` kiểm tra lại chủ đơn, tài khoản và `Order.canMoveTo` **trong transaction sau khoá Order** qua `OrderDAO.changeCustomerStatus`. Dùng lại `changeStatusInTransaction` của Admin/IPN cho kho/voucher/payment/Notification. Huỷ lặp hoặc huỷ/hoàn khi trạng thái không cho phép bị từ chối, không cộng kho hay tạo thông báo lần nữa. Gửi yêu cầu hoàn chưa cộng kho; chỉ Admin duyệt `RETURNED` mới cộng kho, từ chối về `COMPLETED`. Thanh toán COD đang chờ chuyển `FAILED` khi huỷ; VNPay giữ kết quả gateway. Huỷ đơn VNPay đã trả tiền **không tự hoàn tiền**: UI báo liên hệ cửa hàng đối soát/hoàn tiền theo luồng hiện có.
 
 Luồng trạng thái hợp lệ (validate trong `Order.updateStatus()`):
 `PENDING → CONFIRMED → SHIPPING → COMPLETED`; `PENDING/CONFIRMED → CANCELLED`;
@@ -203,12 +207,18 @@ tránh ghi đè tồn kho/lượt sử dụng khi checkout và Admin xử lý đ
 
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
-| GET | `/notifications` | `NotificationServlet` | — | `customer/notifications.jsp` (attr `notifications`) |
-| POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` | 302 `/notifications` |
+| GET | `/notifications` | `NotificationServlet` | `filter=ALL\|UNREAD` (mặc định ALL), `page` (≥ 1, mặc định 1) | `customer/notifications.jsp`; htmx + `HX-Target: notification-list` → fragment danh sách. Attr `result: PageResult<Notification>`, `selectedFilter`, `unreadCount`, `activeAccount=notifications`, `trackingCsrfToken` |
+| POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` (không đồng thời), `trackingCsrfToken`, `filter`, `page` | Thường: 302 danh sách giữ bộ lọc/trang; htmx: danh sách + badge OOB + toast |
 | GET | `/notifications/count` | `NotificationServlet` | — | htmx fragment số chưa đọc (badge header), `hx-trigger="every 30s"` |
 | GET | `/chat` | `ChatServlet` | — | `customer/chat.jsp` (attr `messages`, `conversation`) |
 | POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi **chatbot trả lời theo luật từ khoá** nếu chưa có Admin tiếp quản; không hiểu / xin gặp nhân viên ⇒ chuyển sang chế độ Nhân viên) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
+
+**Nhận/xem thông báo được triển khai trong `feat/track-order-status` theo phạm vi đã xác nhận.** Cả ba URL đi qua `SessionUtil.requireCustomer`, `Cache-Control: no-store`; chỉ đọc/sửa thông báo của Customer đăng nhập. Không nhận user ID từ request. Danh sách ID giảm dần, 20 dòng/trang, trang vượt giới hạn về trang cuối; bộ lọc không hợp lệ/page sai/tham số trùng → 400. GET không đánh dấu đọc, không tạo thông báo; nguồn tạo vẫn là transaction đặt hàng/đổi trạng thái đã có.
+
+Header chỉ hiển thị chuông/badge cho Customer, tải lần đầu rồi hỏi số chưa đọc mỗi 30 giây; danh sách cũng hỏi lại mỗi 30 giây. Phản hồi badge đã tải chỉ có `every 30s`, không lặp `load`. HTML thông báo không lưu vào htmx history. POST token thiếu/sai/trùng → 403, thông báo lạ → 404, của người khác → 403; UPDATE có điều kiện chủ sở hữu và chưa đọc, đánh dấu lặp không gây tác dụng phụ. Đánh dấu tất cả chỉ cập nhật tài khoản hiện tại. POST phiên hết hạn quay về GET `/notifications` sau login; GET vào URL ghi hoặc POST vào URL đọc → 405.
+
+Giao diện giữ bố cục `mockup/notifications.html`, escape message và dùng getter ngày `@Transient` (không thêm cột). Entity chưa có liên kết Order nên nút đi tới lịch sử đơn của mình; không suy ID từ nội dung thông báo. Thông báo trong app không gửi thêm email và không sửa luồng SMTP/Chat của thành viên khác.
 
 `Message` gắn với khách qua `Message.customer`; `Message.sender` là `User` (Customer hoặc Admin; chatbot dùng tài khoản hệ thống loại Admin) — JSP phân biệt bubble theo người gửi.
 Nội dung tin nhắn luôn qua `<c:out>`.
