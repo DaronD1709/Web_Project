@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -35,7 +34,7 @@ public class ProfileServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return;
         }
-        Customer customer = requireCustomer(req, resp);
+        Customer customer = SessionUtil.requireCustomer(req, resp);
         if (customer == null) return;
         try {
             Customer fresh = userService.getProfile(customer.getId());
@@ -51,7 +50,7 @@ public class ProfileServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         resp.setHeader("Cache-Control", "no-store");
-        Customer customer = requireCustomer(req, resp);
+        Customer customer = SessionUtil.requireCustomer(req, resp);
         if (customer == null) return;
         try {
             customer = userService.getProfile(customer.getId());
@@ -60,9 +59,10 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
         String expected = (String) req.getSession(false).getAttribute(CSRF_TOKEN);
-        String supplied = req.getParameter("csrfToken");
-        if (expected == null || supplied == null || !MessageDigest.isEqual(
-                expected.getBytes(StandardCharsets.UTF_8), supplied.getBytes(StandardCharsets.UTF_8))) {
+        String[] supplied = req.getParameterValues("csrfToken");
+        if (expected == null || supplied == null || supplied.length != 1
+                || supplied[0] == null || !MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8), supplied[0].getBytes(StandardCharsets.UTF_8))) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Phiên gửi biểu mẫu không hợp lệ. Vui lòng tải lại trang.");
             return;
         }
@@ -98,12 +98,16 @@ public class ProfileServlet extends HttpServlet {
 
     private void prepareView(HttpServletRequest req, Customer user) {
         HttpSession session = req.getSession(false);
-        String token = (String) session.getAttribute(CSRF_TOKEN);
-        if (token == null) {
-            byte[] bytes = new byte[32];
-            new SecureRandom().nextBytes(bytes);
-            token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-            session.setAttribute(CSRF_TOKEN, token);
+        String token;
+        // Hai tab mở lần đầu cùng lúc phải nhận cùng token của phiên.
+        synchronized (session) {
+            token = (String) session.getAttribute(CSRF_TOKEN);
+            if (token == null) {
+                byte[] bytes = new byte[32];
+                new SecureRandom().nextBytes(bytes);
+                token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+                session.setAttribute(CSRF_TOKEN, token);
+            }
         }
         req.setAttribute("csrfToken", token);
         req.setAttribute("user", user);
@@ -119,18 +123,6 @@ public class ProfileServlet extends HttpServlet {
         }
         req.setAttribute("initials", initials);
         req.setAttribute("joinedMonth", user.getCreatedAt() == null ? "" : user.getCreatedAt().format(DateTimeFormatter.ofPattern("MM/yyyy")));
-    }
-
-    /** Sau khi login, luon quay ve trang GET ho so, ke ca khi phien het han luc POST doi mat khau. */
-    private Customer requireCustomer(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (SessionUtil.currentUser(req) == null) {
-            String login = req.getContextPath() + "/login?next="
-                    + URLEncoder.encode("/account/profile", StandardCharsets.UTF_8);
-            if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
-            else resp.sendRedirect(login);
-            return null;
-        }
-        return SessionUtil.requireCustomer(req, resp);
     }
 
     private static String firstLetter(String word) {

@@ -77,12 +77,16 @@ Email không đổi được (chỉ đọc). Địa chỉ chỉ thao tác trên 
 trong khi chờ AuthFilter. Khách chưa đăng nhập → `/login?next=/account/profile` (next được URL encode),
 kể cả khi hết phiên lúc POST `/account/password`, để sau login quay về trang GET hợp lệ. Admin → 403. GET `/account/password` → 405.
 ID lấy từ session; tham số `id`, `email`, `role` gửi thêm không được dùng để cập nhật.
+`SessionUtil.requireCustomer` giữ kiểm tra tài khoản bị Admin khoá giữa phiên từ dev;
+POST đổi mật khẩu hết phiên hoặc bị khoá đều quay về GET `/account/profile` sau login, tránh 405.
 Họ tên bắt buộc, trim và tối đa 255 ký tự; số điện thoại tùy chọn, nếu nhập cần 8–15 chữ số,
 cho phép dấu `+` ở đầu và ký tự phân cách khoảng trắng, `.`, `-`, `(`, `)`.
 Đổi mật khẩu kiểm tra mật khẩu hiện tại bằng hash mới nhất trong DB, mật khẩu mới tối thiểu 6 ký tự và phải khớp xác nhận;
 không trim hay đưa mật khẩu trở lại HTML. Đổi thành công xóa token reset cũ và giữ phiên hiện tại;
 các phiên đăng nhập khác chưa được thu hồi tự động. Cập nhật chỉ tác động các cột cần thiết, không merge toàn bộ Customer.
-Hai POST yêu cầu token CSRF gắn với session (thiếu/sai → 403). GET/POST gửi `Cache-Control: no-store`.
+Hai POST yêu cầu đúng một token CSRF gắn với session (thiếu/sai/trùng → 403).
+Tạo token trong khoá session để hai tab mở lần đầu nhận cùng token; không đổi token sau mỗi lần lưu.
+GET/POST gửi `Cache-Control: no-store`.
 Form thường dùng PRG; htmx trả fragment, lỗi 422 được trang Profile cho phép swap để hiện lỗi tại ô nhập.
 Sau khi lưu, session `currentUser` được cập nhật và `cartCount` giữ nguyên; menu tài khoản trên header được thay qua OOB.
 Menu dropdown từ `mockup/layout.js` mở được Hồ sơ trên cả mobile và desktop, Logout vẫn dùng POST.

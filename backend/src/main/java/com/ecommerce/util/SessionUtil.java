@@ -64,6 +64,11 @@ public class SessionUtil {
     // loginPath: trang dang nhap can chuyen toi ("/login" cho khach hang, "/admin/login" cho Admin); next = trang dang truy cap de quay lai
     private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String loginPath) throws IOException {
         String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
+        // Sau login trình duyệt gửi GET; endpoint đổi mật khẩu chỉ nhận POST.
+        // Dùng chung cho guest và khách vừa bị Admin khoá trong phiên.
+        if ("POST".equals(req.getMethod()) && "/account/password".equals(path)) {
+            path = "/account/profile";
+        }
         String login = req.getContextPath() + loginPath + "?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
         if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
         else resp.sendRedirect(login);
