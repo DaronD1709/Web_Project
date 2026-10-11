@@ -19,10 +19,14 @@
     <span class="font-semibold leading-snug line-clamp-2 min-h-10"><c:out value="${p.name}"/></span>
     <span class="text-lg font-bold text-primary"><fmt:formatNumber value="${p.price}" pattern="#,##0"/>₫</span>
     <%-- htmx: bam -> POST /cart (action=add) -> chi doi badge #cart-count tren header, khong reload. Chua dang nhap: server tra HX-Redirect toi /login. --%>
-    <button type="button" class="btn btn-primary btn-sm mt-2" ${p.stockQuantity == 0 ? 'disabled' : ''}
-            hx-post="${ctx}/cart" hx-vals='{"action":"add","productId":"${p.id}","qty":"1"}'
-            hx-target="#cart-count" hx-swap="outerHTML" hx-disabled-elt="this">
-      ${p.stockQuantity == 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
-    </button>
+    <form method="post" action="${ctx}/cart" class="mt-2" hx-post="${ctx}/cart"
+          hx-target="#cart-count" hx-swap="outerHTML" hx-disabled-elt="find button">
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="productId" value="${p.id}">
+      <input type="hidden" name="qty" value="1">
+      <button type="submit" class="btn btn-primary btn-sm btn-block" ${p.stockQuantity <= 0 ? 'disabled' : ''}>
+        ${p.stockQuantity <= 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
+      </button>
+    </form>
   </div>
 </div>

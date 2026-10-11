@@ -15,7 +15,7 @@
   </c:when>
   <c:otherwise>
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem] gap-6">
-      <div class="card bg-base-100 border border-base-300 overflow-x-auto">
+      <div class="card bg-base-100 border border-base-300 overflow-x-auto min-w-0">
         <table class="table">
           <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th class="text-center">Số lượng</th><th class="text-right">Thành tiền</th><th></th></tr></thead>
           <tbody>
@@ -23,7 +23,12 @@
               <tr>
                 <td>
                   <div class="flex items-center gap-3">
-                    <div class="ph ph-sm size-16 rounded-field shrink-0" aria-hidden="true">🌾</div>
+                    <c:choose>
+                      <c:when test="${not empty i.product.imageUrl}">
+                        <img src="${ctx}/<c:out value='${i.product.imageUrl}'/>" alt="<c:out value='${i.product.name}'/>" class="size-16 rounded-field shrink-0 object-cover">
+                      </c:when>
+                      <c:otherwise><div class="ph ph-sm size-16 rounded-field shrink-0" aria-hidden="true">🌾</div></c:otherwise>
+                    </c:choose>
                     <div>
                       <div class="font-medium"><c:out value="${i.product.name}"/></div>
                       <div class="text-xs text-base-content/60"><c:out value="${i.product.category.name}"/>
@@ -33,21 +38,23 @@
                 </td>
                 <td class="tabular-nums"><fmt:formatNumber value="${i.priceAtAdd}" pattern="#,##0"/>₫</td>
                 <td>
-                  <div class="join flex justify-center">
-                    <button class="join-item btn btn-xs" ${i.quantity <= 1 ? 'disabled' : ''} aria-label="Giảm số lượng"
-                            hx-post="${ctx}/cart" hx-vals='{"action":"update","itemId":"${i.id}","qty":"${i.quantity - 1}"}'
-                            hx-target="#cart-content" hx-swap="innerHTML">−</button>
+                  <%-- Form POST chay duoc khi thieu htmx; htmx chi thay noi dung gio. --%>
+                  <form method="post" action="${ctx}/cart" class="join flex justify-center"
+                        hx-post="${ctx}/cart" hx-target="#cart-content" hx-swap="innerHTML" hx-disabled-elt="#cart-content button">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="itemId" value="${i.id}">
+                    <button type="submit" name="qty" value="${i.quantity - 1}" class="join-item btn btn-xs" ${i.quantity <= 1 ? 'disabled' : ''} aria-label="Giảm số lượng">−</button>
                     <span class="join-item btn btn-xs pointer-events-none w-10">${i.quantity}</span>
-                    <button class="join-item btn btn-xs" ${i.quantity >= i.product.stockQuantity ? 'disabled' : ''} aria-label="Tăng số lượng"
-                            hx-post="${ctx}/cart" hx-vals='{"action":"update","itemId":"${i.id}","qty":"${i.quantity + 1}"}'
-                            hx-target="#cart-content" hx-swap="innerHTML">+</button>
-                  </div>
+                    <button type="submit" name="qty" value="${i.quantity + 1}" class="join-item btn btn-xs" ${i.quantity >= i.product.stockQuantity ? 'disabled' : ''} aria-label="Tăng số lượng">+</button>
+                  </form>
                 </td>
                 <td class="text-right font-semibold tabular-nums"><fmt:formatNumber value="${i.priceAtAdd * i.quantity}" pattern="#,##0"/>₫</td>
                 <td>
-                  <button class="btn btn-ghost btn-xs text-error"
-                          hx-post="${ctx}/cart" hx-vals='{"action":"remove","itemId":"${i.id}"}'
-                          hx-target="#cart-content" hx-swap="innerHTML">Xoá</button>
+                  <form method="post" action="${ctx}/cart" hx-post="${ctx}/cart" hx-target="#cart-content" hx-swap="innerHTML" hx-disabled-elt="#cart-content button">
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="itemId" value="${i.id}">
+                    <button type="submit" class="btn btn-ghost btn-xs text-error">Xoá</button>
+                  </form>
                 </td>
               </tr>
             </c:forEach>
@@ -55,7 +62,7 @@
         </table>
       </div>
 
-      <aside>
+      <aside class="min-w-0">
         <div class="card bg-base-100 border border-base-300 p-5 space-y-3 lg:sticky lg:top-20">
           <h2 class="font-bold">Tóm tắt đơn hàng</h2>
           <div class="flex justify-between text-sm"><span>Tạm tính</span><span class="tabular-nums"><fmt:formatNumber value="${subtotal}" pattern="#,##0"/>₫</span></div>
@@ -67,8 +74,7 @@
           <div class="text-xs text-base-content/60">Mã giảm giá nhập ở bước thanh toán.</div>
           <div class="divider my-0"></div>
           <div class="flex justify-between font-bold text-lg"><span>Tổng cộng</span><span class="text-primary tabular-nums"><fmt:formatNumber value="${total}" pattern="#,##0"/>₫</span></div>
-          <%-- TODO (feat/place-order-pay): doi thanh <a href="${ctx}/checkout"> khi co CheckoutServlet --%>
-          <button class="btn btn-primary btn-block" disabled>Thanh toán (sắp có)</button>
+          <a href="${ctx}/checkout" class="btn btn-primary btn-block">Tiến hành thanh toán</a>
           <a href="${ctx}/products" class="btn btn-ghost btn-sm btn-block">← Tiếp tục mua sắm</a>
         </div>
       </aside>
