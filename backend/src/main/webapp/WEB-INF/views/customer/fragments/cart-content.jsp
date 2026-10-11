@@ -74,8 +74,7 @@
           <div class="text-xs text-base-content/60">Mã giảm giá nhập ở bước thanh toán.</div>
           <div class="divider my-0"></div>
           <div class="flex justify-between font-bold text-lg"><span>Tổng cộng</span><span class="text-primary tabular-nums"><fmt:formatNumber value="${total}" pattern="#,##0"/>₫</span></div>
-          <%-- TODO (feat/place-order-pay): doi thanh <a href="${ctx}/checkout"> khi co CheckoutServlet --%>
-          <button class="btn btn-primary btn-block" disabled>Tiến hành thanh toán</button>
+          <a href="${ctx}/checkout" class="btn btn-primary btn-block">Tiến hành thanh toán</a>
           <a href="${ctx}/products" class="btn btn-ghost btn-sm btn-block">← Tiếp tục mua sắm</a>
         </div>
       </aside>

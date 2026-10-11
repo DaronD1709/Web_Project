@@ -66,7 +66,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
-**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Chưa có: checkout.
+**Đã code & test (giỏ hàng, checkout COD, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `/checkout`, `/checkout/voucher`, `/checkout/success`, `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Checkout hiện chỉ hỗ trợ COD; VNPay chờ tích hợp sandbox.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: sai email hay sai mật khẩu đều báo **cùng một** thông báo; tham số `next` chỉ chấp nhận đường dẫn nội bộ bắt đầu bằng `/` (chặn open redirect); đổi session ID khi đăng nhập (chống session fixation).
@@ -98,9 +98,9 @@ Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản p
 | POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
 | POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty` | htmx: fragment tóm tắt giỏ; thường: 302 |
 | POST | `/cart` | `CartServlet` | `action=remove` + `itemId` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
-| GET | `/checkout` | `CheckoutServlet` | — | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`); giỏ rỗng → 302 `/cart` |
+| GET | `/checkout` | `CheckoutServlet` | `voucherCode` (tuỳ chọn, sau POST preview thường) | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`, `selectedAddressId`, `checkoutToken`, `subtotal`, `shippingFee`, `voucherCode`, `appliedVoucherCode`, `voucher`, `voucherError`, `discountAmount`, `total`); giỏ rỗng → 302 `/cart` |
 | POST | `/checkout/voucher` | `VoucherServlet` | `code` | htmx fragment `#voucher-result`: thành công (số tiền giảm) hoặc **một** lỗi cụ thể |
-| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD\|VNPAY`, `voucherCode` (tuỳ chọn) | OK → 302 `/checkout/success?orderId=..`; thiếu hàng → quay lại `/checkout` + `error` |
+| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD`, `voucherCode` (tuỳ chọn), `checkoutToken` | OK → 302 `/checkout/success?orderId=..`; lỗi nghiệp vụ → trang checkout + `error`; token sai/thiếu → 403 |
 | GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình) |
 | GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | (Optional) cập nhật `PaymentStatus`, 302 `/checkout/success` |
 
@@ -119,12 +119,31 @@ GET/POST `/cart` gửi `Cache-Control: no-store`; GET làm mới session `cartCo
 Lỗi htmx trả **422**, `HX-Trigger` hiện toast và `HX-Reswap: none` giữ nội dung giỏ;
 request thường forward trang giỏ với `error`. POST thành công thường redirect `/cart`;
 htmx add trả badge, update/remove trả nội dung giỏ + badge OOB. Các nút dùng form POST
-để vẫn hoạt động khi htmx không tải được; màu/bố cục dựa trên mockup. Nút thanh toán giữ disabled tới nhánh checkout.
+để vẫn hoạt động khi htmx không tải được; màu/bố cục dựa trên mockup. Nút thanh toán dẫn tới `/checkout`.
+
+**Checkout COD:** GET/POST gửi `Cache-Control: no-store`, luôn dùng `SessionUtil.requireCustomer`.
+GET đọc giỏ/địa chỉ đúng khách, ưu tiên địa chỉ mặc định; giỏ trống redirect `/cart`.
+POST tạo đơn và thanh toán `PENDING`, chưa có `paymentDate`; từ chối `VNPAY` tới khi tích hợp sandbox.
+Giá/tổng tiền lấy từ DB, snapshot `CartItem.priceAtAdd` sang `OrderItem.priceAtOrder`.
+Thứ tự khoá: Customer giống CartDAO → địa chỉ thuộc khách → Product theo ID tăng dần trước khi fetch giỏ → voucher;
+kiểm tra tổng số lượng theo Product kể cả giỏ cũ có dòng trùng. Đơn, trừ kho, lượt voucher, xoá giỏ và Notification cùng transaction.
+POST kiểm tra token ngẫu nhiên trong session; lỗi giữ token để sửa form. Request cùng session được phối hợp
+bằng `synchronized(session)`; gửi lại token vừa thành công redirect tới đơn cũ, không dùng giỏ mới.
+GET `/checkout/success`: orderId sai → 400, không tồn tại → 404, đơn người khác → 403.
+`SessionUtil` giữ query của GET trong `next` khi chuyển tới login, để đăng nhập lại vẫn xem đúng `orderId`.
+POST `/checkout/voucher` khi chưa đăng nhập quay về GET `/checkout` sau login, tránh URL voucher chỉ nhận POST (GET → 405).
+
+**Áp dụng voucher:** POST `/checkout/voucher` nhận `code`, chỉ xem mức giảm, không giữ/tăng lượt sử dụng.
+htmx trả fragment `checkout-voucher.jsp` (200/422) + tổng tiền/mã đã áp dụng OOB vào `#checkout-summary`;
+lỗi xoá mức giảm của mã cũ. POST thường redirect GET `/checkout?voucherCode=..`, GET kiểm tra lại để hiển thị.
+JSP dùng hai form riêng; input `code` thuộc form preview, hidden `voucherCode` thuộc form đặt hàng.
+JS chỉ cho swap 422 tại `#voucher-result`, không đổi hành vi Cart/Profile; giữ nút đặt hàng chờ áp dụng
+khi nội dung mã đang nhập khác mã đã được áp dụng. Địa chỉ CRUD và trang theo dõi đơn chờ nhánh tương ứng.
 
 Quy tắc `OrderService.checkout(user, addressId, method, voucherCode)` — **trong 1 transaction**:
 1. Validate mọi `CartItem.quantity <= Product.stockQuantity`, sai → `BusinessException` kèm tên sản phẩm.
 2. Nếu có voucher: `Voucher.isValid()` + kiểm tra theo thứ tự — **hết hạn → hết lượt → chưa đạt giá trị tối thiểu** (mỗi lỗi 1 thông báo riêng).
-3. Tạo `Order` (`PENDING`), `OrderItem` (snapshot `priceAtOrder`), `Payment` (`COD`/`VNPay`).
+3. Tạo `Order` (`PENDING`), `OrderItem` (snapshot `priceAtOrder`), `CODPayment` (`PENDING`). VNPay chưa được tích hợp và bị từ chối.
 4. **Trừ kho ngay** (`Product.updateStock(-qty)`), tăng `Voucher.quantityUsed`, xoá `CartItem`.
 5. Tạo `Notification` cho khách.
 6. **Sau khi commit**: `EmailService.sendOrderConfirmation(order)` gửi **email xác nhận đơn hàng** tới `customer.email` (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán; chạy nền, lỗi gửi mail không rollback đơn). Với VNPay: gửi sau khi thanh toán thành công (ở `/payment/vnpay/return`), COD gửi ngay khi đặt hàng. **Phải truyền `Order` còn nguyên items/address trong bộ nhớ**, không load lại từ DB.
@@ -146,6 +165,10 @@ Luồng trạng thái hợp lệ (validate trong `Order.updateStatus()`):
 `PENDING → CONFIRMED → SHIPPING → COMPLETED`; `PENDING/CONFIRMED → CANCELLED`;
 `COMPLETED → RETURN_REQUESTED → RETURNED` (Admin từ chối → quay lại `COMPLETED`).
 Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. Mỗi lần đổi trạng thái ⇒ tạo `Notification`.
+`OrderDAO.applyStatusChange` khoá đơn trước khi kiểm tra chuyển trạng thái; huỷ/hoàn khoá Product theo ID tăng dần,
+đọc lại entity bằng `refresh` sau khi có khoá rồi cộng kho. Huỷ đơn có voucher khoá và `refresh` voucher sau sản phẩm
+trước khi trả một lượt sử dụng; hoàn hàng giữ lượt voucher theo luật hiện tại. Các thay đổi cùng transaction,
+tránh ghi đè tồn kho/lượt sử dụng khi checkout và Admin xử lý đơn đồng thời.
 
 ---
 

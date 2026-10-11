@@ -62,10 +62,30 @@ public class SessionUtil {
     }
 
     // loginPath: trang dang nhap can chuyen toi ("/login" cho khach hang, "/admin/login" cho Admin); next = trang dang truy cap de quay lai
-    private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String loginPath) throws IOException {
-        String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
-        String login = req.getContextPath() + loginPath + "?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
-        if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
-        else resp.sendRedirect(login);
+    private static void redirectToLogin(HttpServletRequest req,
+                                        HttpServletResponse resp,
+                                        String loginPath) throws IOException {
+        String path = req.getServletPath()
+                + (req.getPathInfo() == null ? "" : req.getPathInfo());
+
+        if ("GET".equals(req.getMethod())) {
+            // Giữ query để đăng nhập xong vẫn xem đúng đơn hàng.
+            String query = req.getQueryString();
+            if (query != null && !query.isBlank()) {
+                path += "?" + query;
+            }
+        } else if ("/checkout/voucher".equals(path)) {
+            // Login xong trình duyệt gửi GET; quay về trang checkout.
+            path = "/checkout";
+        }
+
+        String login = req.getContextPath() + loginPath + "?next="
+                + URLEncoder.encode(path, StandardCharsets.UTF_8);
+
+        if (HtmxUtil.isHtmx(req)) {
+            HtmxUtil.redirect(resp, login);
+        } else {
+            resp.sendRedirect(login);
+        }
     }
 }

@@ -8,6 +8,8 @@ import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.util.JPAUtil;
+import com.ecommerce.entity.Product;
+import com.ecommerce.entity.Voucher;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.LockModeType;
@@ -189,12 +191,45 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
             order.updateStatus(next); // sai luat -> nem IllegalStateException -> rollback
 
             if (next == OrderStatus.CANCELLED || next == OrderStatus.RETURNED) {
+                // Lấy ID trước; khoá sản phẩm theo cùng thứ tự với checkout.
+                List<Integer> productIds = em.createQuery(
+                        "SELECT DISTINCT i.product.id FROM OrderItem i "
+                        + "WHERE i.order.id = :orderId", Integer.class)
+                        .setParameter("orderId", orderId)
+                        .getResultList();
+
+                if (!productIds.isEmpty()) {
+                    List<Product> products = em.createQuery(
+                            "SELECT p FROM Product p WHERE p.id IN :ids "
+                            + "ORDER BY p.id ASC", Product.class)
+                            .setParameter("ids", productIds)
+                            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                            .getResultList();
+
+                    // EntityManager có thể giữ bản cũ: đọc lại SAU khi có khoá.
+                    for (Product product : products) {
+                        em.refresh(product);
+                    }
+                }
+
                 for (OrderItem item : order.getItems()) {
-                    item.getProduct().updateStock(item.getQuantity()); // so duong = cong lai kho
+                    item.getProduct().updateStock(item.getQuantity());
                 }
             }
-            if (next == OrderStatus.CANCELLED && order.getVoucher() != null && order.getVoucher().getQuantityUsed() > 0) {
-                order.getVoucher().setQuantityUsed(order.getVoucher().getQuantityUsed() - 1);
+
+            if (next == OrderStatus.CANCELLED && order.getVoucher() != null) {
+                // Khoá voucher sau sản phẩm, cùng thứ tự với checkout.
+                Voucher voucher = em.createQuery(
+                        "SELECT v FROM Voucher v WHERE v.id = :id", Voucher.class)
+                        .setParameter("id", order.getVoucher().getId())
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .getSingleResult();
+
+                em.refresh(voucher);
+
+                if (voucher.getQuantityUsed() > 0) {
+                    voucher.setQuantityUsed(voucher.getQuantityUsed() - 1);
+                }
             }
             Payment payment = order.getPayment();
             if (payment != null) {
