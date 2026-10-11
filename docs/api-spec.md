@@ -173,10 +173,18 @@ Phí ship: miễn phí khi tạm tính ≥ 500.000₫, ngược lại 30.000₫ 
 
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
-| GET | `/orders` | `OrderServlet` | `status` (tuỳ chọn: `PENDING`…`RETURN_REQUESTED`) | `customer/orders.jsp` (attr `orders`, `selectedStatus`) — chỉ đơn của `currentUser` |
-| GET | `/orders/detail` | `OrderServlet` | `id` | `customer/order-detail.jsp` (attr `order`, `canCancel`, `canReturn`, `canReview`); đơn người khác → 403 |
-| POST | `/orders/cancel` | `OrderServlet` | `id` | 302 `/orders/detail?id=..`; chỉ khi `PENDING`/`CONFIRMED` và đúng chủ đơn |
-| POST | `/orders/return` | `OrderServlet` | `id`, `reason` (bắt buộc) | 302; chỉ khi `COMPLETED` → `RETURN_REQUESTED` |
+| GET | `/orders` | `OrderServlet` | `status` (tuỳ chọn: `ALL` hoặc tên `OrderStatus`), `page` (số nguyên ≥ 1, mặc định 1) | `customer/orders.jsp` (attr `result: PageResult<Order>`, `orders`, `selectedStatus`, `activeAccount=orders`) — chỉ đơn của Customer đăng nhập |
+| GET | `/orders/detail` | `OrderServlet` | `id` (số nguyên dương) | `customer/order-detail.jsp` (attr `order`, `activeAccount=orders`); đơn người khác → 403, không tồn tại → 404 |
+| POST *(dự kiến: Track Order Status)* | `/orders/cancel` | `OrderServlet` | `id` | 302 `/orders/detail?id=..`; chỉ khi `PENDING`/`CONFIRMED` và đúng chủ đơn |
+| POST *(dự kiến: Track Order Status)* | `/orders/return` | `OrderServlet` | `id`, `reason` (bắt buộc) | 302; chỉ khi `COMPLETED` → `RETURN_REQUESTED` |
+
+**View Order History đã triển khai:** hai GET trên đi qua `SessionUtil.requireCustomer`; guest → login giữ query (htmx dùng `HX-Redirect`), Admin → 403, Customer bị khoá giữa phiên → đăng xuất. Phản hồi `Cache-Control: no-store`. ID/page/status sai hoặc tham số trùng → 400; POST vào hai URL GET → 405.
+
+Danh sách mới nhất trước (ID giảm dần), 10 đơn/trang; page vượt trang cuối được đưa về trang cuối. Tab theo mockup: Tất cả, Chờ xác nhận (`PENDING` + `CONFIRMED`), Đang giao, Hoàn tất, Đã huỷ, Hoàn hàng (`RETURN_REQUESTED` + `RETURNED`). URL `CONFIRMED`/`RETURNED` lọc riêng trạng thái đó. Status được chuẩn hoá chữ hoa; không nhận customer ID từ request. DAO phân trang ID trước rồi JOIN FETCH items/product/payment để trả đủ dòng hàng sau khi đóng EntityManager.
+
+Tab/phân trang gửi `HX-Request: true` + `HX-Target: order-history` → `customer/fragments/order-history.jsp`; các request khác trả trang đầy đủ. Link vẫn chạy khi không có htmx, URL được cập nhật để F5/back giữ bộ lọc. Vùng lịch sử đặt `hx-history="false"` để htmx không lưu HTML đơn hàng vào localStorage; khôi phục lịch sử phải hỏi lại server và kiểm tra phiên. Menu header của Customer dẫn vào `/orders`; chi tiết có link tới `/checkout/success?orderId=..` để xem lại kết quả COD/VNPay. Giá từng dòng dùng `priceAtOrder`; phí/giảm/tổng tiền dùng snapshot trên Order. Đọc lịch sử không gọi gateway, gửi email, thay đổi kho/voucher/giỏ hay trạng thái đơn.
+
+Huỷ/yêu cầu hoàn thuộc `feat/track-order-status`; `canCancel`/`canReturn` và nút thao tác sẽ nối ở nhánh đó. Review/mua lại chưa triển khai. Menu hồ sơ/địa chỉ/thông báo dùng URL đã thống nhất, phụ thuộc nhánh tương ứng; không thêm CRUD của người khác vào nhánh này.
 
 Luồng trạng thái hợp lệ (validate trong `Order.updateStatus()`):
 `PENDING → CONFIRMED → SHIPPING → COMPLETED`; `PENDING/CONFIRMED → CANCELLED`;

@@ -1,6 +1,7 @@
 package com.ecommerce.dao;
 
 import com.ecommerce.dto.AdminOrderFilter;
+import com.ecommerce.dto.PageResult;
 import com.ecommerce.entity.Notification;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Truy van don hang cho Admin (loc/phan trang, dem theo trang thai, chi tiet day du) va doi trang thai kem hoan kho trong 1 transaction. */
+/** Đọc đơn của Customer/Admin; đổi trạng thái và hoàn kho trong một transaction. */
 public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     public OrderDAO() {
@@ -30,6 +31,41 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
     }
 
     // ------------------------------------------------------------------ danh sach
+
+    /** Chỉ đọc đơn của khách; phân trang ID trước rồi fetch collection để không mất dòng hàng. */
+    public PageResult<Order> findHistory(Integer customerId,
+            List<OrderStatus> statuses, int page, int pageSize) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            String where = " WHERE o.customer.id = :customerId"
+                    + (statuses.isEmpty() ? "" : " AND o.status IN :statuses");
+            var count = em.createQuery("SELECT COUNT(o) FROM Order o" + where, Long.class)
+                    .setParameter("customerId", customerId);
+            if (!statuses.isEmpty()) count.setParameter("statuses", statuses);
+            long total = count.getSingleResult();
+            int currentPage = (int) Math.min(page, Math.max(1L, (total + pageSize - 1) / pageSize));
+
+            var idQuery = em.createQuery("SELECT o.id FROM Order o" + where + " ORDER BY o.id DESC", Integer.class)
+                    .setParameter("customerId", customerId)
+                    .setFirstResult(Math.toIntExact(((long) currentPage - 1) * pageSize))
+                    .setMaxResults(pageSize);
+            if (!statuses.isEmpty()) idQuery.setParameter("statuses", statuses);
+            List<Integer> ids = idQuery.getResultList();
+            if (ids.isEmpty()) return new PageResult<>(List.of(), total, currentPage, pageSize);
+
+            // Không setMaxResults trên JOIN FETCH items: Hibernate có thể phân trang trong bộ nhớ.
+            List<Order> orders = em.createQuery(
+                    "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i "
+                    + "LEFT JOIN FETCH i.product LEFT JOIN FETCH o.payment "
+                    + "WHERE o.customer.id = :customerId AND o.id IN :ids ORDER BY o.id DESC", Order.class)
+                    .setParameter("customerId", customerId)
+                    .setParameter("ids", ids)
+                    .getResultList();
+            return new PageResult<>(orders, total, currentPage, pageSize);
+        } finally {
+            em.close();
+        }
+    }
 
     /** 1 trang don hang khop bo loc, moi nhat truoc. JOIN FETCH khach + thanh toan de JSP doc duoc sau khi EntityManager dong. */
     public List<Order> search(AdminOrderFilter f) {

@@ -1,0 +1,10 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<nav aria-label="Tài khoản">
+  <ul class="menu menu-horizontal lg:menu-vertical flex-nowrap overflow-x-auto bg-base-100 rounded-box border border-base-300 w-full p-2">
+    <li><a href="${ctx}/account/profile">Hồ sơ cá nhân</a></li>
+    <li><a href="${ctx}/account/addresses">Địa chỉ giao hàng</a></li>
+    <li><a href="${ctx}/orders" class="${activeAccount == 'orders' ? 'menu-active' : ''}" aria-current="${activeAccount == 'orders' ? 'page' : 'false'}">Đơn hàng của tôi</a></li>
+    <li><a href="${ctx}/notifications">Thông báo</a></li>
+    <li><form action="${ctx}/logout" method="post"><button type="submit" class="text-error">Đăng xuất</button></form></li>
+  </ul>
+</nav>

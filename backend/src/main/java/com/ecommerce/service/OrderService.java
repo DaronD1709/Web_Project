@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import com.ecommerce.dao.CheckoutDAO;
+import com.ecommerce.dto.PageResult;
 import com.ecommerce.entity.Address;
 import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.CartItem;
@@ -21,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Nghiệp vụ đặt hàng của Customer. */
+/** Nghiệp vụ đặt hàng, thanh toán và đọc đơn của Customer. */
 public class OrderService {
 
     private final CheckoutDAO checkoutDAO = new CheckoutDAO();
@@ -248,6 +249,33 @@ public class OrderService {
         }
 
         return order;
+    }
+
+    public String normalizeHistoryStatus(String rawStatus) {
+        if (rawStatus == null || rawStatus.isBlank() || "ALL".equalsIgnoreCase(rawStatus.trim())) {
+            return "ALL";
+        }
+        try {
+            return OrderStatus.valueOf(rawStatus.trim().toUpperCase(java.util.Locale.ROOT)).name();
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("Trạng thái đơn hàng không hợp lệ.");
+        }
+    }
+
+    public PageResult<Order> getOwnHistory(Customer user, String rawStatus, int page) {
+        if (user == null || user.getId() == null || !user.isActive()) {
+            throw new BusinessException("Vui lòng đăng nhập để xem đơn hàng.");
+        }
+        if (page < 1) throw new BusinessException("Trang đơn hàng không hợp lệ.");
+        String status = normalizeHistoryStatus(rawStatus);
+        // Nhóm tab theo mockup; badge từng đơn vẫn dùng trạng thái thật.
+        List<OrderStatus> statuses = switch (status) {
+            case "ALL" -> List.of();
+            case "PENDING" -> List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED);
+            case "RETURN_REQUESTED" -> List.of(OrderStatus.RETURN_REQUESTED, OrderStatus.RETURNED);
+            default -> List.of(OrderStatus.valueOf(status));
+        };
+        return orderDAO.findHistory(user.getId(), statuses, page, 10);
     }
 
     public boolean isVNPayAvailable() {
