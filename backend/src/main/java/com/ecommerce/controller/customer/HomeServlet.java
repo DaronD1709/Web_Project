@@ -2,6 +2,7 @@ package com.ecommerce.controller.customer;
 
 import com.ecommerce.service.CategoryService;
 import com.ecommerce.service.ProductService;
+import com.ecommerce.util.CartCsrf;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,6 +21,7 @@ public class HomeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (CartCsrf.prepare(req) != null) resp.setHeader("Cache-Control", "no-store");
         req.setAttribute("categories", categoryService.getAllCategories());
         req.setAttribute("featuredProducts", productService.getLatestProducts(FEATURED_COUNT));
         req.getRequestDispatcher("/WEB-INF/views/customer/home.jsp").forward(req, resp);

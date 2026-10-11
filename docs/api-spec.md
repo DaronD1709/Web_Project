@@ -95,14 +95,16 @@ Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản p
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
 | GET | `/cart` | `CartServlet` | — | `customer/cart.jsp` (attr `cart`, `subtotal`, `shippingFee`, `total`) |
-| POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
-| POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty` | htmx: fragment tóm tắt giỏ; thường: 302 |
-| POST | `/cart` | `CartServlet` | `action=remove` + `itemId` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
+| POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty`, `cartCsrfToken` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
+| POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty`, `cartCsrfToken` | htmx: fragment tóm tắt giỏ; thường: 302 |
+| POST | `/cart` | `CartServlet` | `action=remove` + `itemId`, `cartCsrfToken` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
 | GET | `/checkout` | `CheckoutServlet` | — | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`); giỏ rỗng → 302 `/cart` |
 | POST | `/checkout/voucher` | `VoucherServlet` | `code` | htmx fragment `#voucher-result`: thành công (số tiền giảm) hoặc **một** lỗi cụ thể |
 | POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD\|VNPAY`, `voucherCode` (tuỳ chọn) | OK → 302 `/checkout/success?orderId=..`; thiếu hàng → quay lại `/checkout` + `error` |
 | GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình) |
 | GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | (Optional) cập nhật `PaymentStatus`, 302 `/checkout/success` |
+
+**CSRF giỏ hàng:** `CartCsrf.prepare(req)` tạo token ngẫu nhiên 32 byte gắn với session Customer, truyền attr `cartCsrfToken` cho JSP. HomeServlet, ProductServlet và GET /cart chuẩn bị token trước khi forward; trang có token gửi `Cache-Control: no-store`. Form add/update/remove có hidden input nên htmx và POST thường đều gửi token. Sau `requireCustomer`, POST kiểm tra token trước khi gọi Service: thiếu/sai/trùng token → 403, không sửa DB; htmx báo toast + `HX-Reswap: none` và giữ UI. Token dùng ổn định cho nhiều tab trong cùng session; phiên mới cần tải lại form. Guest vẫn đi login, Admin vẫn 403 theo kiểm tra quyền. Không dùng chung token Profile/Checkout, không thay luồng Admin. Trang sản phẩm mới của các nhánh khác có form thêm hàng phải gọi `CartCsrf.prepare(req)` và gửi hidden `cartCsrfToken` theo contract này.
 
 **Giỏ hàng:** cả 3 action yêu cầu tham số ID/số lượng đúng định dạng số nguyên trong phạm vi `int`;
 thiếu/sai không được tự đổi thành `qty=1`. Thêm/cập nhật yêu cầu số lượng ≥ 1 và không vượt tồn kho;
