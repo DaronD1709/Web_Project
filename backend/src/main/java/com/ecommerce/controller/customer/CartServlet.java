@@ -5,6 +5,7 @@ import com.ecommerce.entity.Customer;
 import com.ecommerce.service.BusinessException;
 import com.ecommerce.service.CartService;
 import com.ecommerce.util.HtmxUtil;
+import com.ecommerce.util.CartCsrf;
 import com.ecommerce.util.ParamUtil;
 import com.ecommerce.util.SessionUtil;
 import jakarta.servlet.ServletException;
@@ -34,6 +35,7 @@ public class CartServlet extends HttpServlet {
 
         Customer user = SessionUtil.requireCustomer(req, resp);
         if (user == null) return;
+        CartCsrf.prepare(req);
         showCart(req, user);
 
         // Đồng bộ badge với DB mỗi khi khách mở lại trang giỏ.
@@ -51,6 +53,18 @@ public class CartServlet extends HttpServlet {
         Customer user = SessionUtil.requireCustomer(req, resp);
         if (user == null) return;
         boolean htmx = HtmxUtil.isHtmx(req);
+        if (!CartCsrf.isValid(req)) {
+            String message = "Phiên giỏ hàng không hợp lệ. Vui lòng tải lại trang.";
+            if (htmx) {
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                resp.setHeader("HX-Reswap", "none");
+                HtmxUtil.toast(resp, message, "error");
+            } else {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, message);
+            }
+            return;
+        }
+        CartCsrf.prepare(req); // Fragment lỗi/thành công vẫn cần token cho các form tiếp theo.
         String action = req.getParameter("action");
         String message = null;
 

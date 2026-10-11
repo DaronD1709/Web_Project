@@ -5,7 +5,7 @@
   <div class="relative">
     <c:choose>
       <c:when test="${not empty p.imageUrl}">
-        <img src="${ctx}/${p.imageUrl}" alt="<c:out value='${p.name}'/>" class="h-44 w-full object-cover rounded-t-[var(--radius-box)]">
+        <img src="${ctx}/<c:out value='${p.imageUrl}'/>" alt="<c:out value='${p.name}'/>" class="h-44 w-full object-cover rounded-t-[var(--radius-box)]">
       </c:when>
       <c:otherwise>
         <div class="ph rounded-t-[var(--radius-box)] h-44">🌾</div>
@@ -22,6 +22,7 @@
     <form method="post" action="${ctx}/cart" class="mt-2" hx-post="${ctx}/cart"
           hx-target="#cart-count" hx-swap="outerHTML" hx-disabled-elt="find button">
       <input type="hidden" name="action" value="add">
+      <input type="hidden" name="cartCsrfToken" value="<c:out value='${cartCsrfToken}'/>">
       <input type="hidden" name="productId" value="${p.id}">
       <input type="hidden" name="qty" value="1">
       <button type="submit" class="btn btn-primary btn-sm btn-block" ${p.stockQuantity <= 0 ? 'disabled' : ''}>
