@@ -50,15 +50,17 @@
           <c:out value="${product.name}"/>
         </h1>
 
-        <div class="flex items-center gap-2 mt-3">
-          <span class="text-warning">★</span>
-          <span class="font-semibold">
-            <fmt:formatNumber value="${avgRating}" maxFractionDigits="1"/>
-          </span>
-          <span class="text-sm text-base-content/60">
-            (${reviews.size()} đánh giá)
-          </span>
-        </div>
+        <%-- Tom tat danh gia (bam de nhay toi muc Danh gia) --%>
+        <a href="#reviews" class="flex items-center gap-2 mt-3 no-underline">
+          <c:choose>
+            <c:when test="${reviewCount > 0}">
+              <span class="text-warning">★</span>
+              <span class="font-semibold"><fmt:formatNumber value="${avgRating}" minFractionDigits="1" maxFractionDigits="1"/></span>
+              <span class="text-sm text-base-content/60">(${reviewCount} đánh giá)</span>
+            </c:when>
+            <c:otherwise><span class="text-sm text-base-content/60">Chưa có đánh giá</span></c:otherwise>
+          </c:choose>
+        </a>
 
         <div class="text-3xl font-extrabold text-primary mt-5">
           <fmt:formatNumber value="${product.price}" pattern="#,##0"/>₫
@@ -140,34 +142,72 @@
     </div>
   </section>
 
-  <%-- Đánh giá: dữ liệu sẽ được tích hợp từ nhánh Product Review --%>
+  <%-- ===== VUNG: DANH GIA SAN PHAM (xem: ai cung xem duoc; viet: chi khach da mua) ===== --%>
   <section id="reviews" class="mt-8">
-    <h2 class="text-2xl font-bold mb-4">Đánh giá sản phẩm</h2>
+    <div class="flex flex-wrap items-end justify-between gap-2 mb-4">
+      <h2 class="text-2xl font-bold">Đánh giá sản phẩm</h2>
+      <c:if test="${reviewCount > 0}">
+        <div class="flex items-center gap-2">
+          <span class="text-3xl font-extrabold text-primary"><fmt:formatNumber value="${avgRating}" minFractionDigits="1" maxFractionDigits="1"/></span>
+          <span class="text-warning text-xl" aria-hidden="true">★</span>
+          <span class="text-sm text-base-content/60">${reviewCount} đánh giá</span>
+        </div>
+      </c:if>
+    </div>
 
+    <%-- Thong bao sau khi gui (ok / loi) --%>
+    <c:if test="${not empty reviewFlash}">
+      <div role="alert" class="alert ${reviewFlashType eq 'success' ? 'alert-success' : 'alert-error'} alert-soft mb-4 text-sm"><c:out value="${reviewFlash}"/></div>
+    </c:if>
+
+    <%-- Form viet danh gia: 3 trang thai (chua dang nhap / dang nhap nhung chua mua / da mua) --%>
+    <c:choose>
+      <c:when test="${canReview}">
+        <form method="post" action="${ctx}/product/review" class="card bg-base-100 border border-base-300 p-5 mb-4">
+          <input type="hidden" name="cartCsrfToken" value="<c:out value='${cartCsrfToken}'/>">
+          <input type="hidden" name="productId" value="${product.id}">
+          <h3 class="font-semibold">${empty myReview ? 'Viết đánh giá của bạn' : 'Đánh giá của bạn (gửi lại để cập nhật)'}</h3>
+          <div class="rating rating-lg mt-2" role="radiogroup" aria-label="Số sao">
+            <c:forEach var="i" begin="1" end="5">
+              <input type="radio" name="rating" value="${i}" class="mask mask-star-2 bg-orange-400" aria-label="${i} sao" ${myReview.rating == i ? 'checked' : ''} required>
+            </c:forEach>
+          </div>
+          <textarea name="comment" rows="3" maxlength="1000" class="textarea textarea-bordered w-full mt-3" placeholder="Chia sẻ trải nghiệm của bạn với sản phẩm này (không bắt buộc)"><c:out value="${myReview.comment}"/></textarea>
+          <div class="mt-3"><button type="submit" class="btn btn-primary">${empty myReview ? 'Gửi đánh giá' : 'Cập nhật đánh giá'}</button></div>
+        </form>
+      </c:when>
+      <c:when test="${not isCustomer and empty sessionScope.currentUser}">
+        <div class="alert alert-soft mb-4 text-sm">
+          <span><a class="link link-primary" href="${ctx}/login?next=${pageContext.request.servletPath}%3Fid%3D${product.id}">Đăng nhập</a> để viết đánh giá (chỉ dành cho khách đã mua sản phẩm này).</span>
+        </div>
+      </c:when>
+      <c:when test="${isCustomer}">
+        <div class="alert alert-soft mb-4 text-sm">Chỉ khách đã mua và nhận sản phẩm này mới viết được đánh giá.</div>
+      </c:when>
+    </c:choose>
+
+    <%-- Danh sach danh gia --%>
     <c:choose>
       <c:when test="${empty reviews}">
         <div class="card bg-base-100 border border-base-300 p-8 text-center">
           <div class="text-4xl">⭐</div>
           <p class="font-semibold mt-2">Chưa có đánh giá</p>
-          <p class="text-sm text-base-content/60">
-            Sản phẩm này chưa nhận được đánh giá nào.
-          </p>
+          <p class="text-sm text-base-content/60">Sản phẩm này chưa nhận được đánh giá nào.</p>
         </div>
       </c:when>
-
       <c:otherwise>
         <div class="space-y-3">
           <c:forEach var="review" items="${reviews}">
             <article class="card bg-base-100 border border-base-300 p-5">
-              <div class="font-semibold">
-                <c:out value="${review.customer.fullName}"/>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="font-semibold"><c:out value="${review.customer.fullName}"/></div>
+                <div class="text-xs text-base-content/50">${review.createdAtText}</div>
               </div>
-              <div class="text-warning mt-1">
-                <c:forEach begin="1" end="${review.rating}">★</c:forEach>
+              <div class="text-warning mt-1" aria-label="${review.rating} trên 5 sao">
+                <c:forEach var="i" begin="1" end="5">${i <= review.rating ? '★' : '☆'}</c:forEach>
               </div>
-              <p class="mt-2">
-                <c:out value="${review.comment}"/>
-              </p>
+              <%-- Nhan xet do khach nhap: luon <c:out> de chong XSS --%>
+              <c:if test="${not empty review.comment}"><p class="mt-2 whitespace-pre-line break-words"><c:out value="${review.comment}"/></p></c:if>
             </article>
           </c:forEach>
         </div>
