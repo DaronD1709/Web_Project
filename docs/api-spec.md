@@ -78,13 +78,15 @@ Email không đổi được (chỉ đọc). Địa chỉ chỉ thao tác trên 
 | Method | URL | Servlet | Tham số | Attr cho JSP | JSP |
 |---|---|---|---|---|---|
 | GET | `/` , `/home` | `HomeServlet` | — | `categories`, `featuredProducts` | `customer/home.jsp` |
-| GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc\|sold`, `page` (mặc định 1) | `products`, `categories`, `totalCount`, `page`, `totalPages`, `selectedCat`, `q` | `customer/products.jsp` |
+| GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc`, `page` (mặc định 1) | `filter`, `result`, `categories`, `selectedCategory` | `customer/products.jsp` |
 | GET | `/product` | `ProductDetailServlet` | `id` | `product`, `relatedProducts`, `reviews`, `avgRating`, `canReview` (đã mua) | `customer/product-detail.jsp` |
 | POST | `/product/review` | `ReviewServlet` | `productId`, `rating` (1–5), `comment` | 302 `/product?id=..#reviews`; chưa mua → 403 | CUSTOMER |
 
 Service: `ProductService.search(filter)`, `ReviewService.write(user, productId, rating, comment)` —
 **chỉ cho viết review nếu khách có đơn `COMPLETED`/`RETURNED` chứa sản phẩm** (rule ở Service, không phải entity).
 Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản phẩm `stockQuantity = 0` vẫn hiện nhưng nút mua bị khoá.
+
+`View Products by Category`: người dùng không cần đăng nhập có thể chọn một danh mục bằng tham số `cat`. `ProductServlet` chuyển bộ lọc cho `ProductService`, lấy danh mục đang chọn qua `CategoryService`, sau đó JSP chỉ hiển thị sản phẩm phù hợp và tên danh mục trong tiêu đề. Các bộ lọc, cách sắp xếp và phân trang tiếp tục giữ tham số danh mục hiện tại.
 
 ---
 

@@ -58,11 +58,19 @@
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h1 class="text-xl font-bold">
-            <c:choose>
-              <c:when test="${not empty filter.keyword}">Kết quả cho “<c:out value="${filter.keyword}"/>”</c:when>
-              <c:otherwise>Tất cả sản phẩm</c:otherwise>
-            </c:choose>
-          </h1>
+  <c:choose>
+    <c:when test="${not empty filter.keyword and not empty selectedCategory}">
+      Kết quả cho “<c:out value="${filter.keyword}"/>” trong <c:out value="${selectedCategory.name}"/>
+    </c:when>
+    <c:when test="${not empty filter.keyword}">
+      Kết quả cho “<c:out value="${filter.keyword}"/>”
+    </c:when>
+    <c:when test="${not empty selectedCategory}">
+      Sản phẩm: <c:out value="${selectedCategory.name}"/>
+    </c:when>
+    <c:otherwise>Tất cả sản phẩm</c:otherwise>
+  </c:choose>
+</h1>
           <div class="text-sm text-base-content/60">${result.totalCount} sản phẩm</div>
         </div>
         <%-- Select nam ngoai <form> nhung thuoc ve form#filter (thuoc tinh form=) va tu gui khi doi gia tri --%>
