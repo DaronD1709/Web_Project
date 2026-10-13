@@ -108,7 +108,7 @@ menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơ
 
 Service: `ProductService.search(filter)`, `ReviewService.write(user, productId, rating, comment)` —
 **chỉ cho viết review nếu khách có đơn `COMPLETED`/`RETURNED` chứa sản phẩm** (rule ở Service, không phải entity).
-Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản phẩm `stockQuantity = 0` vẫn hiện nhưng nút mua bị khoá.
+Tìm kiếm theo một phần tên sản phẩm và không phân biệt hoa thường (`LOWER(p.name) LIKE :keyword`). Từ khoá được truyền bằng query parameter; các ký tự wildcard `%`, `_` và ký tự escape `!` được xử lý như ký tự thông thường. Sản phẩm `stockQuantity = 0` vẫn hiện nhưng nút mua bị khoá.
 
 ---
 
