@@ -1,5 +1,8 @@
 # Hướng dẫn đọc code theo từng tính năng (phần Admin)
 
+> **Đọc luồng Admin từ giao diện xuống database (kèm câu hỏi vấn đáp): xem [`docs/admin-flow-guide.md`](admin-flow-guide.md)** — bản cập nhật mới nhất cho 9 tính năng Admin.
+
+
 Mỗi tính năng bên dưới liệt kê **file nào đã được tạo (A) hoặc sửa (M)**, chia **BE** (Java chạy phía server) và **FE** (JSP / JS / CSS), kèm **thứ tự nên đọc**.
 Đường dẫn rút gọn: `java/` = `backend/src/main/java/com/ecommerce/`, `views/` = `backend/src/main/webapp/WEB-INF/views/`, `static/` = `backend/src/main/webapp/static/`.
 
