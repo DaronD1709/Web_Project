@@ -106,6 +106,7 @@ menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơ
 | GET | `/` , `/home` | `HomeServlet` | — | `categories`, `featuredProducts` | `customer/home.jsp` |
 | GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc\|sold`, `page` (mặc định 1) | `products`, `categories`, `totalCount`, `page`, `totalPages`, `selectedCat`, `q` | `customer/products.jsp` |
 | GET | `/product` | `ProductDetailServlet` | `id` | `product`, `relatedProducts`, `reviews`, `avgRating`, `canReview` (đã mua) | `customer/product-detail.jsp` |
+**Chi tiết sản phẩm:** `GET /product?id={id}` hiển thị thông tin sản phẩm và tối đa 4 sản phẩm liên quan cùng danh mục, không bao gồm sản phẩm hiện tại. `id` bị thiếu, không phải số, không dương hoặc không tồn tại đều trả về HTTP 404. Khách chưa đăng nhập vẫn xem được chi tiết nhưng phải đăng nhập để mua hàng. Form thêm giỏ hàng chỉ hiển thị khi có `cartCsrfToken`.
 | POST | `/product/review` | `ReviewServlet` | `productId`, `rating` (1–5), `comment` | 302 `/product?id=..#reviews`; chưa mua → 403 | CUSTOMER |
 
 Service: `ProductService.search(filter)`, `ReviewService.write(user, productId, rating, comment)` —

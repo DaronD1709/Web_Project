@@ -33,4 +33,19 @@ public class ProductService {
         List<Product> items = productDAO.search(filter);
         return new PageResult<>(items, total, filter.getPage(), filter.getPageSize());
     }
+    public List<Product> getRelatedProducts(Product product, int limit) {
+        if (product == null
+            || product.getId() == null
+            || product.getCategory() == null
+            || product.getCategory().getId() == null
+            || limit <= 0) {
+        return List.of();
+        }
+
+        return productDAO.findRelated(
+            product.getCategory().getId(),
+            product.getId(),
+            limit
+        );
+    }
 }
