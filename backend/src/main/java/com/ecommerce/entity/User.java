@@ -45,6 +45,11 @@ public abstract class User {
     @Column(name = "is_active", columnDefinition = "boolean default true")
     protected Boolean active = true;
 
+    // Khach vang lai (chua co tai khoan): chi co chat voi shop. Van la 1 dong Customer (de Message.customer dung chung) nhung email gia, mat khau ngau nhien bo di nen khong dang nhap duoc,
+    // khong co gio hang, khong hien trong danh sach khach hang cua Admin. Boolean + default false de cac dong CO SAN (cot moi them bang hbm2ddl=update) tu thanh "khong phai khach vang lai".
+    @Column(name = "is_guest", columnDefinition = "boolean default false")
+    protected Boolean guest = false;
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getEmail() { return email; }
@@ -58,6 +63,8 @@ public abstract class User {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public boolean isActive() { return active == null || active; }
+    public boolean isGuest() { return guest != null && guest; }
+    public void setGuest(boolean guest) { this.guest = guest; }
     /** Chỉ để view hiện menu Customer; không thêm cột DB hay thay kiểm tra quyền ở Service. */
     @Transient
     public boolean isCustomer() { return this instanceof Customer; }

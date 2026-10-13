@@ -76,7 +76,7 @@ public class AuthService {
             throw new BusinessException("Email hoặc mật khẩu không đúng.");
         }
         User user = userDAO.findByEmail(normalizeEmail(email));
-        if (user == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
+        if (user == null || user.isGuest() || !PasswordUtil.verify(password, user.getPasswordHash())) { // khach vang lai khong co tai khoan de dang nhap
             throw new BusinessException("Email hoặc mật khẩu không đúng.");
         }
         // Chi bao "bi khoa" SAU KHI mat khau dung (nguoi la khong biet duoc email nao co/khong co/bi khoa)

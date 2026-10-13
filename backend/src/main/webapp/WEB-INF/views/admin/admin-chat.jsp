@@ -84,20 +84,31 @@
           <div class="text-center">
             <div class="avatar avatar-placeholder"><div class="bg-primary/15 text-primary w-16 rounded-full text-xl font-semibold"><span>${fn:toUpperCase(fn:substring(selected.fullName, 0, 1))}</span></div></div>
             <div class="font-semibold mt-3"><c:out value="${selected.fullName}"/></div>
-            <div class="text-base-content/60 text-xs mt-1"><c:out value="${selected.email}"/><br><c:out value="${selected.phone}"/></div>
+            <c:choose>
+              <c:when test="${selected.guest}"><div class="mt-1"><span class="badge badge-soft badge-neutral badge-sm">Khách vãng lai</span></div></c:when>
+              <c:otherwise><div class="text-base-content/60 text-xs mt-1"><c:out value="${selected.email}"/><br><c:out value="${selected.phone}"/></div></c:otherwise>
+            </c:choose>
           </div>
           <div class="divider my-5"></div>
-          <div class="font-semibold mb-3">Đơn gần đây</div>
-          <ul class="space-y-3">
-            <c:forEach var="o" items="${orders}">
-              <li class="flex items-center justify-between gap-2">
-                <a class="link link-primary font-mono" href="${ctx}/admin/orders/detail?id=${o.id}">#${o.id}</a>
-                <c:set var="st" value="${o.status}" /><%@ include file="/WEB-INF/views/admin/common/admin-order-badge.jspf" %>
-              </li>
-            </c:forEach>
-            <c:if test="${empty orders}"><li class="text-base-content/50">Chưa có đơn.</li></c:if>
-          </ul>
-          <a class="btn btn-outline btn-sm btn-block mt-6" href="${ctx}/admin/users/detail?id=${selected.id}">Xem hồ sơ khách</a>
+          <c:choose>
+            <%-- Khach vang lai: chua co tai khoan nen khong co don hang / ho so --%>
+            <c:when test="${selected.guest}">
+              <div class="alert alert-soft text-xs"><i data-lucide="info" class="size-4"></i><span>Khách chưa đăng nhập, chỉ nhập tên để chat. Hỏi khách email/số điện thoại nếu cần hỗ trợ đơn hàng.</span></div>
+            </c:when>
+            <c:otherwise>
+              <div class="font-semibold mb-3">Đơn gần đây</div>
+              <ul class="space-y-3">
+                <c:forEach var="o" items="${orders}">
+                  <li class="flex items-center justify-between gap-2">
+                    <a class="btn btn-outline btn-xs font-mono" href="${ctx}/admin/orders/detail?id=${o.id}">#${o.id}</a>
+                    <c:set var="st" value="${o.status}" /><%@ include file="/WEB-INF/views/admin/common/admin-order-badge.jspf" %>
+                  </li>
+                </c:forEach>
+                <c:if test="${empty orders}"><li class="text-base-content/50">Chưa có đơn.</li></c:if>
+              </ul>
+              <a class="btn btn-outline btn-sm btn-block mt-6" href="${ctx}/admin/users/detail?id=${selected.id}">Xem hồ sơ khách</a>
+            </c:otherwise>
+          </c:choose>
         </aside>
       </c:otherwise>
     </c:choose>

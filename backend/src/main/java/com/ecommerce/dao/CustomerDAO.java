@@ -47,7 +47,7 @@ public class CustomerDAO extends AbstractDAO<Customer, Integer> {
 
     // Chi noi DIEU KIEN CO DINH vao chuoi; tu khoa nguoi dung nhap luon qua setParameter (chong JPQL injection).
     private String buildWhere(AdminCustomerFilter f) {
-        StringBuilder w = new StringBuilder(" WHERE 1=1");
+        StringBuilder w = new StringBuilder(" WHERE (c.guest = false OR c.guest IS NULL)"); // bo khach vang lai (chi co chat)
         if (f.getKeyword() != null) {
             w.append(" AND (LOWER(c.fullName) LIKE :kw OR LOWER(c.email) LIKE :kw OR LOWER(c.phone) LIKE :kw)");
         }
@@ -66,8 +66,8 @@ public class CustomerDAO extends AbstractDAO<Customer, Integer> {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
             Map<String, Long> result = new HashMap<>();
-            result.put("all", em.createQuery("SELECT COUNT(c) FROM Customer c", Long.class).getSingleResult());
-            result.put("locked", em.createQuery("SELECT COUNT(c) FROM Customer c WHERE c.active = false", Long.class).getSingleResult());
+            result.put("all", em.createQuery("SELECT COUNT(c) FROM Customer c WHERE c.guest = false OR c.guest IS NULL", Long.class).getSingleResult());
+            result.put("locked", em.createQuery("SELECT COUNT(c) FROM Customer c WHERE c.active = false AND (c.guest = false OR c.guest IS NULL)", Long.class).getSingleResult());
             return result;
         } finally {
             em.close();

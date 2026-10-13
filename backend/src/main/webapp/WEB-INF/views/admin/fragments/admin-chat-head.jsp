@@ -9,7 +9,7 @@
 <div id="chat-head" ${oob ? 'hx-swap-oob="true"' : ''} class="px-6 py-4 border-b border-base-300 flex items-center gap-4">
   <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary/15 text-primary w-11 rounded-full font-semibold"><span>${fn:toUpperCase(fn:substring(selected.fullName, 0, 1))}</span></div></div>
   <div class="flex-1 min-w-0">
-    <div class="font-semibold truncate"><c:out value="${selected.fullName}"/></div>
+    <div class="font-semibold truncate"><c:out value="${selected.fullName}"/><c:if test="${selected.guest}"> <span class="badge badge-soft badge-neutral badge-sm align-middle">Khách vãng lai</span></c:if></div>
     <div class="text-xs text-base-content/60 flex items-center gap-1.5 mt-0.5 min-w-0">
       <span class="size-2 rounded-full inline-block shrink-0 ${selected.handledByHuman ? 'bg-success' : 'bg-warning'}"></span>
       <span class="truncate">${selected.handledByHuman ? 'Nhân viên đang trả lời' : 'Trợ lý tự động đang trả lời'}</span>

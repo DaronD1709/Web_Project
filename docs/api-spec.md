@@ -238,6 +238,7 @@ tránh ghi đè tồn kho/lượt sử dụng khi checkout và Admin xử lý đ
 | POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` (không đồng thời), `trackingCsrfToken`, `filter`, `page` | Thường: 302 danh sách giữ bộ lọc/trang; htmx: danh sách + badge OOB + toast |
 | GET | `/notifications/count` | `NotificationServlet` | — | htmx fragment số chưa đọc (badge header), `hx-trigger="every 30s"` |
 | GET | `/chat` | `ChatServlet` | — | `customer/chat.jsp` (attr `messages`, `conversation`) |
+| POST | `/chat/guest` | `ChatServlet` | `name` (2–60 ký tự) | **Khách chưa đăng nhập** nhập tên để bắt đầu chat: tạo 1 `Customer` vãng lai (`User.guest = true`, email giả `guest-…@guest.invalid`, mật khẩu ngẫu nhiên, không có giỏ hàng) và nhớ id trong session `guestChatId` → 302 `/chat`; tên sai → 422 kèm lỗi. Đã đăng nhập thì bỏ qua. `GET /chat`, `/chat/messages`, `/chat/send` đều dùng chung: có tài khoản → chat bằng tài khoản; vãng lai chưa nhập tên → trang `chat-start.jsp` (htmx → `HX-Redirect`) | public |
 | POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi **chatbot trả lời theo luật từ khoá** nếu chưa có Admin tiếp quản; không hiểu / xin gặp nhân viên ⇒ chuyển sang chế độ Nhân viên) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
 

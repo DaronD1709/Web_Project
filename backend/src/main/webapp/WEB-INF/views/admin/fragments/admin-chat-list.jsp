@@ -33,7 +33,7 @@
             <span class="text-xs truncate ${waiting ? 'text-base-content font-medium' : 'text-base-content/60'}"><c:out value="${m.content}"/></span>
             <c:if test="${waiting}"><span class="badge badge-primary badge-xs rounded-full shrink-0">Chờ</span></c:if>
           </div>
-          <div><c:choose>
+          <div class="flex flex-wrap items-center gap-1"><c:if test="${cu.guest}"><span class="badge badge-soft badge-neutral badge-sm"><i data-lucide="user-round" class="size-4"></i> Khách vãng lai</span></c:if><c:choose>
             <c:when test="${cu.handledByHuman}"><span class="badge badge-soft badge-primary badge-sm"><i data-lucide="user" class="size-4"></i> Nhân viên</span></c:when>
             <c:otherwise><span class="badge badge-soft badge-accent badge-sm"><i data-lucide="bot" class="size-4"></i> Tự động</span></c:otherwise>
           </c:choose></div>
