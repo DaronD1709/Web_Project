@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 // Trang Tong quan cua CMS: GET /admin. Gom so lieu nhanh de Admin biet can lam gi truoc (don cho, hoan hang, tin nhan, hang sap het)
-// va xem doanh thu 14 ngay. Thong ke chi tiet o /admin/statistics (AdminStatisticsServlet).
+// va xem doanh thu 14 ngay.
 @WebServlet({"/admin", "/admin/"})
 public class AdminDashboardServlet extends HttpServlet {
 

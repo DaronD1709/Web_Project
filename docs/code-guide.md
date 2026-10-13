@@ -15,7 +15,7 @@ Mỗi tính năng bên dưới liệt kê **file nào đã được tạo (A) ho
 | 6 | `feat/chat-with-shop` | Chat với khách | [Mục 6](#6-chat-với-khách--nhánh-featchat-with-shop) |
 | 7 | `feat/admin-auto-reply` | Trả lời tự động của chatbot | [Mục 7](#7-trả-lời-tự-động-của-chatbot--nhánh-featadmin-auto-reply) |
 | 8 | `feat/admin-manage-category` | Quản lý danh mục | [Mục 8](#8-quản-lý-danh-mục--nhánh-featadmin-manage-category-core) |
-| 9 | `feat/admin-dashboard` | Tổng quan + Thống kê doanh thu | [Mục 9](#9-tổng-quan--thống-kê-doanh-thu--nhánh-featadmin-dashboard) |
+| 9 | `feat/admin-dashboard` | Tổng quan | [Mục 9](#9-tổng-quan--nhánh-featadmin-dashboard) |
 | — | (làm trực tiếp trên `dev`) | Sửa lỗi / chỉnh giao diện sau khi merge | [Cuối tài liệu](#các-sửa-làm-trực-tiếp-trên-dev-sau-khi-merge) |
 
 Thứ tự merge vào `dev` đúng như bảng (nhánh sau dựa trên nhánh trước).
@@ -192,19 +192,17 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 
 **Đọc:** `AdminCategoryServlet` → `AdminCategoryService` → `CategoryDAO.countProducts` → 2 file JSP.
 
-## 9. Tổng quan + Thống kê doanh thu — nhánh `feat/admin-dashboard`
+## 9. Tổng quan — nhánh `feat/admin-dashboard`
 
 | | File | |
 |---|---|---|
 | BE | `java/controller/admin/AdminDashboardServlet.java` | A · `/admin` |
-| BE | `java/controller/admin/AdminStatisticsServlet.java` | A · `/admin/statistics`, `/export` (CSV) |
-| BE | `java/service/AdminStatsService.java` | A · doanh thu theo ngày, tổng ký này/ký trước, theo danh mục, top sản phẩm |
+| BE | `java/service/AdminStatsService.java` | A · doanh thu theo ngày, đơn theo trạng thái, hàng sắp hết, top sản phẩm |
 | BE | `java/dao/StatsDAO.java` | A · các truy vấn thống kê (chỉ đọc) |
 | BE | `java/dto/ChartPoint.java` · `ChartData.java` · `TopProduct.java` | A · dữ liệu để vẽ biểu đồ |
 | BE | `java/controller/admin/AdminLoginServlet.java` | M · đăng nhập xong vào `/admin` |
 | FE | `views/admin/admin-dashboard.jsp` | A · tổng quan (8 vùng) |
-| FE | `views/admin/admin-statistics.jsp` | A · thống kê (5 vùng) |
-| FE | `views/admin/common/admin-chart-columns.jspf` · `admin-chart-bars.jspf` · `admin-delta.jspf` | A · biểu đồ cột, thanh ngang (HTML/CSS thuần), dòng % tăng/giảm |
+| FE | `views/admin/common/admin-chart-columns.jspf` · `admin-chart-bars.jspf` | A · biểu đồ cột, thanh ngang (HTML/CSS thuần) |
 | FE | `static/js/admin.js` | M · `nvToggleChartTable` |
 
 **Đọc:** `StatsDAO` → `AdminStatsService` → `AdminDashboardServlet` → `admin-dashboard.jsp` → `admin-chart-columns.jspf`.
@@ -235,5 +233,5 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 |---|---|---|
 | Nút "← Quay lại" thành nút thật (không còn là link chữ) | — | `admin-customer-detail.jsp`, `admin-product-form.jsp`, `admin-order-detail.jsp`, `admin-voucher-form.jsp`, `admin-category-form.jsp`, `admin-autoreply-form.jsp`, `admin-login.jsp`, `common/admin-sidebar.jspf`, `customer/forgot-password.jsp` |
 | Sửa lỗi trang chat bị lồng trang (link hội thoại kế thừa `hx-target` của `<ul>` polling) | — | `fragments/admin-chat-list.jsp` |
-| Sửa tràn ngang trên điện thoại (Tổng quan, Thống kê, Chi tiết đơn, form có dòng gợi ý dài) | — | `admin-dashboard.jsp`, `admin-statistics.jsp`, `admin-order-detail.jsp`, `common/admin-chart-columns.jspf`, `static/css/design.css` |
+| Sửa tràn ngang trên điện thoại (Tổng quan, Chi tiết đơn, form có dòng gợi ý dài) | — | `admin-dashboard.jsp`, `admin-order-detail.jsp`, `common/admin-chart-columns.jspf`, `static/css/design.css` |
 | Chống trình duyệt dùng CSS/JS cũ trong cache (`?v=assetVersion`) | `java/listener/AppInitListener.java` | `views/common/head.jspf`, `views/admin/admin-layout.jsp` |

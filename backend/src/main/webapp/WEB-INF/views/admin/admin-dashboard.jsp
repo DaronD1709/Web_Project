@@ -16,7 +16,6 @@
       <h1 class="text-2xl font-bold">Tổng quan</h1>
       <p class="text-sm text-base-content/60">Số liệu hôm nay so với hôm qua</p>
     </div>
-    <a href="${ctx}/admin/statistics" class="btn btn-sm btn-outline">Xem thống kê chi tiết →</a>
   </div>
 
   <%-- ===== VUNG 2: VIEC CAN XU LY (chi hien muc co viec; bam de toi dung trang xu ly) ===== --%>
@@ -28,7 +27,7 @@
 
   <%-- ===== VUNG 3: 4 THE SO LIEU ===== --%>
   <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-    <a href="${ctx}/admin/statistics" class="card bg-base-100 border border-base-300 p-4 hover:border-primary transition">
+    <div class="card bg-base-100 border border-base-300 p-4">
       <div class="text-sm text-base-content/60">Doanh thu hôm nay</div>
       <div class="mt-1 text-2xl font-bold tabular-nums"><fmt:formatNumber value="${todayRevenue}" pattern="#,##0"/>₫</div>
       <div class="mt-2 text-xs">
@@ -40,7 +39,7 @@
           </c:otherwise>
         </c:choose>
       </div>
-    </a>
+    </div>
     <a href="${ctx}/admin/orders?status=pending" class="card bg-base-100 border border-base-300 p-4 hover:border-primary transition">
       <div class="text-sm text-base-content/60">Đơn chờ xác nhận</div><div class="mt-1 text-2xl font-bold tabular-nums">${pending}</div>
       <div class="mt-2 text-xs text-base-content/50">Cần xử lý sớm</div></a>
