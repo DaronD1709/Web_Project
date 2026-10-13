@@ -8,7 +8,7 @@
         <a href="${ctx}/product?id=${p.id}">
             <img src="${ctx}/<c:out value='${p.imageUrl}'/>"
                 alt="<c:out value='${p.name}'/>"
-                class="h-44 w-full object-cover rounded-t-[var(--radius-box)]">
+                class="pc-img h-44 w-full object-cover rounded-t-[var(--radius-box)] bg-base-200" decoding="async" onload="this.classList.add('is-loaded')">
         </a>
       </c:when>
       <c:otherwise>

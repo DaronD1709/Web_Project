@@ -28,15 +28,21 @@
          (hx-select lay dung vung do tu trang day du server tra ve) va doi URL (hx-push-url) de Back/Forward va chia se link van dung. Khong co JS thi nut "Ap dung" van chay nhu form thuong. --%>
       <form id="filter" method="get" action="${ctx}/products" class="card bg-base-100 border border-base-300 p-4 space-y-5"
             hx-get="${ctx}/products" hx-trigger="change, submit" hx-target="#product-results" hx-select="#product-results" hx-swap="outerHTML" hx-push-url="true">
-        <input type="hidden" name="q" value="<c:out value='${filter.keyword}'/>">
+        <%-- Tim nhanh trong trang: tu loc sau 400ms ngung go. Doi DANH MUC thi xoa o nay (xem onchange cua nut chon danh muc) de danh muc moi hien du san pham,
+             o tim tren header co the van con chu cu - khong anh huong. --%>
+        <label class="input input-sm w-full">
+          <i data-lucide="search" class="size-4 opacity-60"></i>
+          <input id="filter-q" type="search" name="q" value="<c:out value='${filter.keyword}'/>" placeholder="Tìm trong trang này…" autocomplete="off"
+                 hx-get="${ctx}/products" hx-trigger="input changed delay:400ms" hx-include="#filter" />
+        </label>
         <div>
           <div class="font-semibold mb-2">Danh mục</div>
           <label class="flex items-center gap-2 py-1 cursor-pointer">
-            <input type="radio" name="cat" value="" class="radio radio-primary radio-sm" ${empty filter.categoryId ? 'checked' : ''}> Tất cả
+            <input type="radio" name="cat" value="" onchange="document.getElementById('filter-q').value=''" class="radio radio-primary radio-sm" ${empty filter.categoryId ? 'checked' : ''}> Tất cả
           </label>
           <c:forEach var="cat" items="${categories}">
             <label class="flex items-center gap-2 py-1 cursor-pointer">
-              <input type="radio" name="cat" value="${cat.id}" class="radio radio-primary radio-sm" ${filter.categoryId == cat.id ? 'checked' : ''}>
+              <input type="radio" name="cat" value="${cat.id}" onchange="document.getElementById('filter-q').value=''" class="radio radio-primary radio-sm" ${filter.categoryId == cat.id ? 'checked' : ''}>
               <c:out value="${cat.name}"/>
             </label>
           </c:forEach>

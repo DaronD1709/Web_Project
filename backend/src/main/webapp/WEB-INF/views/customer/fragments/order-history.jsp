@@ -16,7 +16,7 @@
   <div class="space-y-4">
     <c:choose>
       <c:when test="${empty orders}">
-        <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center"><div class="text-5xl" aria-hidden="true"><i data-lucide="package" class="size-12 text-primary"></i></div><div class="mt-2 font-semibold">Chưa có đơn hàng nào</div><a href="${ctx}/products" class="link link-primary mt-2">Tiếp tục mua sắm</a></div>
+        <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center"><div class="text-5xl" aria-hidden="true"><i data-lucide="package" class="size-12 text-primary"></i></div><div class="mt-2 font-semibold">Chưa có đơn hàng nào</div><a href="${ctx}/products" class="btn btn-primary btn-sm mt-3">Tiếp tục mua sắm</a></div>
       </c:when>
       <c:otherwise>
         <c:forEach var="order" items="${orders}">

@@ -12,7 +12,7 @@
     <c:if test="${not empty trackingMessage}"><div class="alert alert-success alert-soft"><c:out value="${trackingMessage}"/></div></c:if>
     <c:if test="${not empty trackingError}"><div class="alert alert-error alert-soft"><c:out value="${trackingError}"/></div></c:if>
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <div><a href="${ctx}/orders" class="text-sm link link-primary inline-flex items-center gap-1"><i data-lucide="arrow-left" class="size-4"></i> Đơn hàng của tôi</a><h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary">#${order.id}</span></h1><div class="text-sm text-base-content/60">Đặt lúc <c:out value="${order.orderDateText}"/></div></div>
+      <div><a href="${ctx}/orders" class="btn btn-outline btn-sm mb-2"><i data-lucide="arrow-left" class="size-4"></i> Đơn hàng của tôi</a><h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary">#${order.id}</span></h1><div class="text-sm text-base-content/60">Đặt lúc <c:out value="${order.orderDateText}"/></div></div>
       <%@ include file="/WEB-INF/views/customer/fragments/order-badge.jspf" %>
     </div>
     <div class="card bg-base-100 border border-base-300 p-5 overflow-x-auto">
