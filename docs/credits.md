@@ -25,5 +25,5 @@ CC BY / CC BY-SA yêu cầu ghi công tác giả (bảng trên) và nêu giấy 
 
 ## Icon
 
-[Lucide](https://lucide.dev) v0.469.0, giấy phép ISC. File `backend/src/main/webapp/static/vendor/lucide-0.469.0.min.js` (bản UMD gốc, không sửa).
+[Lucide](https://lucide.dev) v0.469.0, giấy phép ISC. Nạp từ CDN jsDelivr (`https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js`) trong `common/head.jspf`, không lưu trong repo.
 Cách dùng: `<i data-lucide="ten-icon" class="size-5"></i>` rồi `static/js/icons.js` đổi thành SVG (và vẽ lại sau mỗi lần htmx thay nội dung). Tìm tên icon tại https://lucide.dev/icons.
