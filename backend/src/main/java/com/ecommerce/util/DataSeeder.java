@@ -13,6 +13,10 @@ import com.ecommerce.entity.Product;
 import com.ecommerce.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Map;
 
 /**
@@ -68,6 +72,7 @@ public class DataSeeder {
         seedUsers();
         seedCatalog();
         backfillSampleImages();
+        seedMoreProducts();
         seedAutoReplies();
     }
 
@@ -176,6 +181,107 @@ public class DataSeeder {
         product("Máy xới đất mini 7HP", "Xới đất vườn rau, ruộng nhỏ; dễ vận hành, tiết kiệm nhiên liệu.", 8500000, 0, mayMoc);
         product("Gạo hữu cơ ST25 (túi 5kg)", "Gạo ST25 canh tác hữu cơ, dẻo thơm, đóng gói hút chân không.", 160000, 70, nongSan);
     }
+
+    // >>> MORE_PRODUCTS (sinh tu dong, sua thi sua ca danh sach) >>>
+    // ---- San pham mau bo sung (~12 san pham moi danh muc, co anh). Chi them san pham co TEN chua ton tai trong DB nen chay lai khong bi trung.
+    // Cot: ten danh muc | ten file anh (webapp/static/img/products/<slug>.jpg, nguon o docs/credits.md) | ten | mo ta | gia | ton kho
+    private record Sample(String category, String slug, String name, String description, double price, int stock) { }
+
+    private static final List<Sample> MORE_PRODUCTS = List.of(
+        new Sample("Hạt giống", "hat-giong-dua-leo", "Hạt giống dưa leo F1 (gói 20 hạt)", "Dưa leo quả thẳng, giòn, ra trái sớm sau 35 ngày; kháng bệnh phấn trắng.", 22000, 180),
+        new Sample("Hạt giống", "hat-giong-ot-hiem", "Hạt giống ớt hiểm (gói 30 hạt)", "Ớt hiểm cay nồng, sai quả, trồng chậu hoặc ngoài vườn đều tốt.", 18000, 220),
+        new Sample("Hạt giống", "hat-giong-rau-muong", "Hạt giống rau muống (gói 100g)", "Rau muống lá to, thân giòn, thu hoạch sau 25 ngày gieo.", 15000, 300),
+        new Sample("Hạt giống", "hat-giong-xa-lach", "Hạt giống xà lách lô lô xanh (gói 5g)", "Xà lách lá xoăn đẹp mắt, ăn sống ngon, hợp trồng thuỷ canh.", 20000, 160),
+        new Sample("Hạt giống", "hat-giong-bi-do", "Hạt giống bí đỏ hồ lô (gói 10 hạt)", "Bí đỏ thịt vàng dẻo, ngọt, quả to trung bình 2–3kg.", 28000, 120),
+        new Sample("Hạt giống", "hat-giong-dau-cove", "Hạt giống đậu cove leo (gói 50g)", "Đậu cove leo giàn, quả dài xanh, năng suất cao.", 24000, 140),
+        new Sample("Hạt giống", "hat-giong-ca-tim", "Hạt giống cà tím dài (gói 30 hạt)", "Cà tím dài vỏ tím bóng, thịt mềm ít hạt.", 21000, 130),
+        new Sample("Hạt giống", "hat-giong-huong-duong", "Hạt giống hoa hướng dương (gói 50 hạt)", "Hướng dương hoa lớn, trồng làm cảnh hoặc lấy hạt.", 35000, 90),
+        new Sample("Hạt giống", "hat-giong-dua-hau", "Hạt giống dưa hấu không hạt (gói 10 hạt)", "Dưa hấu ruột đỏ giòn ngọt, vỏ mỏng, ít hạt.", 45000, 70),
+        new Sample("Hạt giống", "hat-giong-bap-ngot", "Hạt giống bắp ngọt Mỹ (gói 100g)", "Bắp ngọt hạt vàng, thu hoạch sau 65 ngày, ăn tươi hoặc luộc.", 32000, 110),
+        new Sample("Hạt giống", "hat-giong-muop", "Hạt giống mướp hương (gói 20 hạt)", "Mướp hương thơm, quả dài, leo giàn tốt.", 16000, 150),
+        new Sample("Hạt giống", "hat-giong-ngo-ri", "Hạt giống rau mùi (ngò rí) (gói 50g)", "Ngò rí thơm, mọc nhanh, gieo quanh năm.", 14000, 200),
+        new Sample("Phân bón", "phan-ure", "Phân đạm Urê (bao 50kg)", "Đạm 46%, thúc lá xanh nhanh cho lúa, ngô và rau màu.", 650000, 60),
+        new Sample("Phân bón", "phan-lan", "Phân lân nung chảy (bao 25kg)", "Lân đa lượng kèm canxi, magie; thích hợp đất chua phèn.", 210000, 70),
+        new Sample("Phân bón", "phan-kali", "Phân Kali Clorua – KCl (bao 25kg)", "Kali 60%, giúp chắc hạt, tăng độ ngọt cho trái.", 420000, 55),
+        new Sample("Phân bón", "phan-dap", "Phân DAP (bao 50kg)", "Đạm và lân cao, bón lót cho lúa và cây công nghiệp.", 980000, 40),
+        new Sample("Phân bón", "phan-bon-la", "Phân bón lá Growmore (gói 500g)", "Bổ sung vi lượng, giúp cây phục hồi sau úng hạn.", 85000, 150),
+        new Sample("Phân bón", "phan-trun-que", "Phân trùn quế (bao 5kg)", "Phân trùn quế nguyên chất, tơi xốp, an toàn cho rau ăn lá.", 75000, 120),
+        new Sample("Phân bón", "phan-ga", "Phân gà hữu cơ vi sinh (bao 20kg)", "Phân gà ủ hoai, giàu đạm, bón lót cho vườn rau và cây ăn trái.", 95000, 90),
+        new Sample("Phân bón", "voi-bot", "Vôi bột cải tạo đất (bao 25kg)", "Khử chua, diệt mầm bệnh trong đất trước vụ gieo trồng.", 70000, 100),
+        new Sample("Phân bón", "npk-16-16-8", "Phân bón NPK 16-16-8 (bao 25kg)", "Phân tổng hợp bón thúc cho lúa, cà phê và cây ăn trái.", 520000, 65),
+        new Sample("Phân bón", "dam-ca", "Đạm cá hữu cơ (chai 1 lít)", "Đạm cá thuỷ phân từ cá tươi, kích rễ và tăng đề kháng cho cây.", 110000, 80),
+        new Sample("Phân bón", "mun-dua", "Mùn dừa xử lý (bao 10kg)", "Giá thể mùn dừa giữ ẩm, thoát nước tốt, trồng rau và hoa chậu.", 60000, 130),
+        new Sample("Phân bón", "tro-tau", "Tro trấu hun (bao 15kg)", "Tro trấu hun làm thông thoáng đất, bổ sung kali tự nhiên.", 45000, 110),
+        new Sample("Thuốc BVTV", "thuoc-diet-co", "Thuốc diệt cỏ Glyphosate 480 (chai 1 lít)", "Diệt cỏ lá rộng và cỏ hoà thảo sau khi cỏ mọc, an toàn khi dùng đúng liều.", 135000, 80),
+        new Sample("Thuốc BVTV", "thuoc-tru-nam", "Thuốc trừ nấm Mancozeb 80WP (gói 500g)", "Phòng sương mai, đốm lá, thán thư trên rau màu và cây ăn trái.", 92000, 100),
+        new Sample("Thuốc BVTV", "thuoc-tru-ray", "Thuốc trừ rầy Imidacloprid (chai 100ml)", "Đặc trị rầy nâu, rệp sáp, bọ trĩ; tác động lưu dẫn.", 78000, 120),
+        new Sample("Thuốc BVTV", "bay-dinh-vang", "Bẫy dính côn trùng màu vàng (xấp 20 tấm)", "Bẫy ruồi trắng, rầy, bọ trĩ không dùng thuốc hoá học.", 65000, 200),
+        new Sample("Thuốc BVTV", "thuoc-oc-buou", "Thuốc diệt ốc bươu vàng (gói 1kg)", "Diệt ốc bươu vàng hại lúa và rau thuỷ sinh, viên rải tiện lợi.", 58000, 140),
+        new Sample("Thuốc BVTV", "trichoderma", "Chế phẩm sinh học Trichoderma (gói 1kg)", "Nấm đối kháng phòng bệnh thối rễ, héo rũ cho cây trồng.", 98000, 90),
+        new Sample("Thuốc BVTV", "dau-neem", "Dầu neem xua đuổi sâu (chai 500ml)", "Chiết xuất hạt neem tự nhiên, xua đuổi rệp và sâu ăn lá.", 145000, 60),
+        new Sample("Thuốc BVTV", "binh-xit-tay", "Bình xịt tay 2 lít", "Bình xịt áp lực tay, phun phân bón lá và thuốc cho vườn nhỏ.", 95000, 150),
+        new Sample("Thuốc BVTV", "thuoc-diet-chuot", "Mồi sinh học diệt chuột (hộp 200g)", "Mồi diệt chuột hiệu quả cao, ít ảnh hưởng vật nuôi khi dùng đúng cách.", 52000, 100),
+        new Sample("Thuốc BVTV", "thuoc-sau-to", "Thuốc trừ sâu tơ Emamectin (gói 10g)", "Diệt sâu tơ, sâu xanh, sâu khoang hại rau họ thập tự.", 42000, 130),
+        new Sample("Dụng cụ cầm tay", "xeng", "Xẻng đào đất cán dài", "Lưỡi thép dày, cán gỗ chắc; đào hố và xúc đất dễ dàng.", 135000, 50),
+        new Sample("Dụng cụ cầm tay", "cao-co", "Cào cỏ 14 răng", "Răng thép chắc, gom cỏ và lá khô gọn gàng.", 98000, 60),
+        new Sample("Dụng cụ cầm tay", "binh-tuoi", "Bình tưới cây 5 lít", "Bình tưới nhựa PP dày, vòi sen tản nước nhẹ cho cây con.", 75000, 100),
+        new Sample("Dụng cụ cầm tay", "gang-tay", "Găng tay làm vườn (đôi)", "Găng cao su phủ, chống gai và trơn trượt khi làm việc.", 45000, 200),
+        new Sample("Dụng cụ cầm tay", "liem", "Liềm cắt lúa lưỡi răng cưa", "Lưỡi răng cưa bén, cán gỗ vừa tay, cắt lúa và cỏ.", 55000, 90),
+        new Sample("Dụng cụ cầm tay", "dao-phat", "Dao phát bờ cán gỗ", "Dao phát cỏ, chặt cành nhỏ; thép mangan chịu va đập.", 125000, 45),
+        new Sample("Dụng cụ cầm tay", "cuoc-xoi", "Cuốc xoi 2 mũi", "Làm cỏ, xới đất và vun luống rau cực tiện.", 85000, 70),
+        new Sample("Dụng cụ cầm tay", "xe-rua", "Xe rùa chở đất 1 bánh", "Thùng thép chịu tải 100kg, bánh hơi êm, chở phân và nông sản.", 890000, 15),
+        new Sample("Dụng cụ cầm tay", "xoi-3-chau", "Cào xới 3 chấu cầm tay", "Xới đất chậu, vun gốc nhanh gọn, tay cầm chống trượt.", 48000, 120),
+        new Sample("Dụng cụ cầm tay", "cua-cat-canh", "Cưa cắt cành lưỡi cong", "Lưỡi cưa cong kéo ra cắt ngọt, cành đến 10cm.", 118000, 55),
+        new Sample("Dụng cụ cầm tay", "gio-thu-hoach", "Giỏ nhựa đựng nông sản", "Giỏ nhựa thoáng khí, xếp chồng, đựng trái cây khi thu hoạch.", 65000, 180),
+        new Sample("Dụng cụ cầm tay", "non-la", "Nón lá chống nắng", "Nón lá truyền thống nhẹ, che nắng khi làm đồng.", 40000, 160),
+        new Sample("Máy móc & tưới tiêu", "may-bom-nuoc", "Máy bơm nước 1HP", "Bơm ly tâm 1HP, lưu lượng lớn, tưới ruộng và hút nước giếng.", 1650000, 20),
+        new Sample("Máy móc & tưới tiêu", "dau-phun-mua", "Đầu phun mưa xoay (bộ 10 cái)", "Đầu tưới xoay 360°, bán kính tưới 8m cho vườn rau và cỏ.", 190000, 80),
+        new Sample("Máy móc & tưới tiêu", "ong-tuoi", "Ống tưới phun mưa PE (cuộn 100m)", "Ống PE dẻo, lỗ phun đều, lắp nhanh cho luống rau.", 420000, 35),
+        new Sample("Máy móc & tưới tiêu", "may-tuot-lua", "Máy tuốt lúa mini", "Tuốt lúa nhanh, ít rơi vãi, động cơ xăng 6.5HP.", 12500000, 6),
+        new Sample("Máy móc & tưới tiêu", "may-xay-xat", "Máy xay xát gạo mini", "Xay xát gia đình, công suất 300kg/giờ, gạo ít vỡ.", 9800000, 7),
+        new Sample("Máy móc & tưới tiêu", "bon-nuoc", "Bồn chứa nước nhựa 1000 lít", "Bồn nhựa 3 lớp chống rêu, dùng chứa nước tưới và sinh hoạt.", 1900000, 18),
+        new Sample("Máy móc & tưới tiêu", "may-cay-mini", "Máy cày mini 9HP", "Cày xới đất ruộng nhỏ, bánh lồng có thể thay, dễ vận hành.", 18500000, 4),
+        new Sample("Máy móc & tưới tiêu", "may-lam-co", "Máy làm cỏ cầm tay chạy xăng", "Làm cỏ giữa luống, xới nhẹ đất tơi xốp, động cơ 2 thì.", 2850000, 12),
+        new Sample("Máy móc & tưới tiêu", "may-gieo-hat", "Máy gieo hạt đẩy tay", "Gieo hạt đều hàng, điều chỉnh khoảng cách theo loại hạt.", 1450000, 14),
+        new Sample("Máy móc & tưới tiêu", "may-bom-tang-ap", "Máy bơm tăng áp mini", "Tăng áp cho hệ thống tưới và rửa xe, vận hành êm.", 1250000, 22),
+        new Sample("Máy móc & tưới tiêu", "may-say", "Máy sấy nông sản 12 khay", "Sấy trái cây, thảo mộc, hạt; điều chỉnh nhiệt tới 80°C.", 6900000, 5),
+        new Sample("Máy móc & tưới tiêu", "may-cat-canh", "Máy cắt tỉa hàng rào chạy xăng", "Lưỡi kép 60cm, tỉa hàng rào và bờ cây gọn gàng.", 3450000, 9),
+        new Sample("Nông sản", "gao-lut", "Gạo lứt huyết rồng (túi 2kg)", "Gạo lứt đỏ giàu chất xơ, nấu cơm dẻo, tốt cho người ăn kiêng.", 95000, 100),
+        new Sample("Nông sản", "nep-cai-hoa-vang", "Nếp cái hoa vàng (túi 2kg)", "Nếp thơm dẻo, nấu xôi và gói bánh chưng đều ngon.", 88000, 90),
+        new Sample("Nông sản", "ca-phe-robusta", "Cà phê nhân Robusta (gói 500g)", "Hạt Robusta Tây Nguyên rang xay vừa, đậm vị, hậu ngọt.", 120000, 70),
+        new Sample("Nông sản", "tieu-den", "Hạt tiêu đen Phú Quốc (hũ 200g)", "Tiêu đen thơm cay đặc trưng, hạt chắc, đóng hũ kín.", 85000, 120),
+        new Sample("Nông sản", "mat-ong", "Mật ong hoa nhãn (chai 500ml)", "Mật ong nguyên chất, màu hổ phách, vị ngọt thanh.", 165000, 60),
+        new Sample("Nông sản", "hat-dieu", "Hạt điều rang muối (hũ 500g)", "Điều Bình Phước rang củi, vỏ lụa, giòn bùi.", 155000, 80),
+        new Sample("Nông sản", "tra-xanh", "Chè xanh Thái Nguyên (gói 200g)", "Chè búp sao tay, nước xanh trong, hậu vị ngọt.", 110000, 100),
+        new Sample("Nông sản", "xoai-cat", "Xoài cát Hoà Lộc (kg)", "Xoài cát chín cây, thịt vàng, ngọt thơm, ít xơ.", 75000, 40),
+        new Sample("Nông sản", "thanh-long", "Thanh long ruột đỏ (kg)", "Thanh long ruột đỏ ngọt đậm, trồng đạt chuẩn VietGAP.", 55000, 50),
+        new Sample("Nông sản", "sau-rieng", "Sầu riêng Ri6 (kg)", "Sầu riêng cơm vàng, hạt lép, thơm béo đặc trưng miền Tây.", 185000, 15),
+        new Sample("Nông sản", "dua-xiem", "Dừa xiêm xanh Bến Tre (trái)", "Dừa xiêm nước ngọt mát, cơm mềm, giao theo thùng 10 trái.", 18000, 200),
+        new Sample("Nông sản", "buoi-da-xanh", "Bưởi da xanh Bến Tre (trái)", "Bưởi da xanh ruột hồng, múi mọng, vị ngọt không đắng.", 85000, 45)
+    );
+
+    private static void seedMoreProducts() {
+        // 1. Danh muc theo ten + ten san pham da co (de khong them trung)
+        Map<String, Category> categories = new HashMap<>();
+        for (Category c : categoryDAO.findAll()) categories.put(c.getName(), c);
+        Set<String> existing = new HashSet<>();
+        for (Product p : productDAO.findAll()) existing.add(p.getName());
+
+        // 2. Them tung san pham con thieu
+        for (Sample s : MORE_PRODUCTS) {
+            Category category = categories.get(s.category());
+            if (category == null || existing.contains(s.name())) continue; // danh muc bi doi ten/xoa hoac san pham da co thi bo qua
+            Product p = new Product();
+            p.setName(s.name());
+            p.setDescription(s.description());
+            p.setPrice(s.price());
+            p.setStockQuantity(s.stock());
+            p.setCategory(category);
+            p.setImageUrl("static/img/products/" + s.slug() + ".jpg");
+            productDAO.save(p);
+        }
+    }
+    // <<< MORE_PRODUCTS <<<
 
     private static Category category(String name, String description) {
         Category c = new Category();
