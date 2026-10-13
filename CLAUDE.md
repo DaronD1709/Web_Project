@@ -81,7 +81,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `backend/src/main/webapp/mockup/` — 14 trang (chưa có mockup cho forgot/reset password; JSP thật đã có; home, products, product-detail, login, register, cart,
   checkout, order-success, orders, order-detail, profile, addresses, notifications, chat) + `index.html`
   làm mục lục. Xem thử: mở `mockup/index.html` hoặc `python3 -m http.server` trong thư mục đó.
-  `layout.js` chứa header/footer/product card + dữ liệu mẫu (chỉ để xem thử). **Chưa vẽ Admin.**
+  `layout.js` chứa header/footer/product card + dữ liệu mẫu (chỉ để xem thử). Mockup Admin ở mục kế tiếp (`mockup/admin/`).
   Dùng làm bản thiết kế khi chuyển sang JSP; không phải code chạy thật.
 - **Admin > Quản lý sản phẩm (nhánh `feat/admin-manage-product`, đã test Tomcat + Postgres):** `AdminProductServlet` (`/admin/products`, `/new`, `/edit`, `/delete`) → `AdminProductService.save/delete`
   → `ProductDAO`. Khung CMS dùng chung cho mọi trang admin: `WEB-INF/views/admin/admin-layout.jsp` + `admin/common/admin-{header,sidebar,nav,title}.jspf`; Servlet gọi `util/AdminView.render(...)`
@@ -116,6 +116,17 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   DTO chỉ để vẽ: `ChartPoint`, `ChartData` (kèm `max` vì EL không tính max của danh sách), `TopProduct`. `DemoDataSeeder` nạp thêm ~35 đơn lịch sử rải 30 ngày cho biểu đồ có dữ liệu. Sidebar đã bỏ mục "Đánh giá" (chưa làm).
 - **Cache CSS/JS:** `AppInitListener` gán `assetVersion` (thời điểm khởi động app) vào `application scope`; `head.jspf` và `admin-layout.jsp` nối `?v=${applicationScope.assetVersion}` vào link `design.css`/`admin.js` nên sau khi pull code hoặc deploy lại, trình duyệt không dùng bản cũ trong cache. File tĩnh mới thêm vào `static/` cũng nên link theo kiểu này.
   **Kiểm tra giao diện hẹp (điện thoại 390px, máy tính bảng 768px):** các ô lưới `1fr` cần `min-w-0` ở phần tử con, dòng gợi ý trong `.form-control > .label` được phép xuống dòng (đã sửa trong `design.css`), bảng rộng đặt trong `overflow-x-auto`.
+- **Mockup giao diện Admin (CMS)** — nhánh `feat/admin-ui`: `backend/src/main/webapp/mockup/admin/` — 14 trang (login, dashboard, statistics, products,
+  product-form kèm upload ảnh, categories, orders, order-detail, vouchers, voucher-form, customers, reviews, chat) + `index.html`. `admin.js` chứa khung
+  (sidebar/header), dữ liệu mẫu, biểu đồ SVG thuần (cột ≤ 24px, 1 màu, tooltip, nút "Xem dạng bảng"), toast và hộp thoại xác nhận. Đã kiểm tra desktop + mobile.
+  **Đổi trang bằng htmx (không nháy):** `admin.js` dựng sidebar/header 1 lần, `hx-boost` + `hx-select="#page"` chỉ thay nội dung `#adm-main`
+  (không tải lại trang, Tailwind CDN không phải biên dịch lại). Quy ước mỗi trang admin: `data-active`/`data-title` đặt trên `#page`; `<script>` của
+  trang nằm TRONG `#page`; khai báo top-level dùng `var` (chạy lại được nhiều lần); form do JS xử lý phải có `hx-boost="false"`; chuyển trang
+  bằng code dùng `go(url)`, không dùng `location.href`. Link/form do JS vẽ ra sau khi tải (innerHTML) được `MutationObserver` trong `admin.js`
+  gọi `htmx.process` tự động, nên vẫn được boost; không cần tự xử lý từng chỗ. Khi làm JSP thật: `hx-boost` + `hx-select` tương tự trên layout admin.
+  Rule hiển thị trong mockup cần giữ khi làm JSP: huỷ đơn/duyệt hoàn hàng ⇒ cộng lại kho; không xoá danh mục còn sản phẩm; voucher có 4 trạng thái
+  (hoạt động/hết hạn/hết lượt/tắt) khớp `Voucher.isValid()`; khoá tài khoản khách = `User.active`; chat có công tắc
+  nhân viên tiếp quản = `Customer.handledByHuman` (cả hai đã làm). Mockup này chỉ là bản thiết kế; trang "Thống kê" và "Đánh giá" trong mockup không có trong JSP thật.
 - Thư mục view: `webapp/WEB-INF/views/{customer,admin,common}/` (đã có `products.jsp` và `common/{head,header,footer}.jspf`); CSS dùng chung ở `webapp/static/css/design.css`.
 - Repo: https://github.com/DaronD1709/Web_Project (public).
 
@@ -136,7 +147,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - [ ] JSP views tương ứng từng Servlet ở trên (copy mẫu `WEB-INF/views/customer/products.jsp`: Tailwind + daisyUI + htmx qua `common/head.jspf`).
 - [ ] Chuyển mockup (`webapp/mockup/`) thành JSP thật theo từng nhóm chức năng (cùng lúc với Servlet/Service),
       mỗi nhóm 1 commit; Auth và danh sách sản phẩm đã xong, tiếp theo là giỏ hàng → checkout.
-- [ ] Hoàn thiện mockup: bản Admin (chưa vẽ); mockup forgot/reset password.
+- [x] Mockup Admin (nhánh `feat/admin-ui`). [ ] Mockup forgot/reset password.
 - [ ] Đóng `EntityManagerFactory` khi app dừng (`contextDestroyed`) để không rò kết nối khi redeploy.
 - [ ] (Khi cần deploy) cho `JPAUtil`/`EmailService` đọc thêm biến môi trường để chạy trong Docker/cloud, không cần file `.properties`.
 - [ ] Phần Optional (Voucher, Review, Notification, chatbot AI, Return/Refund) — chỉ làm sau khi Core xong hết.

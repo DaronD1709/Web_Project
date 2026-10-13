@@ -46,3 +46,9 @@ html[data-theme="nongnghiep"] {
 .form-control > .label { padding: 0; min-height: 0; }
 .form-control .label-text { font-size: 0.875rem; font-weight: 500; color: color-mix(in oklab, var(--color-base-content) 80%, transparent); }
 .form-control .label-text-alt { font-size: 0.75rem; }
+
+/* Nhan (badge) khong xuong dong: vd "Het hang" trong cot hep bi bam thanh 2 dong va tran khoi vien. */
+.badge { white-space: nowrap; }
+
+/* Admin: link chuyen trang khong gach chan (daisyUI mac dinh gach chan cho .link, ca luc hover). */
+#page .link, #page .link:hover { text-decoration: none; }
