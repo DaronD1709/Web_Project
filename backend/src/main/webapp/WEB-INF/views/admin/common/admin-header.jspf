@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <header class="sticky top-0 z-30 bg-base-100 border-b border-base-300 h-14 px-4 flex items-center gap-3">
   <%-- Nut mo menu: chi hien tren man hinh nho --%>
-  <label for="adm-drawer" class="btn btn-ghost btn-sm btn-square lg:hidden" aria-label="Mở menu">☰</label>
+  <label for="adm-drawer" class="btn btn-ghost btn-sm btn-square lg:hidden" aria-label="Mở menu"><i data-lucide="menu" class="size-4"></i></label>
   <%-- Tieu de trang --%>
   <div class="text-sm flex items-center gap-2">
     <span class="text-base-content/50 hidden sm:inline">Quản trị /</span>

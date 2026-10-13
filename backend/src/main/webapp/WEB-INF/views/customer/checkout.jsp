@@ -54,11 +54,11 @@
         <div class="space-y-2">
           <label data-payment-option class="border ${selectedPaymentMethod != 'VNPAY' ? 'border-primary bg-primary/5' : 'border-base-300'} rounded-box p-4 cursor-pointer flex items-center gap-3">
             <input type="radio" name="paymentMethod" value="COD" class="radio radio-primary radio-sm shrink-0" ${selectedPaymentMethod != 'VNPAY' ? 'checked' : ''} required>
-            <span class="text-2xl" aria-hidden="true">💵</span><div class="text-sm"><div class="font-semibold">Thanh toán khi nhận hàng (COD)</div><div class="text-base-content/60">Trả tiền mặt cho shipper</div></div>
+            <span class="text-2xl" aria-hidden="true"><i data-lucide="banknote" class="size-6"></i></span><div class="text-sm"><div class="font-semibold">Thanh toán khi nhận hàng (COD)</div><div class="text-base-content/60">Trả tiền mặt cho shipper</div></div>
           </label>
           <label data-payment-option class="border ${selectedPaymentMethod == 'VNPAY' ? 'border-primary bg-primary/5' : 'border-base-300'} rounded-box p-4 flex items-center gap-3 ${vnPayAvailable ? 'cursor-pointer' : 'opacity-60'}" title="${vnPayAvailable ? (vnPaySandbox ? 'Thanh toán qua VNPay sandbox' : 'Thanh toán qua VNPay') : 'VNPay chưa được cấu hình để thanh toán'}">
             <input type="radio" name="paymentMethod" value="VNPAY" class="radio radio-primary radio-sm shrink-0" ${vnPayAvailable ? '' : 'disabled'} ${selectedPaymentMethod == 'VNPAY' ? 'checked' : ''}>
-            <span class="text-2xl" aria-hidden="true">💳</span><div class="text-sm"><div class="font-semibold">VNPay<c:if test="${vnPaySandbox}"> (sandbox)</c:if></div><div class="text-base-content/60">Thẻ ATM / QR / Internet Banking</div></div>
+            <span class="text-2xl" aria-hidden="true"><i data-lucide="credit-card" class="size-6"></i></span><div class="text-sm"><div class="font-semibold">VNPay<c:if test="${vnPaySandbox}"> (sandbox)</c:if></div><div class="text-base-content/60">Thẻ ATM / QR / Internet Banking</div></div>
           </label>
         </div>
       </section>

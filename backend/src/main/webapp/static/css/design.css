@@ -27,7 +27,11 @@ html[data-theme="nongnghiep"] {
   --radius-box: 1rem;
 }
 
-/* Khung anh san pham gia lap (chua co anh that) */
+/* Icon Lucide: svg nam canh chu, can giua theo dong; kich thuoc do class Tailwind size-N tren the <i> (duoc chep sang svg). Chua ve xong van giu cho trong. */
+i[data-lucide] { display: inline-block; }
+svg.lucide { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+
+/* Khung anh san pham gia lap (khi san pham chua co anh) */
 .ph {
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, oklch(95% 0.05 125), oklch(90% 0.08 105));

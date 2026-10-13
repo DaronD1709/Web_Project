@@ -14,9 +14,9 @@
 <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
   <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
-      <div class="text-7xl" aria-hidden="true">🌱</div>
+      <div class="text-7xl" aria-hidden="true"><i data-lucide="sprout" class="size-20"></i></div>
       <h2 class="text-3xl font-extrabold mt-4">Tạo tài khoản miễn phí</h2>
-      <ul class="text-white/80 mt-3 space-y-1 text-sm"><li>✔ Theo dõi trạng thái đơn hàng</li><li>✔ Lưu nhiều địa chỉ giao hàng</li><li>✔ Nhận mã giảm giá và thông báo</li></ul>
+      <ul class="text-white/80 mt-3 space-y-1 text-sm"><li class="flex items-center gap-2"><i data-lucide="check" class="size-4 shrink-0"></i> Theo dõi trạng thái đơn hàng</li><li class="flex items-center gap-2"><i data-lucide="check" class="size-4 shrink-0"></i> Lưu nhiều địa chỉ giao hàng</li><li class="flex items-center gap-2"><i data-lucide="check" class="size-4 shrink-0"></i> Nhận mã giảm giá và thông báo</li></ul>
     </div>
   <form method="post" action="${ctx}/register" class="p-8 space-y-3">
     <h1 class="text-2xl font-bold">Đăng ký</h1>

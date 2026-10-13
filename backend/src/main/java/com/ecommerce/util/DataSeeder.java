@@ -12,6 +12,7 @@ import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.Product;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * Du lieu mau de DEV - tu dong nap vao DB luc app khoi dong (xem AppInitListener), CHI khi bang con trong.
@@ -29,10 +30,38 @@ public class DataSeeder {
     private static final UserDAO userDAO = new UserDAO();
     private static final AutoReplyDAO autoReplyDAO = new AutoReplyDAO();
 
+    // Anh mau cua 12 san pham mau (file nam trong webapp/static/img/products/, nguon + giay phep ghi o docs/credits.md).
+    // imageUrl la duong dan tuong doi so voi ung dung (JSP ghep "${ctx}/" + imageUrl), giong anh Admin tai len ("uploads/...").
+    private static final Map<String, String> SAMPLE_IMAGES = Map.ofEntries(
+            Map.entry("Hạt giống cà chua Beef F1 (gói 50 hạt)", "static/img/products/hat-giong-ca-chua.jpg"),
+            Map.entry("Hạt giống rau cải xanh (combo 3 gói)", "static/img/products/hat-giong-cai-xanh.jpg"),
+            Map.entry("Phân bón NPK 20-20-15 (bao 5kg)", "static/img/products/phan-bon-npk.jpg"),
+            Map.entry("Phân hữu cơ vi sinh (bao 10kg)", "static/img/products/phan-huu-co-vi-sinh.jpg"),
+            Map.entry("Máy phun thuốc đeo vai chạy điện 16L", "static/img/products/may-phun-thuoc.jpg"),
+            Map.entry("Bộ tưới nhỏ giọt 50m", "static/img/products/bo-tuoi-nho-giot.jpg"),
+            Map.entry("Cuốc chim thép cán gỗ", "static/img/products/cuoc-chim.jpg"),
+            Map.entry("Máy cắt cỏ cầm tay chạy xăng", "static/img/products/may-cat-co.jpg"),
+            Map.entry("Thuốc trừ sâu sinh học Abamectin 100ml", "static/img/products/thuoc-tru-sau.jpg"),
+            Map.entry("Kéo cắt tỉa cành cao cấp", "static/img/products/keo-cat-tia.jpg"),
+            Map.entry("Máy xới đất mini 7HP", "static/img/products/may-xoi-dat.jpg"),
+            Map.entry("Gạo hữu cơ ST25 (túi 5kg)", "static/img/products/gao-st25.jpg"));
+
     public static void seedIfEmpty() {
         seedUsers();
         seedCatalog();
+        backfillSampleImages();
         seedAutoReplies();
+    }
+
+    // DB da co san pham mau tu truoc khi co anh: gan anh cho san pham mau CHUA CO anh (khong de len anh Admin da tai len).
+    private static void backfillSampleImages() {
+        for (Product p : productDAO.findAll()) {
+            String image = SAMPLE_IMAGES.get(p.getName());
+            if (image != null && (p.getImageUrl() == null || p.getImageUrl().isBlank())) {
+                p.setImageUrl(image);
+                productDAO.update(p);
+            }
+        }
     }
 
     // Cac luat tra loi tu dong mac dinh cua chatbot (Admin sua/them/xoa o Admin > Tra loi tu dong). Chi nap khi bang auto_replies trong.

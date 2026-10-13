@@ -23,7 +23,7 @@
     <c:if test="${empty result.items}"><li class="p-8 text-center text-base-content/60">Chưa có thông báo.</li></c:if>
     <c:forEach var="notice" items="${result.items}">
       <li class="flex gap-4 p-4 ${notice.read ? '' : 'bg-primary/5'}" data-notification-id="${notice.id}">
-        <div class="text-2xl shrink-0" aria-hidden="true">🔔</div>
+        <div class="text-2xl shrink-0" aria-hidden="true"><i data-lucide="bell" class="size-6"></i></div>
         <div class="flex-1 min-w-0"><div class="break-words ${notice.read ? '' : 'font-semibold'}"><c:out value="${notice.message}"/></div>
           <div class="text-xs text-base-content/50 mt-1"><c:out value="${notice.createdAtText}"/></div>
           <div class="flex flex-wrap items-center gap-3 mt-2 text-xs">
@@ -45,10 +45,10 @@
   <c:if test="${result.totalPages > 1}">
     <nav aria-label="Phân trang thông báo" class="flex flex-wrap items-center justify-center gap-2 mt-6">
       <c:if test="${result.page > 1}"><a class="btn btn-sm btn-outline" href="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page - 1}"
-        hx-get="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page - 1}" hx-target="#notification-list" hx-swap="outerHTML" hx-push-url="true" hx-sync="#notification-list:replace">← Trước</a></c:if>
+        hx-get="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page - 1}" hx-target="#notification-list" hx-swap="outerHTML" hx-push-url="true" hx-sync="#notification-list:replace"><i data-lucide="arrow-left" class="size-4"></i> Trước</a></c:if>
       <span class="text-sm">Trang ${result.page}/${result.totalPages}</span>
       <c:if test="${result.page < result.totalPages}"><a class="btn btn-sm btn-outline" href="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page + 1}"
-        hx-get="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page + 1}" hx-target="#notification-list" hx-swap="outerHTML" hx-push-url="true" hx-sync="#notification-list:replace">Sau →</a></c:if>
+        hx-get="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page + 1}" hx-target="#notification-list" hx-swap="outerHTML" hx-push-url="true" hx-sync="#notification-list:replace">Sau <i data-lucide="arrow-right" class="size-4"></i></a></c:if>
     </nav>
   </c:if>
 </div>

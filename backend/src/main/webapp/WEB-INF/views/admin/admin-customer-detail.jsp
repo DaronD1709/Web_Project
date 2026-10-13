@@ -12,14 +12,14 @@
 <div class="max-w-3xl mx-auto space-y-4">
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI ===== --%>
-  <a href="${ctx}/admin/users" class="btn btn-outline btn-sm mb-2">← Danh sách khách hàng</a>
+  <a href="${ctx}/admin/users" class="btn btn-outline btn-sm mb-2"><i data-lucide="arrow-left" class="size-4"></i> Danh sách khách hàng</a>
 
   <%-- ===== VUNG 2: THE KHACH HANG (ten, lien he, trang thai, nut khoa/mo khoa) ===== --%>
   <section class="card bg-base-100 border border-base-300 p-5 flex flex-row flex-wrap items-center gap-4">
     <div class="avatar avatar-placeholder"><div class="bg-primary text-primary-content w-14 rounded-full"><span>${fn:toUpperCase(fn:substring(customer.fullName, 0, 1))}</span></div></div>
     <div class="flex-1 min-w-0">
       <h1 class="text-xl font-bold"><c:out value="${customer.fullName}"/>
-        <c:if test="${not customer.active}"><span class="badge badge-error badge-sm align-middle ml-1">🔒 Đã khoá</span></c:if></h1>
+        <c:if test="${not customer.active}"><span class="badge badge-error badge-sm align-middle ml-1"><i data-lucide="lock" class="size-4"></i> Đã khoá</span></c:if></h1>
       <div class="text-sm text-base-content/60"><c:out value="${customer.email}"/> · <c:out value="${customer.phone}"/></div>
     </div>
     <form method="post" action="${ctx}/admin/users/lock"

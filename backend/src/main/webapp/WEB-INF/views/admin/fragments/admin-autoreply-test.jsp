@@ -11,7 +11,7 @@
       <div class="text-base-content/60">Khớp luật <b>#${matched.id}</b> (ưu tiên ${matched.priority}):
         <c:forEach var="k" items="${matched.keywordList}"><span class="badge badge-sm badge-soft badge-primary mr-1"><c:out value="${k}"/></span></c:forEach></div>
       <div class="chat chat-start"><div class="chat-bubble"><c:out value="${matched.replyText}"/></div></div>
-      <c:if test="${matched.handoff}"><div class="text-xs text-warning">→ Sau câu này cuộc trò chuyện được chuyển sang nhân viên.</div></c:if>
+      <c:if test="${matched.handoff}"><div class="text-xs text-warning flex items-center gap-1"><i data-lucide="arrow-right" class="size-3.5"></i> Sau câu này cuộc trò chuyện được chuyển sang nhân viên.</div></c:if>
     </div>
   </c:when>
   <c:otherwise>

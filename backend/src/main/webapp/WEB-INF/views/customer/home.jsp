@@ -30,18 +30,18 @@
         <a href="${ctx}/chat" class="btn btn-outline btn-lg text-white border-white/60 hover:bg-white hover:text-primary">Hỏi tư vấn</a>
       </div>
     </div>
-    <div class="hidden md:flex justify-center text-[10rem] leading-none select-none" aria-hidden="true">🌾<span class="-ml-8 mt-16 text-[7rem]">🚜</span></div>
+    <div class="hidden md:flex justify-center items-end gap-2 select-none" aria-hidden="true"><i data-lucide="wheat" stroke-width="1.25" class="size-40 text-white/90"></i><i data-lucide="tractor" stroke-width="1.25" class="size-28 -ml-6 mb-3 text-accent"></i></div>
   </div>
 </section>
 
 <main class="max-w-7xl mx-auto px-4">
-  <%-- Danh muc: icon la emoji gan theo thu tu (Category chua co cot icon) --%>
-  <c:set var="icons" value="${['🌱','🌿','🧴','⛏️','🚜','🥬']}" />
+  <%-- Danh muc: ten icon Lucide gan theo thu tu (Category chua co cot icon) --%>
+  <c:set var="icons" value="${['sprout','leaf','spray-can','pickaxe','tractor','salad']}" />
   <section class="-mt-8 relative z-10">
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <c:forEach var="cat" items="${categories}" varStatus="st">
         <a href="${ctx}/products?cat=${cat.id}" class="card bg-base-100 border border-base-300 hover:border-primary hover:shadow-md transition items-center p-4 text-center">
-          <div class="text-4xl" aria-hidden="true">${icons[st.index % 6]}</div>
+          <div aria-hidden="true"><i data-lucide="${icons[st.index % 6]}" class="size-10 text-primary"></i></div>
           <div class="text-sm font-medium mt-1"><c:out value="${cat.name}"/></div>
         </a>
       </c:forEach>
@@ -50,7 +50,7 @@
 
   <%-- Banner khuyen mai (noi dung tinh) --%>
   <section class="mt-10 rounded-box bg-accent/20 border border-accent/40 p-5 flex flex-wrap items-center gap-4">
-    <div class="text-4xl" aria-hidden="true">🎟️</div>
+    <div aria-hidden="true"><i data-lucide="ticket" class="size-10 text-primary"></i></div>
     <div class="flex-1 min-w-60">
       <div class="font-bold text-lg">Nhập mã <span class="badge badge-accent badge-lg font-mono">NONG10</span> giảm 10% cho đơn đầu tiên</div>
       <div class="text-sm text-base-content/70">Áp dụng cho đơn từ 300.000₫ · Hết hạn 31/10/2026 · Nhập ở bước thanh toán</div>
@@ -62,7 +62,7 @@
   <section class="mt-12">
     <div class="flex items-end justify-between mb-4">
       <h2 class="text-2xl font-bold">Sản phẩm mới</h2>
-      <a href="${ctx}/products" class="link link-primary text-sm">Xem tất cả →</a>
+      <a href="${ctx}/products" class="link link-primary text-sm inline-flex items-center gap-1">Xem tất cả <i data-lucide="arrow-right" class="size-4"></i></a>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <c:forEach var="p" items="${featuredProducts}">
@@ -73,9 +73,9 @@
 
   <%-- Ly do chon --%>
   <section class="mt-12 grid gap-4 md:grid-cols-3">
-    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl" aria-hidden="true">🚚</div><div class="font-semibold mt-2">Giao tận vườn toàn quốc</div><p class="text-sm text-base-content/70">Đóng gói chắc chắn, theo dõi đơn từng bước.</p></div>
-    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl" aria-hidden="true">🧾</div><div class="font-semibold mt-2">Chính hãng, rõ nguồn gốc</div><p class="text-sm text-base-content/70">Có hạn sử dụng, hoá đơn; lỗi do shop được đổi trả 7 ngày.</p></div>
-    <div class="card bg-base-100 border border-base-300 p-5"><div class="text-3xl" aria-hidden="true">💬</div><div class="font-semibold mt-2">Tư vấn kỹ thuật miễn phí</div><p class="text-sm text-base-content/70">Hỏi cách bón phân, phòng sâu bệnh qua chat hoặc trợ lý AI.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="truck" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Giao tận vườn toàn quốc</div><p class="text-sm text-base-content/70">Đóng gói chắc chắn, theo dõi đơn từng bước.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="receipt-text" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Chính hãng, rõ nguồn gốc</div><p class="text-sm text-base-content/70">Có hạn sử dụng, hoá đơn; lỗi do shop được đổi trả 7 ngày.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="message-circle" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Tư vấn kỹ thuật miễn phí</div><p class="text-sm text-base-content/70">Hỏi cách bón phân, phòng sâu bệnh qua chat hoặc trợ lý AI.</p></div>
   </section>
 </main>
 

@@ -30,7 +30,7 @@
       <option value="vnpay" ${filter.pay == 'vnpay' ? 'selected' : ''}>VNPay</option>
     </select>
     <input type="date" name="from" value="${filter.from}" class="input input-sm w-full sm:w-40" aria-label="Từ ngày">
-    <span class="text-base-content/50 hidden sm:inline">→</span>
+    <span class="text-base-content/50 hidden sm:inline" aria-hidden="true"><i data-lucide="arrow-right" class="size-4"></i></span>
     <input type="date" name="to" value="${filter.to}" class="input input-sm w-full sm:w-40" aria-label="Đến ngày">
   </form>
 

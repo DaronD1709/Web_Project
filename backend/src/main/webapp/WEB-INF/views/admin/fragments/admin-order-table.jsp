@@ -26,7 +26,7 @@
   <c:choose>
     <%-- ===== Khong co don nao khop ===== --%>
     <c:when test="${empty result.items}">
-      <div class="p-12 text-center text-base-content/60"><div class="text-4xl">📭</div>Không có đơn hàng phù hợp.</div>
+      <div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="inbox" class="size-10 text-primary"></i></div>Không có đơn hàng phù hợp.</div>
     </c:when>
     <c:otherwise>
       <%-- ===== BANG: moi don 1 dong ===== --%>
@@ -45,7 +45,7 @@
                 <td class="text-right tabular-nums font-medium"><fmt:formatNumber value="${o.totalAmount}" pattern="#,##0"/>₫</td>
                 <td>
                   <span class="badge badge-outline badge-sm"><c:out value="${o.payment.method}"/></span>
-                  <span class="text-xs whitespace-nowrap ${o.payment.status == 'SUCCESS' ? 'text-success' : 'text-base-content/50'}">${o.payment.status == 'SUCCESS' ? '✓ Đã thanh toán' : 'Chưa thanh toán'}</span>
+                  <span class="text-xs whitespace-nowrap inline-flex items-center gap-1 ${o.payment.status == 'SUCCESS' ? 'text-success' : 'text-base-content/50'}"><c:choose><c:when test="${o.payment.status == 'SUCCESS'}"><i data-lucide="check" class="size-3.5"></i> Đã thanh toán</c:when><c:otherwise>Chưa thanh toán</c:otherwise></c:choose></span>
                 </td>
                 <td><c:set var="st" value="${o.status}" /><%@ include file="/WEB-INF/views/admin/common/admin-order-badge.jspf" %></td>
 

@@ -5,12 +5,12 @@
 <c:set var="onlinePayment" value="${order.payment.method == 'VNPay'}" />
 <c:set var="resultTitle" value="Đặt hàng thành công!" />
 <c:set var="resultMessage" value="Shop sẽ sớm xác nhận đơn — bạn sẽ nhận thông báo khi trạng thái thay đổi." />
-<c:set var="resultIcon" value="✓" />
+<c:set var="resultIcon" value="check" />
 <c:set var="resultClass" value="bg-success/20 text-success" />
 <c:choose>
   <c:when test="${order.status == 'CANCELLED'}">
     <c:set var="resultTitle" value="Đơn hàng đã huỷ" />
-    <c:set var="resultIcon" value="!" />
+    <c:set var="resultIcon" value="triangle-alert" />
     <c:set var="resultClass" value="bg-warning/20 text-warning" />
     <c:choose>
       <c:when test="${onlinePayment and order.payment.status == 'SUCCESS'}"><c:set var="resultMessage" value="VNPay đã ghi nhận thanh toán cho đơn đã huỷ. Vui lòng liên hệ cửa hàng để đối soát/hoàn tiền." /></c:when>
@@ -24,13 +24,13 @@
   <c:when test="${onlinePayment and order.payment.status == 'FAILED'}">
     <c:set var="resultTitle" value="Thanh toán không thành công" />
     <c:set var="resultMessage" value="Vui lòng kiểm tra trạng thái đơn hoặc liên hệ cửa hàng để được hỗ trợ." />
-    <c:set var="resultIcon" value="!" />
+    <c:set var="resultIcon" value="triangle-alert" />
     <c:set var="resultClass" value="bg-warning/20 text-warning" />
   </c:when>
   <c:when test="${onlinePayment}">
     <c:set var="resultTitle" value="Đang xác nhận thanh toán" />
     <c:set var="resultMessage" value="Thông tin thanh toán đang được cập nhật. Bạn có thể tải lại trang để xem kết quả; không cần đặt thêm đơn." />
-    <c:set var="resultIcon" value="…" />
+    <c:set var="resultIcon" value="loader" />
     <c:set var="resultClass" value="bg-info/20 text-info" />
   </c:when>
 </c:choose>
@@ -45,9 +45,9 @@
 <main class="max-w-2xl mx-auto px-4 py-10">
   <ul class="steps w-full mb-8 text-sm"><li class="step step-primary">Giỏ hàng</li><li class="step step-primary">Thanh toán</li><li class="step step-primary">Hoàn tất</li></ul>
   <div class="card bg-base-100 border border-base-300 p-5 sm:p-8 text-center space-y-4">
-    <div class="mx-auto size-20 rounded-full ${resultClass} flex items-center justify-center text-5xl" aria-hidden="true"><c:out value="${resultIcon}"/></div>
+    <div class="mx-auto size-20 rounded-full ${resultClass} flex items-center justify-center" aria-hidden="true"><i data-lucide="${resultIcon}" class="size-10"></i></div>
     <h1 class="text-2xl font-bold"><c:out value="${resultTitle}"/></h1>
-    <p class="text-base-content/70"><c:if test="${resultIcon == '✓'}">Cảm ơn bạn đã mua sắm. </c:if>Mã đơn hàng của bạn là <b class="font-mono text-primary">#${order.id}</b>.<br><c:out value="${resultMessage}"/></p>
+    <p class="text-base-content/70"><c:if test="${resultIcon == 'check'}">Cảm ơn bạn đã mua sắm. </c:if>Mã đơn hàng của bạn là <b class="font-mono text-primary">#${order.id}</b>.<br><c:out value="${resultMessage}"/></p>
     <c:if test="${onlinePayment and order.payment.status != 'SUCCESS' and not empty paymentError}">
       <div class="alert alert-warning alert-soft text-sm text-left" role="alert"><c:out value="${paymentError}"/></div>
     </c:if>

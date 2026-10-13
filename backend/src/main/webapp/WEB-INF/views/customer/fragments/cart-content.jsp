@@ -8,7 +8,7 @@
 <c:choose>
   <c:when test="${empty cart.items}">
     <div class="card bg-base-100 border border-dashed border-base-300 p-14 text-center">
-      <div class="text-6xl" aria-hidden="true">🛒</div>
+      <div class="text-6xl" aria-hidden="true"><i data-lucide="shopping-cart" class="size-16 text-primary"></i></div>
       <div class="font-semibold mt-2">Giỏ hàng của bạn đang trống</div>
       <a href="${ctx}/products" class="btn btn-primary btn-sm mt-3 mx-auto">Khám phá sản phẩm</a>
     </div>
@@ -27,7 +27,7 @@
                       <c:when test="${not empty i.product.imageUrl}">
                         <img src="${ctx}/<c:out value='${i.product.imageUrl}'/>" alt="<c:out value='${i.product.name}'/>" class="size-16 rounded-field shrink-0 object-cover">
                       </c:when>
-                      <c:otherwise><div class="ph ph-sm size-16 rounded-field shrink-0" aria-hidden="true">🌾</div></c:otherwise>
+                      <c:otherwise><div class="ph ph-sm size-16 rounded-field shrink-0" aria-hidden="true"><i data-lucide="wheat" class="size-6 text-primary/50"></i></div></c:otherwise>
                     </c:choose>
                     <div>
                       <div class="font-medium"><c:out value="${i.product.name}"/></div>
@@ -77,7 +77,7 @@
           <div class="divider my-0"></div>
           <div class="flex justify-between font-bold text-lg"><span>Tổng cộng</span><span class="text-primary tabular-nums"><fmt:formatNumber value="${total}" pattern="#,##0"/>₫</span></div>
           <a href="${ctx}/checkout" class="btn btn-primary btn-block">Tiến hành thanh toán</a>
-          <a href="${ctx}/products" class="btn btn-ghost btn-sm btn-block">← Tiếp tục mua sắm</a>
+          <a href="${ctx}/products" class="btn btn-ghost btn-sm btn-block"><i data-lucide="arrow-left" class="size-4"></i> Tiếp tục mua sắm</a>
         </div>
       </aside>
     </div>

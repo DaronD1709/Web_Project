@@ -16,7 +16,7 @@
 
   <%-- ===== VUNG 1: GIOI THIEU BEN TRAI (chi hien tren man hinh rong) ===== --%>
   <div class="hero-bg text-white hidden lg:flex flex-col justify-center p-14">
-    <div class="text-7xl" aria-hidden="true">🌾</div>
+    <div class="text-7xl" aria-hidden="true"><i data-lucide="wheat" class="size-20"></i></div>
     <h1 class="text-4xl font-extrabold mt-4">Nông Việt CMS</h1>
     <p class="text-white/80 mt-3 max-w-md">Quản lý sản phẩm, đơn hàng, voucher và khách hàng của cửa hàng nông nghiệp Nông Việt.</p>
   </div>
@@ -25,7 +25,7 @@
   <div class="flex items-center justify-center p-6">
     <form method="post" action="${ctx}/admin/login" class="w-full max-w-sm space-y-4">
       <div>
-        <div class="lg:hidden text-2xl font-extrabold text-primary mb-4">🌾 Nông Việt CMS</div>
+        <div class="lg:hidden text-2xl font-extrabold text-primary mb-4 flex items-center gap-2"><i data-lucide="wheat" class="size-6"></i> Nông Việt CMS</div>
         <h2 class="text-2xl font-bold">Đăng nhập quản trị</h2>
         <p class="text-sm text-base-content/60">Chỉ dành cho tài khoản có vai trò Admin.</p>
       </div>
@@ -41,7 +41,7 @@
       <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
         <input type="password" name="password" class="input w-full" required></label>
       <button class="btn btn-primary btn-block">Đăng nhập</button>
-      <a href="${ctx}/" class="btn btn-ghost btn-sm btn-block">← Về cửa hàng</a>
+      <a href="${ctx}/" class="btn btn-ghost btn-sm btn-block"><i data-lucide="arrow-left" class="size-4"></i> Về cửa hàng</a>
     </form>
   </div>
 </div>

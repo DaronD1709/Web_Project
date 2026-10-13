@@ -86,7 +86,7 @@
       <c:choose>
         <c:when test="${empty result.items}">
           <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center">
-            <div class="text-5xl">🔍</div>
+            <div class="text-5xl"><i data-lucide="search" class="size-12 text-primary"></i></div>
             <div class="font-semibold mt-2">Không tìm thấy sản phẩm phù hợp</div>
             <p class="text-sm text-base-content/60">Thử bỏ bớt bộ lọc hoặc đổi từ khoá khác.</p>
           </div>
