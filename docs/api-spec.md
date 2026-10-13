@@ -66,7 +66,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
 
-**Đã code & test (giỏ hàng, chat):** xem mục 4 và 6 — `GET/POST /cart` (add/update/remove, htmx), `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). Chưa có: checkout.
+**Đã code & test (giỏ hàng, checkout COD/VNPay, lịch sử đơn, chat):** xem mục 4, 5 và 6 — `GET/POST /cart` (add/update/remove, htmx), `/checkout`, `/checkout/voucher`, `/checkout/success`, các tuyến `/payment/vnpay/*`, `GET /orders`, `GET /orders/detail`, `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). VNPay đã kiểm thử sandbox; cấu hình production và điều kiện triển khai xem mục 4 cùng `docs/vnpay-setup.md`.
 
 **Đã code & test:** `/register`, `/login`, `/logout`, `/forgot-password`, `/reset-password` (kèm `AuthFilter`/`AdminFilter` chưa làm).
 `login`: thiếu email/mật khẩu, sai email hay sai mật khẩu đều báo **cùng một** thông báo. Email được trim và chuyển chữ thường độc lập locale của máy; mật khẩu giữ nguyên. Tham số `next` chỉ nhận đường dẫn nội bộ bắt đầu bằng `/`, không nhận `//`, dấu `\` hoặc ký tự điều khiển.
@@ -117,22 +117,77 @@ Tìm kiếm không phân biệt hoa thường (`LOWER(p.name) LIKE :q`). Sản p
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
 | GET | `/cart` | `CartServlet` | — | `customer/cart.jsp` (attr `cart`, `subtotal`, `shippingFee`, `total`) |
-| POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
-| POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty` | htmx: fragment tóm tắt giỏ; thường: 302 |
-| POST | `/cart` | `CartServlet` | `action=remove` + `itemId` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
-| GET | `/checkout` | `CheckoutServlet` | — | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`); giỏ rỗng → 302 `/cart` |
+| POST | `/cart` | `CartServlet` | `action=add` + `productId`, `qty`, `cartCsrfToken` | htmx: fragment `#cart-count` (số lượng mới); thường: 302 `/cart` |
+| POST | `/cart` | `CartServlet` | `action=update` + `itemId`, `qty`, `cartCsrfToken` | htmx: fragment tóm tắt giỏ; thường: 302 |
+| POST | `/cart` | `CartServlet` | `action=remove` + `itemId`, `cartCsrfToken` | htmx: xoá dòng + cập nhật tóm tắt; thường: 302 |
+| GET | `/checkout` | `CheckoutServlet` | `voucherCode` (tuỳ chọn, sau POST preview thường) | `customer/checkout.jsp` (attr `cart`, `addresses`, `defaultAddress`, `selectedAddressId`, `vnPayAvailable`, `checkoutToken`, `subtotal`, `shippingFee`, `voucherCode`, `appliedVoucherCode`, `voucher`, `voucherError`, `discountAmount`, `total`); giỏ rỗng → 302 `/cart` |
 | POST | `/checkout/voucher` | `VoucherServlet` | `code` | htmx fragment `#voucher-result`: thành công (số tiền giảm) hoặc **một** lỗi cụ thể |
-| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD\|VNPAY`, `voucherCode` (tuỳ chọn) | OK → 302 `/checkout/success?orderId=..`; thiếu hàng → quay lại `/checkout` + `error` |
-| GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình) |
-| GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | (Optional) cập nhật `PaymentStatus`, 302 `/checkout/success` |
+| POST | `/checkout` | `CheckoutServlet` | `addressId`, `paymentMethod=COD\|VNPAY`, `voucherCode` (tuỳ chọn), `checkoutToken` | COD → 302 `/checkout/success?orderId=..`; VNPay → 302 `/payment/vnpay/start?orderId=..`; lỗi nghiệp vụ → checkout + `error`, `selectedPaymentMethod`; token sai/thiếu → 403 |
+| GET | `/checkout/success` | `CheckoutServlet` | `orderId` | `customer/order-success.jsp` (chỉ xem được đơn của mình); hiển thị kết quả theo trạng thái đã lưu, gồm VNPay chờ xác nhận/thành công/đơn huỷ |
+| GET | `/payment/vnpay/start` | `CheckoutServlet` | `orderId` | Customer xem đơn của mình; 302 tới URL VNPay đã ký khi đơn/thanh toán còn `PENDING` và chưa hết hạn; lỗi nghiệp vụ → trang kết quả theo DB, kèm `paymentError` khi còn chờ; ID sai → 400, đơn lạ → 404, đơn người khác/Admin → 403; POST → 405 |
+| POST | `/payment/vnpay/reconcile` | `CheckoutServlet` | `orderId`, `vnPayReconcileToken` | Customer đối soát đơn của mình qua API QueryDr; POST có token riêng trong session, chờ 5 phút giữa các lần gọi; PRG về trang kết quả DB với `paymentMessage` hoặc `paymentError`. Token sai/trùng → 403; ID sai/trùng → 400; đơn người khác/Admin → 403; GET → 405 |
+| GET | `/payment/vnpay/ipn` | `VNPayIpnServlet` | tham số `vnp_*` do VNPay gửi, gồm chữ ký | Server-to-server, không yêu cầu session Customer; HTTP 200 JSON `RspCode`/`Message` theo giao thức VNPay; Service xác thực và cập nhật trong transaction. POST → 405 |
+| GET | `/payment/vnpay/return` | `VNPayReturnServlet` | tham số VNPay trả về | Yêu cầu Customer, kiểm tra chữ ký/merchant/đơn thuộc khách/số tiền; 302 `/checkout/success?orderId=..` để hiển thị trạng thái DB, **không cập nhật thanh toán**. Lỗi dữ liệu → 400; đơn lạ → 404; đơn người khác/Admin → 403; POST → 405 |
+
+**CSRF giỏ hàng:** `CartCsrf.prepare(req)` tạo token ngẫu nhiên 32 byte gắn với session Customer, truyền attr `cartCsrfToken` cho JSP. HomeServlet, ProductServlet và GET /cart chuẩn bị token trước khi forward; trang có token gửi `Cache-Control: no-store`. Form add/update/remove có hidden input nên htmx và POST thường đều gửi token. Sau `requireCustomer`, POST kiểm tra token trước khi gọi Service: thiếu/sai/trùng token → 403, không sửa DB; htmx báo toast + `HX-Reswap: none` và giữ UI. Token dùng ổn định cho nhiều tab trong cùng session; phiên mới cần tải lại form. Guest vẫn đi login, Admin vẫn 403 theo kiểm tra quyền. Không dùng chung token Profile/Checkout, không thay luồng Admin. Trang sản phẩm mới của các nhánh khác có form thêm hàng phải gọi `CartCsrf.prepare(req)` và gửi hidden `cartCsrfToken` theo contract này.
+
+**Giỏ hàng:** cả 3 action yêu cầu tham số ID/số lượng đúng định dạng số nguyên trong phạm vi `int`;
+thiếu/sai không được tự đổi thành `qty=1`. Thêm/cập nhật yêu cầu số lượng ≥ 1 và không vượt tồn kho;
+`update` với 0/số âm báo lỗi, xoá chỉ dùng `action=remove`. Khi thêm sản phẩm đã có, tổng số lượng
+được cộng bằng `long` rồi kiểm tra trước khi chuyển về `int`, tránh tràn số. Dòng sửa/xoá phải thuộc giỏ của khách hiện tại;
+ID khách lấy từ session, không dùng `customerId` gửi thêm. Giỏ lưu DB, không trừ kho tại bước này;
+giữ `priceAtAdd` của dòng đã có khi tăng số lượng.
+Tạo giỏ và mỗi thao tác thêm/sửa/xoá chạy trong transaction của `CartDAO.changeCart`:
+khoá dòng Customer bằng JPQL `PESSIMISTIC_WRITE` trước khi đọc giỏ, để các request cùng khách
+không tạo trùng giỏ/dòng hoặc ghi đè số lượng của nhau. Service kiểm tra lại `Customer.isActive()`
+sau khi lấy khoá; lỗi nghiệp vụ rollback toàn bộ thao tác. Khoá này không giữ hàng;
+checkout vẫn phải kiểm tra và trừ tồn kho trong transaction riêng.
+GET/POST `/cart` gửi `Cache-Control: no-store`; GET làm mới session `cartCount` (số dòng sản phẩm khác nhau).
+Lỗi htmx trả **422**, `HX-Trigger` hiện toast và `HX-Reswap: none` giữ nội dung giỏ;
+request thường forward trang giỏ với `error`. POST thành công thường redirect `/cart`;
+htmx add trả badge, update/remove trả nội dung giỏ + badge OOB. Các nút dùng form POST
+để vẫn hoạt động khi htmx không tải được; màu/bố cục dựa trên mockup. Nút thanh toán dẫn tới `/checkout`.
+
+**Checkout COD/VNPay:** GET/POST gửi `Cache-Control: no-store`, luôn dùng `SessionUtil.requireCustomer`. Attr `vnPaySandbox` điều khiển nhãn sandbox ở JSP; production hiển thị VNPay, không ghi sai môi trường.
+GET đọc giỏ/địa chỉ đúng khách, ưu tiên địa chỉ mặc định; giỏ trống redirect `/cart`.
+POST tạo đơn và thanh toán `PENDING`, chưa có `paymentDate`; VNPay chỉ được chọn khi cấu hình môi trường đang dùng sẵn sàng (`vnPayAvailable`). Service vẫn kiểm tra cấu hình khi POST, từ chối trước khi giữ hàng nếu chưa sẵn sàng. Lỗi form giữ lựa chọn VNPay khi còn khả dụng, ngược lại chọn COD.
+Giá/tổng tiền lấy từ DB, snapshot `CartItem.priceAtAdd` sang `OrderItem.priceAtOrder`.
+Thứ tự khoá: Customer giống CartDAO → địa chỉ thuộc khách → Product theo ID tăng dần trước khi fetch giỏ → voucher;
+kiểm tra tổng số lượng theo Product kể cả giỏ cũ có dòng trùng. Đơn, trừ kho, lượt voucher, xoá giỏ và Notification cùng transaction.
+POST kiểm tra token ngẫu nhiên trong session; lỗi giữ token để sửa form. Request cùng session được phối hợp
+bằng `synchronized(session)`; gửi lại token vừa thành công redirect tới đơn cũ, không dùng giỏ mới. Đích redirect dựa trên Payment của đơn đã lưu, không dựa trên phương thức gửi lại từ form.
+GET `/payment/vnpay/start` chỉ dựng URL thanh toán cho đơn hiện có, không tạo đơn hay ghi nhận đã trả tiền. Dùng IP từ `getRemoteAddr`, thời hạn cố định 15 phút từ ngày đặt (GMT+7); tải lại không gia hạn. Lỗi/hết hạn không tự huỷ đơn vì kết quả ngân hàng có thể chưa tới.
+GET `/checkout/success`: orderId sai → 400, không tồn tại → 404, đơn người khác → 403.
+`SessionUtil` giữ query của GET trong `next` khi chuyển tới login, để đăng nhập lại vẫn xem đúng `orderId`.
+POST `/checkout/voucher` khi chưa đăng nhập quay về GET `/checkout` sau login, tránh URL voucher chỉ nhận POST (GET → 405).
+
+**Áp dụng voucher:** POST `/checkout/voucher` nhận `code`, chỉ xem mức giảm, không giữ/tăng lượt sử dụng.
+htmx trả fragment `checkout-voucher.jsp` (200/422) + tổng tiền/mã đã áp dụng OOB vào `#checkout-summary`;
+lỗi xoá mức giảm của mã cũ. POST thường redirect GET `/checkout?voucherCode=..`, GET kiểm tra lại để hiển thị.
+JSP dùng hai form riêng; input `code` thuộc form preview, hidden `voucherCode` thuộc form đặt hàng.
+JS chỉ cho swap 422 tại `#voucher-result`, không đổi hành vi Cart/Profile; giữ nút đặt hàng chờ áp dụng
+khi nội dung mã đang nhập khác mã đã được áp dụng. Địa chỉ CRUD và trang theo dõi đơn chờ nhánh tương ứng.
 
 Quy tắc `OrderService.checkout(user, addressId, method, voucherCode)` — **trong 1 transaction**:
 1. Validate mọi `CartItem.quantity <= Product.stockQuantity`, sai → `BusinessException` kèm tên sản phẩm.
 2. Nếu có voucher: `Voucher.isValid()` + kiểm tra theo thứ tự — **hết hạn → hết lượt → chưa đạt giá trị tối thiểu** (mỗi lỗi 1 thông báo riêng).
-3. Tạo `Order` (`PENDING`), `OrderItem` (snapshot `priceAtOrder`), `Payment` (`COD`/`VNPay`).
+3. Tạo `Order` (`PENDING`, ngày đặt GMT+7), `OrderItem` (snapshot `priceAtOrder`), `CODPayment` hoặc `VNPayPayment` (`PENDING`). VNPay kiểm tra số tiền biểu diễn chính xác theo đơn vị gateway trước khi trừ kho; không làm tròn âm thầm.
 4. **Trừ kho ngay** (`Product.updateStock(-qty)`), tăng `Voucher.quantityUsed`, xoá `CartItem`.
 5. Tạo `Notification` cho khách.
-6. **Sau khi commit**: `EmailService.sendOrderConfirmation(order)` gửi **email xác nhận đơn hàng** tới `customer.email` (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán; chạy nền, lỗi gửi mail không rollback đơn). Với VNPay: gửi sau khi thanh toán thành công (ở `/payment/vnpay/return`), COD gửi ngay khi đặt hàng. **Phải truyền `Order` còn nguyên items/address trong bộ nhớ**, không load lại từ DB.
+6. **Sau khi commit**: `EmailService.sendOrderConfirmation(order)` gửi **email xác nhận đơn hàng** tới `customer.email` (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán; chạy nền, lỗi gửi mail không rollback đơn). Với VNPay: gửi sau lần đầu ghi nhận thanh toán thành công qua IPN hoặc QueryDr cho đơn còn hiệu lực, COD gửi ngay khi đặt hàng. **Phải truyền `Order` còn nguyên items/address trong bộ nhớ**, không load lại từ DB.
+
+**VNPay IPN:** Servlet IPN gọi `VNPayService.processIpn`, không gọi DAO trực tiếp và không chuyển tới login. `VNPaySignature.readFields` từ chối tham số trùng; Service kiểm tra chữ ký, merchant, định dạng và số tiền. `VNPayDAO.processIpn` khoá cùng dòng Order với Admin, kiểm tra trạng thái thanh toán sau khoá, fetch đủ dữ liệu email và lưu Notification trong cùng transaction. `RspCode`: `00` đã xử lý IPN (khác với mã thanh toán thành công), `01` không tìm thấy đơn VNPay, `02` đã ghi nhận, `04` sai tiền, `97` lỗi xác thực, `99` chưa xử lý được. Trả JSON là giao thức server-to-server của gateway; các trang khách vẫn dùng JSP/htmx. GET gửi `Cache-Control: no-store`.
+
+Thanh toán thành công phải có cả `vnp_ResponseCode=00` và `vnp_TransactionStatus=00`. Thất bại đã xác định cần mã lỗi thanh toán đã biết và `vnp_TransactionStatus=02`; huỷ đơn và hoàn kho/voucher qua `OrderDAO.changeStatusInTransaction`, dùng chính transaction IPN. Phản hồi lặp không tạo thêm Notification/email. Kết quả chưa rõ, mã `07` hoặc trạng thái `09` (hoàn trả bị từ chối) giữ trạng thái để đối soát, không tự huỷ chỉ vì Return hoặc hết thời gian trên trình duyệt. Thành công đến sau khi đơn đã huỷ vẫn ghi nhận thanh toán, giữ đơn huỷ và thông báo cần liên hệ cửa hàng để đối soát/hoàn tiền; chưa có hoàn tiền tự động. Admin chỉ xử lý giao hàng VNPay đã `SUCCESS`; chỉ COD được tự ghi nhận thu tiền khi giao xong. Nếu gateway không gửi `vnp_PayDate` thì ghi thời điểm nhận kết quả tại GMT+7; ngày được gửi nhưng sai định dạng trả `99`.
+
+**Đối soát thiếu IPN:** nút “Kiểm tra thanh toán” gửi POST có token session riêng, không dùng lại token đặt hàng đã tiêu thụ. `OrderService.reconcileVNPay` kiểm tra chủ đơn trước khi gọi `VNPayService` → `VNPayQueryClient`. Client dùng API POST JSON chính thức, ký HMAC-SHA512 chuỗi theo đúng thứ tự QueryDr (khác chữ ký query URL), kiểm tra chữ ký phản hồi; thời điểm giao dịch là `vnp_CreateDate` của yêu cầu pay gốc. Chỉ gọi mạng trước transaction DB, timeout kết nối/đọc 5/10 giây, không đi theo redirect, phản hồi tối đa 16 KiB và từ chối JSON trùng tên/không phẳng. `vnp_ResponseCode=00` chỉ là truy vấn thành công: cần đúng merchant/ref/số tiền, loại `01` (pay) và trạng thái `00` (thành công) hoặc `02` (lỗi đã xác định). Các kết quả khác/lỗi mạng giữ nguyên thanh toán. Cập nhật dùng **cùng** `VNPayService.applyVerifiedResult` và transaction DAO với IPN, kiểm tra lại quyền/số tiền sau khoá; đua IPN/QueryDr không tạo hai email/Notification. Đơn đã SUCCESS bỏ qua truy vấn lại; thanh toán đến sau khi huỷ vẫn giữ huỷ và báo xử lý thủ công. Hết phiên khi POST đối soát: login xong quay về GET trang kết quả để lấy token mới. Chưa có đối soát tự động theo lịch hoặc hoàn tiền tự động.
+
+**Cấu hình khi deploy VNPay:** `vnpay.properties.example` là mẫu, `vnpay.properties` chứa bí mật riêng và không commit. `vnpay.environment=sandbox` là mặc định tương thích file cũ; `production` phải chọn rõ. Sandbox chỉ chấp nhận endpoint sandbox. Production yêu cầu cả `paymentUrl`/`queryUrl` do VNPay cấp trên HTTPS host `pay.vnpay.vn`, bộ merchant/key production và `queryIpAddress` là IPv4 công khai của server (đăng ký với VNPay theo yêu cầu kết nối). Không trộn credential/endpoint/môi trường. Hai callback cần cùng host/port/context path, không có userinfo/query/fragment; production từ chối callback localhost/private IPv4/quick tunnel. URL phải có context path nếu WAR không ở `/` (ví dụ `https://shop.example/ecommerce/payment/vnpay/ipn`); redirect nội bộ dùng `req.getContextPath()`. Đăng ký lại IPN với VNPay khi domain/context path đổi. Tuỳ chọn ghi đè VNPay bằng biến môi trường `VNPAY_*` nêu trong file mẫu, có ưu tiên hơn file local; không đổi cách đọc DB/SMTP của nhóm.
+
+Production dùng **deployment và DB riêng**, không chuyển môi trường trên DB còn đơn sandbox. Giữ `enabled=false` cho tới khi có merchant production được VNPay chấp thuận, cấu hình HTTPS/public IPN ổn định và kiểm thử triển khai. Proxy/tunnel trong `backend/tests/` chỉ dùng local, không đóng gói/chạy trên server; server phục vụ trực tiếp hai Servlet. Kiểm thử sandbox/cấu hình giả không chứng nhận thanh toán thật; chưa thực hiện giao dịch production trong nhánh này. Các việc deploy chung (DB production, seed accounts, HTTPS/proxy/session, SMTP) theo nhánh deploy của nhóm; tích hợp này không sửa Tomcat, build hay phiên bản thư viện.
+
+Tài liệu giao thức: [Thanh toán/IPN](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html), [QueryDr](https://sandbox.vnpayment.vn/apis/docs/truy-van-hoan-tien/querydr&refund.html).
+Hướng dẫn cấu hình sandbox/production theo code của dự án: [vnpay-setup.md](vnpay-setup.md).
 
 Phí ship: miễn phí khi tạm tính ≥ 500.000₫, ngược lại 30.000₫ (hằng số trong Service).
 
@@ -142,15 +197,31 @@ Phí ship: miễn phí khi tạm tính ≥ 500.000₫, ngược lại 30.000₫ 
 
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
-| GET | `/orders` | `OrderServlet` | `status` (tuỳ chọn: `PENDING`…`RETURN_REQUESTED`) | `customer/orders.jsp` (attr `orders`, `selectedStatus`) — chỉ đơn của `currentUser` |
-| GET | `/orders/detail` | `OrderServlet` | `id` | `customer/order-detail.jsp` (attr `order`, `canCancel`, `canReturn`, `canReview`); đơn người khác → 403 |
-| POST | `/orders/cancel` | `OrderServlet` | `id` | 302 `/orders/detail?id=..`; chỉ khi `PENDING`/`CONFIRMED` và đúng chủ đơn |
-| POST | `/orders/return` | `OrderServlet` | `id`, `reason` (bắt buộc) | 302; chỉ khi `COMPLETED` → `RETURN_REQUESTED` |
+| GET | `/orders` | `OrderServlet` | `status` (tuỳ chọn: `ALL` hoặc tên `OrderStatus`), `page` (số nguyên ≥ 1, mặc định 1) | `customer/orders.jsp` (attr `result: PageResult<Order>`, `orders`, `selectedStatus`, `activeAccount=orders`) — chỉ đơn của Customer đăng nhập |
+| GET | `/orders/detail` | `OrderServlet` | `id` (số nguyên dương) | `customer/order-detail.jsp` (attr `order`, `activeAccount=orders`); đơn người khác → 403, không tồn tại → 404 |
+| POST | `/orders/cancel` | `OrderServlet` | `id`, `trackingCsrfToken` | Thường: flash + 302 `/orders/detail?id=..`; htmx: fragment chi tiết + toast. Chỉ `PENDING`/`CONFIRMED`, đúng chủ đơn |
+| POST | `/orders/return` | `OrderServlet` | `id`, `reason` (sau trim: 1–255 ký tự), `trackingCsrfToken` | Thường: flash + 302 chi tiết; htmx: fragment + toast. Chỉ `COMPLETED` → `RETURN_REQUESTED` |
+
+**View Order History đã triển khai:** hai GET trên đi qua `SessionUtil.requireCustomer`; guest → login giữ query (htmx dùng `HX-Redirect`), Admin → 403, Customer bị khoá giữa phiên → đăng xuất. Phản hồi `Cache-Control: no-store`. ID/page/status sai hoặc tham số trùng → 400; POST vào hai URL GET → 405.
+
+Danh sách mới nhất trước (ID giảm dần), 10 đơn/trang; page vượt trang cuối được đưa về trang cuối. Tab theo mockup: Tất cả, Chờ xác nhận (`PENDING` + `CONFIRMED`), Đang giao, Hoàn tất, Đã huỷ, Hoàn hàng (`RETURN_REQUESTED` + `RETURNED`). URL `CONFIRMED`/`RETURNED` lọc riêng trạng thái đó. Status được chuẩn hoá chữ hoa; không nhận customer ID từ request. DAO phân trang ID trước rồi JOIN FETCH items/product/payment để trả đủ dòng hàng sau khi đóng EntityManager.
+
+Tab/phân trang gửi `HX-Request: true` + `HX-Target: order-history` → `customer/fragments/order-history.jsp`; các request khác trả trang đầy đủ. Link vẫn chạy khi không có htmx, URL được cập nhật để F5/back giữ bộ lọc. Vùng lịch sử đặt `hx-history="false"` để htmx không lưu HTML đơn hàng vào localStorage; khôi phục lịch sử phải hỏi lại server và kiểm tra phiên. Menu header của Customer dẫn vào `/orders`; chi tiết có link tới `/checkout/success?orderId=..` để xem lại kết quả COD/VNPay. Giá từng dòng dùng `priceAtOrder`; phí/giảm/tổng tiền dùng snapshot trên Order. Đọc lịch sử không gọi gateway, gửi email, thay đổi kho/voucher/giỏ hay trạng thái đơn.
+
+**Track Order Status:** GET chi tiết có `canCancel`/`canReturn` từ `Order.canMoveTo`, kèm token phiên `trackingCsrfToken`. `HX-Request: true` + `HX-Target: order-detail-body` trả `customer/fragments/order-tracking.jsp`; trang chi tiết hỏi lại mỗi 15 giây, dừng hỏi khi dialog huỷ/hoàn đang mở. Poll chỉ đọc DB, không gọi gateway/gửi email. Dialog theo mockup; không thêm Review/mua lại hoặc CRUD địa chỉ.
+
+POST kiểm tra đúng một ID/lý do/token; ID sai hoặc tham số trùng → 400, token thiếu/sai/trùng → 403, đơn lạ → 404, đơn người khác → 403. Lỗi nghiệp vụ giữ nội dung lý do và vẽ lại trang (htmx: 422 + toast, JS chỉ cho thay vùng chi tiết khi 422). Guest/phiên hết hạn đăng nhập lại tới GET chi tiết hoặc danh sách, không tới URL POST; Admin → 403; tài khoản bị khoá bị đăng xuất. `TrackingCsrf` dùng chung cho thao tác đơn và đánh dấu đọc thông báo trong nhánh này, không thay token của Cart/Profile/Checkout.
+
+`OrderService` kiểm tra lại chủ đơn, tài khoản và `Order.canMoveTo` **trong transaction sau khoá Order** qua `OrderDAO.changeCustomerStatus`. Dùng lại `changeStatusInTransaction` của Admin/IPN cho kho/voucher/payment/Notification. Huỷ lặp hoặc huỷ/hoàn khi trạng thái không cho phép bị từ chối, không cộng kho hay tạo thông báo lần nữa. Gửi yêu cầu hoàn chưa cộng kho; chỉ Admin duyệt `RETURNED` mới cộng kho, từ chối về `COMPLETED`. Thanh toán COD đang chờ chuyển `FAILED` khi huỷ; VNPay giữ kết quả gateway. Huỷ đơn VNPay đã trả tiền **không tự hoàn tiền**: UI báo liên hệ cửa hàng đối soát/hoàn tiền theo luồng hiện có.
 
 Luồng trạng thái hợp lệ (validate trong `Order.updateStatus()`):
 `PENDING → CONFIRMED → SHIPPING → COMPLETED`; `PENDING/CONFIRMED → CANCELLED`;
 `COMPLETED → RETURN_REQUESTED → RETURNED` (Admin từ chối → quay lại `COMPLETED`).
 Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. Mỗi lần đổi trạng thái ⇒ tạo `Notification`.
+`OrderDAO.applyStatusChange` khoá đơn trước khi kiểm tra chuyển trạng thái; huỷ/hoàn khoá Product theo ID tăng dần,
+đọc lại entity bằng `refresh` sau khi có khoá rồi cộng kho. Huỷ đơn có voucher khoá và `refresh` voucher sau sản phẩm
+trước khi trả một lượt sử dụng; hoàn hàng giữ lượt voucher theo luật hiện tại. Các thay đổi cùng transaction,
+tránh ghi đè tồn kho/lượt sử dụng khi checkout và Admin xử lý đơn đồng thời.
 
 ---
 
@@ -158,12 +229,18 @@ Huỷ đơn / duyệt hoàn hàng ⇒ **cộng lại kho** từng `OrderItem`. M
 
 | Method | URL | Servlet | Tham số | Phản hồi |
 |---|---|---|---|---|
-| GET | `/notifications` | `NotificationServlet` | — | `customer/notifications.jsp` (attr `notifications`) |
-| POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` | 302 `/notifications` |
+| GET | `/notifications` | `NotificationServlet` | `filter=ALL\|UNREAD` (mặc định ALL), `page` (≥ 1, mặc định 1) | `customer/notifications.jsp`; htmx + `HX-Target: notification-list` → fragment danh sách. Attr `result: PageResult<Notification>`, `selectedFilter`, `unreadCount`, `activeAccount=notifications`, `trackingCsrfToken` |
+| POST | `/notifications/read` | `NotificationServlet` | `id` hoặc `all=true` (không đồng thời), `trackingCsrfToken`, `filter`, `page` | Thường: 302 danh sách giữ bộ lọc/trang; htmx: danh sách + badge OOB + toast |
 | GET | `/notifications/count` | `NotificationServlet` | — | htmx fragment số chưa đọc (badge header), `hx-trigger="every 30s"` |
 | GET | `/chat` | `ChatServlet` | — | `customer/chat.jsp` (attr `messages`, `conversation`) |
 | POST | `/chat/send` | `ChatServlet` | `content` | htmx: fragment tin nhắn mới (của khách, rồi **chatbot trả lời theo luật từ khoá** nếu chưa có Admin tiếp quản; không hiểu / xin gặp nhân viên ⇒ chuyển sang chế độ Nhân viên) |
 | GET | `/chat/messages` | `ChatServlet` | `after` (id tin cuối đã có) | htmx fragment các tin mới hơn, `hx-trigger="every 3s"` (polling, không dùng WebSocket) |
+
+**Nhận/xem thông báo được triển khai trong `feat/track-order-status` theo phạm vi đã xác nhận.** Cả ba URL đi qua `SessionUtil.requireCustomer`, `Cache-Control: no-store`; chỉ đọc/sửa thông báo của Customer đăng nhập. Không nhận user ID từ request. Danh sách ID giảm dần, 20 dòng/trang, trang vượt giới hạn về trang cuối; bộ lọc không hợp lệ/page sai/tham số trùng → 400. GET không đánh dấu đọc, không tạo thông báo; nguồn tạo vẫn là transaction đặt hàng/đổi trạng thái đã có.
+
+Header chỉ hiển thị chuông/badge cho Customer, tải lần đầu rồi hỏi số chưa đọc mỗi 30 giây; danh sách cũng hỏi lại mỗi 30 giây. Phản hồi badge đã tải chỉ có `every 30s`, không lặp `load`. HTML thông báo không lưu vào htmx history. POST token thiếu/sai/trùng → 403, thông báo lạ → 404, của người khác → 403; UPDATE có điều kiện chủ sở hữu và chưa đọc, đánh dấu lặp không gây tác dụng phụ. Đánh dấu tất cả chỉ cập nhật tài khoản hiện tại. POST phiên hết hạn quay về GET `/notifications` sau login; GET vào URL ghi hoặc POST vào URL đọc → 405.
+
+Giao diện giữ bố cục `mockup/notifications.html`, escape message và dùng getter ngày `@Transient` (không thêm cột). Entity chưa có liên kết Order nên nút đi tới lịch sử đơn của mình; không suy ID từ nội dung thông báo. Thông báo trong app không gửi thêm email và không sửa luồng SMTP/Chat của thành viên khác.
 
 `Message` gắn với khách qua `Message.customer`; `Message.sender` là `User` (Customer hoặc Admin; chatbot dùng tài khoản hệ thống loại Admin) — JSP phân biệt bubble theo người gửi.
 Nội dung tin nhắn luôn qua `<c:out>`.

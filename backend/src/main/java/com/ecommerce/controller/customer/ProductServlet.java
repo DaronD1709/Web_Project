@@ -4,6 +4,7 @@ import com.ecommerce.dto.ProductFilter;
 import com.ecommerce.service.CategoryService;
 import com.ecommerce.service.ProductService;
 import com.ecommerce.util.ParamUtil;
+import com.ecommerce.util.CartCsrf;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,6 +25,7 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        if (CartCsrf.prepare(req) != null) resp.setHeader("Cache-Control", "no-store");
         // 1. Doc tham so request -> gom vao DTO (tham so sai dinh dang thi bo qua, khong bao loi)
         ProductFilter filter = new ProductFilter();
         filter.setCategoryId(ParamUtil.intOrNull(req.getParameter("cat")));

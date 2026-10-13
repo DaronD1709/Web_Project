@@ -11,6 +11,10 @@
     </form>
 
     <div class="flex items-center gap-1 sm:gap-2 ml-auto sm:ml-0">
+      <c:if test="${not empty sessionScope.currentUser and sessionScope.currentUser.customer}">
+        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Đơn hàng của tôi"><span aria-hidden="true">📦</span><span class="hidden sm:inline">Đơn hàng</span></a>
+        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Thông báo"><span aria-hidden="true">🔔</span><jsp:include page="/WEB-INF/views/customer/fragments/notification-count.jsp" /></a>
+      </c:if>
       <a href="${ctx}/chat" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Chat với shop"><span aria-hidden="true">💬</span><span class="hidden sm:inline">Chat</span></a>
       <a href="${ctx}/cart" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Giỏ hàng">
         <span class="indicator"><span aria-hidden="true">🛒</span><jsp:include page="/WEB-INF/views/customer/fragments/cart-count.jsp" /></span>

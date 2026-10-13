@@ -1,6 +1,7 @@
 package com.ecommerce.dao;
 
 import com.ecommerce.dto.AdminOrderFilter;
+import com.ecommerce.dto.PageResult;
 import com.ecommerce.entity.Notification;
 import com.ecommerce.entity.Order;
 import com.ecommerce.entity.OrderItem;
@@ -8,6 +9,9 @@ import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.util.JPAUtil;
+import com.ecommerce.entity.Product;
+import com.ecommerce.entity.Voucher;
+import com.ecommerce.entity.CODPayment;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.LockModeType;
@@ -18,8 +22,9 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
-/** Truy van don hang cho Admin (loc/phan trang, dem theo trang thai, chi tiet day du) va doi trang thai kem hoan kho trong 1 transaction. */
+/** Đọc đơn của Customer/Admin; đổi trạng thái và hoàn kho trong một transaction. */
 public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     public OrderDAO() {
@@ -27,6 +32,41 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
     }
 
     // ------------------------------------------------------------------ danh sach
+
+    /** Chỉ đọc đơn của khách; phân trang ID trước rồi fetch collection để không mất dòng hàng. */
+    public PageResult<Order> findHistory(Integer customerId,
+            List<OrderStatus> statuses, int page, int pageSize) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            String where = " WHERE o.customer.id = :customerId"
+                    + (statuses.isEmpty() ? "" : " AND o.status IN :statuses");
+            var count = em.createQuery("SELECT COUNT(o) FROM Order o" + where, Long.class)
+                    .setParameter("customerId", customerId);
+            if (!statuses.isEmpty()) count.setParameter("statuses", statuses);
+            long total = count.getSingleResult();
+            int currentPage = (int) Math.min(page, Math.max(1L, (total + pageSize - 1) / pageSize));
+
+            var idQuery = em.createQuery("SELECT o.id FROM Order o" + where + " ORDER BY o.id DESC", Integer.class)
+                    .setParameter("customerId", customerId)
+                    .setFirstResult(Math.toIntExact(((long) currentPage - 1) * pageSize))
+                    .setMaxResults(pageSize);
+            if (!statuses.isEmpty()) idQuery.setParameter("statuses", statuses);
+            List<Integer> ids = idQuery.getResultList();
+            if (ids.isEmpty()) return new PageResult<>(List.of(), total, currentPage, pageSize);
+
+            // Không setMaxResults trên JOIN FETCH items: Hibernate có thể phân trang trong bộ nhớ.
+            List<Order> orders = em.createQuery(
+                    "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items i "
+                    + "LEFT JOIN FETCH i.product LEFT JOIN FETCH o.payment "
+                    + "WHERE o.customer.id = :customerId AND o.id IN :ids ORDER BY o.id DESC", Order.class)
+                    .setParameter("customerId", customerId)
+                    .setParameter("ids", ids)
+                    .getResultList();
+            return new PageResult<>(orders, total, currentPage, pageSize);
+        } finally {
+            em.close();
+        }
+    }
 
     /** 1 trang don hang khop bo loc, moi nhat truoc. JOIN FETCH khach + thanh toan de JSP doc duoc sau khi EntityManager dong. */
     public List<Order> search(AdminOrderFilter f) {
@@ -167,52 +207,25 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     // ------------------------------------------------------------------ doi trang thai
 
-    /**
-     * Doi trang thai don va moi viec di kem trong CUNG 1 transaction: hoac xong het hoac khong gi ca.
-     *  - huy don / duyet hoan hang: cong lai kho cho tung dong hang (don huy con tra lai 1 luot voucher)
-     *  - giao thanh cong: thanh toan COD chuyen sang SUCCESS; huy don: thanh toan dang cho chuyen sang FAILED
-     *  - tao Notification cho khach
-     * Luat "chuyen duoc hay khong" do Order.canMoveTo quyet dinh; Service kiem tra truoc de bao loi than thien.
-     */
-    public void applyStatusChange(Integer orderId, OrderStatus next, String notificationText) {
+    /** Customer: kiểm tra chủ đơn/trạng thái dưới cùng khoá Order với Admin/IPN. */
+    public void changeCustomerStatus(Integer orderId, OrderStatus next,
+            String notificationText, Consumer<Order> validate) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            // Khoa dong don: 2 admin cung bam "Huy" 1 luc thi nguoi thu 2 phai doi, roi thay don da huy -> khong cong kho 2 lan.
-            // Dung JPQL + setLockMode (khong dung em.find(..., lock)): voi find, Hibernate doc don bang query co JOIN truoc roi moi khoa tung bang,
-            // nen luong cho van thay trang thai CU. Query don gian "WHERE id = ?" duoc them "FOR UPDATE" ngay trong cau SELECT.
-            Order order = em.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
+            List<Order> matches = em.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
                     .setParameter("id", orderId)
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
-                    .getSingleResult();
-            order.updateStatus(next); // sai luat -> nem IllegalStateException -> rollback
-
-            if (next == OrderStatus.CANCELLED || next == OrderStatus.RETURNED) {
-                for (OrderItem item : order.getItems()) {
-                    item.getProduct().updateStock(item.getQuantity()); // so duong = cong lai kho
-                }
+                    .getResultList();
+            Order order = matches.isEmpty() ? null : matches.get(0);
+            if (order != null) {
+                em.refresh(order.getCustomer());
+                if (order.getPayment() != null) em.refresh(order.getPayment());
             }
-            if (next == OrderStatus.CANCELLED && order.getVoucher() != null && order.getVoucher().getQuantityUsed() > 0) {
-                order.getVoucher().setQuantityUsed(order.getVoucher().getQuantityUsed() - 1);
-            }
-            Payment payment = order.getPayment();
-            if (payment != null) {
-                if (next == OrderStatus.COMPLETED && payment.getStatus() != PaymentStatus.SUCCESS) {
-                    payment.setStatus(PaymentStatus.SUCCESS); // COD: nhan tien luc giao hang xong
-                    payment.setPaymentDate(LocalDateTime.now());
-                } else if (next == OrderStatus.CANCELLED && payment.getStatus() == PaymentStatus.PENDING) {
-                    payment.setStatus(PaymentStatus.FAILED);
-                }
-            }
-
-            Notification n = new Notification();
-            n.setUser(order.getCustomer());
-            n.setMessage(notificationText);
-            n.setRead(false);
-            n.setCreatedAt(LocalDateTime.now());
-            em.persist(n);
-
+            // Service kiểm tra quyền, trạng thái và đặt lý do hoàn; lỗi rollback.
+            validate.accept(order);
+            changeStatusInTransaction(em, order, next, notificationText);
             tx.commit();
         } catch (RuntimeException e) {
             if (tx.isActive()) tx.rollback();
@@ -220,5 +233,122 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         } finally {
             em.close();
         }
+    }
+
+    /**
+     * Doi trang thai don va moi viec di kem trong CUNG 1 transaction: hoac xong het hoac khong gi ca.
+     *  - huy don / duyet hoan hang: cong lai kho cho tung dong hang (don huy con tra lai 1 luot voucher)
+     *  - giao thanh cong: thanh toan COD chuyen sang SUCCESS; huy don: thanh toan dang cho chuyen sang FAILED
+     *  - tao Notification cho khach
+     * Luat "chuyen duoc hay khong" do Order.canMoveTo quyet dinh; Service kiem tra truoc de bao loi than thien.
+     */
+    public void applyStatusChange(
+            Integer orderId, OrderStatus next, String notificationText) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+
+            // Khoá đơn trước khi kiểm tra và thay đổi trạng thái.
+            Order order = em.createQuery(
+                    "SELECT o FROM Order o WHERE o.id = :id",
+                    Order.class)
+                    .setParameter("id", orderId)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getSingleResult();
+
+            changeStatusInTransaction(em, order, next, notificationText);
+
+            tx.commit();
+        } catch (RuntimeException e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Dùng transaction và khoá đơn mà bên gọi đã chuẩn bị.
+     * Không tự mở transaction mới, không tự commit hoặc đóng EntityManager.
+     */
+    void changeStatusInTransaction(
+            EntityManager em, Order order,
+            OrderStatus next, String notificationText) {
+        Integer orderId = order.getId();
+
+        // Luật chuyển trạng thái vẫn nằm trong Order.
+        order.updateStatus(next);
+
+        if (next == OrderStatus.CANCELLED
+                || next == OrderStatus.RETURNED) {
+            List<Integer> productIds = em.createQuery(
+                    "SELECT DISTINCT i.product.id FROM OrderItem i "
+                    + "WHERE i.order.id = :orderId",
+                    Integer.class)
+                    .setParameter("orderId", orderId)
+                    .getResultList();
+
+            if (!productIds.isEmpty()) {
+                // Cùng thứ tự khoá sản phẩm với checkout.
+                List<Product> products = em.createQuery(
+                        "SELECT p FROM Product p WHERE p.id IN :ids "
+                        + "ORDER BY p.id ASC",
+                        Product.class)
+                        .setParameter("ids", productIds)
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .getResultList();
+
+                for (Product product : products) {
+                    em.refresh(product);
+                }
+            }
+
+            for (OrderItem item : order.getItems()) {
+                item.getProduct().updateStock(item.getQuantity());
+            }
+        }
+
+        if (next == OrderStatus.CANCELLED
+                && order.getVoucher() != null) {
+            // Khoá voucher sau sản phẩm, rồi đọc lại số lượt đã dùng.
+            Voucher voucher = em.createQuery(
+                    "SELECT v FROM Voucher v WHERE v.id = :id",
+                    Voucher.class)
+                    .setParameter("id", order.getVoucher().getId())
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getSingleResult();
+
+            em.refresh(voucher);
+
+            if (voucher.getQuantityUsed() > 0) {
+                voucher.setQuantityUsed(voucher.getQuantityUsed() - 1);
+            }
+        }
+
+        Payment payment = order.getPayment();
+
+        if (payment instanceof CODPayment) {
+            if (next == OrderStatus.COMPLETED
+                    && payment.getStatus() != PaymentStatus.SUCCESS) {
+                payment.setStatus(PaymentStatus.SUCCESS);
+                payment.setPaymentDate(LocalDateTime.now());
+
+            } else if (next == OrderStatus.CANCELLED
+                    && payment.getStatus() == PaymentStatus.PENDING) {
+                payment.setStatus(PaymentStatus.FAILED);
+            }
+        }
+
+        // VNPay giữ kết quả do IPN đã xác thực ghi nhận.
+        Notification notification = new Notification();
+        notification.setUser(order.getCustomer());
+        notification.setMessage(notificationText);
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+        em.persist(notification);
     }
 }

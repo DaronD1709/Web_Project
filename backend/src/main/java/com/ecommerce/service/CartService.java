@@ -22,12 +22,20 @@ public class CartService {
     /** Lay gio hang (kem cac dong); chua co thi tao gio rong. */
     public Cart getCart(Integer customerId) {
         Cart cart = cartDAO.findByCustomerId(customerId);
+
         if (cart == null) {
             User user = userDAO.findById(customerId);
-            if (!(user instanceof Customer customer)) throw new BusinessException("Tài khoản không có giỏ hàng.");
-            Cart fresh = new Cart();
-            fresh.setCustomer(customer);
-            cartDAO.save(fresh);
+            if (!(user instanceof Customer)) {
+                throw new BusinessException("Tài khoản không có giỏ hàng.");
+            }
+
+            // DAO lấy khoá rồi kiểm tra lại giỏ trước khi tạo.
+            // Nếu request khác đã tạo giỏ, DAO dùng giỏ đó.
+            cartDAO.changeCart(customerId, currentCart -> {
+                requireActiveCustomer(currentCart);
+            });
+
+            // Đọc lại giỏ sau khi transaction đã commit.
             cart = cartDAO.findByCustomerId(customerId);
         }
         return cart;
@@ -42,48 +50,94 @@ public class CartService {
     }
 
     public void addItem(Integer customerId, Integer productId, int qty) {
-        if (qty < 1) throw new BusinessException("Số lượng phải từ 1 trở lên.");
-        Product product = productDAO.findById(productId);
-        if (product == null) throw new BusinessException("Sản phẩm không tồn tại.");
-        if (product.getStockQuantity() <= 0) throw new BusinessException("Sản phẩm \"" + product.getName() + "\" đã hết hàng.");
+        if (qty < 1) {
+            throw new BusinessException("Số lượng phải từ 1 trở lên.");
+        }
 
-        Cart cart = getCart(customerId);
-        CartItem existing = findItemByProduct(cart, productId);
-        int newQty = (existing == null ? 0 : existing.getQuantity()) + qty;
-        if (newQty > product.getStockQuantity()) {
-            throw new BusinessException("Chỉ còn " + product.getStockQuantity() + " sản phẩm \"" + product.getName() + "\" trong kho.");
-        }
-        if (existing != null) {
-            existing.setQuantity(newQty);
-        } else {
-            CartItem item = new CartItem();
-            item.setProduct(product);
-            item.setQuantity(qty);
-            item.setPriceAtAdd(product.getPrice()); // chot gia luc them vao gio
-            cart.addItem(item);
-        }
-        cartDAO.update(cart);
+        // DAO khoá chủ giỏ trước, rồi mới chạy phần xử lý bên trong.
+        cartDAO.changeCart(customerId, cart -> {
+            requireActiveCustomer(cart);
+
+            Product product = productDAO.findById(productId);
+            if (product == null) {
+                throw new BusinessException("Sản phẩm không tồn tại.");
+            }
+
+            int stock = product.getStockQuantity();
+            if (stock <= 0) {
+                throw new BusinessException(
+                        "Sản phẩm \"" + product.getName() + "\" đã hết hàng.");
+            }
+
+            CartItem existing = findItemByProduct(cart, productId);
+            int currentQty = existing == null ? 0 : existing.getQuantity();
+
+            // Dùng long để phép cộng không bị tràn số nguyên.
+            long newQty = (long) currentQty + qty;
+            if (newQty > stock) {
+                throw new BusinessException(
+                        "Chỉ còn " + stock
+                        + " sản phẩm \"" + product.getName() + "\" trong kho.");
+            }
+
+            if (existing != null) {
+                existing.setQuantity((int) newQty);
+            } else {
+                CartItem item = new CartItem();
+                item.setProduct(product);
+                item.setQuantity(qty);
+                item.setPriceAtAdd(product.getPrice()); // Chốt giá khi thêm lần đầu.
+                cart.addItem(item);
+            }
+
+            // DAO sẽ commit các thay đổi trong cùng transaction.
+        });
     }
 
     public void updateQuantity(Integer customerId, Integer itemId, int qty) {
         if (qty < 1) {
-            removeItem(customerId, itemId);
-            return;
+            throw new BusinessException("Số lượng phải từ 1 trở lên.");
         }
-        Cart cart = getCart(customerId);
-        CartItem item = findItem(cart, itemId); // chi tim trong gio cua CHINH khach nay -> khong sua duoc gio nguoi khac
-        if (qty > item.getProduct().getStockQuantity()) {
-            throw new BusinessException("Chỉ còn " + item.getProduct().getStockQuantity() + " sản phẩm trong kho.");
-        }
-        item.setQuantity(qty);
-        cartDAO.update(cart);
+
+        cartDAO.changeCart(customerId, cart -> {
+            requireActiveCustomer(cart);
+
+            // Chỉ tìm trong giỏ của khách đang đăng nhập.
+            CartItem item = findItem(cart, itemId);
+            Product product = item.getProduct();
+            int stock = product.getStockQuantity();
+
+            if (stock <= 0) {
+                throw new BusinessException(
+                        "Sản phẩm \"" + product.getName() + "\" đã hết hàng.");
+            }
+
+            if (qty > stock) {
+                throw new BusinessException(
+                        "Chỉ còn " + stock
+                        + " sản phẩm \"" + product.getName() + "\" trong kho.");
+            }
+
+            item.setQuantity(qty);
+        });
     }
 
     public void removeItem(Integer customerId, Integer itemId) {
-        Cart cart = getCart(customerId);
-        CartItem item = findItem(cart, itemId);
-        cart.getItems().remove(item); // orphanRemoval=true tren Cart.items -> dong bi xoa khoi DB
-        cartDAO.update(cart);
+        cartDAO.changeCart(customerId, cart -> {
+            requireActiveCustomer(cart);
+
+            CartItem item = findItem(cart, itemId);
+
+            // orphanRemoval của Cart.items xoá dòng khỏi DB khi commit.
+            cart.getItems().remove(item);
+        });
+    }
+
+    private void requireActiveCustomer(Cart cart) {
+        // Kiểm tra lại sau khi lấy khoá, phòng trường hợp tài khoản vừa bị khoá.
+        if (!cart.getCustomer().isActive()) {
+            throw new BusinessException("Tài khoản của bạn đã bị khoá.");
+        }
     }
 
     private CartItem findItem(Cart cart, Integer itemId) {

@@ -202,7 +202,9 @@ bỏ `hibernate.show_sql`, cấu hình SMTP thật.
 | **Hữu Danh** (Admin + Chat) | Manage Product → `feat/admin-manage-product` · Manage Voucher → `feat/admin-manage-voucher` · Login/Logout (admin) → `feat/admin-login-logout` · Manage Order → `feat/admin-manage-order` · Manage Customer Account → `feat/admin-manage-customer-account` · Chat with Shop → `feat/chat-with-shop` |
 | **Lộc** (Registered Customer; **giỏ hàng cơ bản đã có sẵn trên dev**) | Login/Logout → `feat/login-logout` · Manage Profile → `feat/manage-profile` · View Order History → `feat/view-order-history` · Manage Shopping Cart → `feat/manage-shopping-cart` · Place Order & Pay → `feat/place-order-pay` · Track Order Status → `feat/track-order-status` |
 | **Thang** (Unregistered Customer) | Register → `feat/register` · View Products by Category → `feat/view-products-by-category` · Search Product → `feat/search-product` · View Product Detail → `feat/view-product-detail` · Manage Address Shipping → `feat/manage-address-shipping` |
-| *Chưa phân* | `feat/auth-filter` (AuthFilter/AdminFilter), `feat/product-review`, `feat/notifications`, `feat/admin-dashboard`, `feat/deploy-docker` |
+| *Chưa phân* | `feat/auth-filter` (AuthFilter/AdminFilter), `feat/product-review`, `feat/admin-dashboard`, `feat/deploy-docker` |
+
+**Phạm vi Track đã xác nhận:** Lộc làm cả nhận/xem thông báo, badge chưa đọc và đánh dấu đã đọc trong `feat/track-order-status`; không triển khai trùng ở `feat/notifications`. Nguồn tạo Notification vẫn dùng transaction đặt hàng/đổi trạng thái chung với Admin.
 
 Lưu ý khi làm song song:
 - **Đã có sẵn trên `dev`:** Register, Login/Logout, quên mật khẩu, và `/products` (tìm kiếm/lọc/sắp xếp/phân trang). Nhánh `register`, `login-logout`, `search-product` chủ yếu là chỉnh sửa/bổ sung, không viết lại từ đầu.

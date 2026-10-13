@@ -58,6 +58,9 @@ public abstract class User {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public boolean isActive() { return active == null || active; }
+    /** Chỉ để view hiện menu Customer; không thêm cột DB hay thay kiểm tra quyền ở Service. */
+    @Transient
+    public boolean isCustomer() { return this instanceof Customer; }
     public void setActive(boolean active) { this.active = active; }
     /** Ngay tham gia dang "05/10/2026" cho JSP (JSTL fmt:formatDate khong doc duoc LocalDateTime). */
     public String getCreatedAtText() {

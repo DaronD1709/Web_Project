@@ -80,15 +80,45 @@ public class SessionUtil {
     }
 
     // loginPath: trang dang nhap can chuyen toi ("/login" cho khach hang, "/admin/login" cho Admin); next = trang dang truy cap de quay lai
-    private static void redirectToLogin(HttpServletRequest req, HttpServletResponse resp, String loginPath) throws IOException {
-        String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
-        // Sau login trình duyệt gửi GET; endpoint đổi mật khẩu chỉ nhận POST.
-        // Dùng chung cho guest và khách vừa bị Admin khoá trong phiên.
-        if ("POST".equals(req.getMethod()) && "/account/password".equals(path)) {
+    private static void redirectToLogin(HttpServletRequest req,
+                                        HttpServletResponse resp,
+                                        String loginPath) throws IOException {
+        String path = req.getServletPath()
+                + (req.getPathInfo() == null ? "" : req.getPathInfo());
+
+        if ("GET".equals(req.getMethod())) {
+            // Giữ query để đăng nhập xong vẫn xem đúng đơn hàng.
+            String query = req.getQueryString();
+            if (query != null && !query.isBlank()) {
+                path += "?" + query;
+            }
+        } else if ("/orders/cancel".equals(path) || "/orders/return".equals(path)) {
+            Integer id = ParamUtil.intOrNull(req.getParameter("id"));
+            path = id != null && id > 0 ? "/orders/detail?id=" + id : "/orders";
+        } else if ("/account/password".equals(path)) {
+            // Sau login trinh duyet gui GET; endpoint doi mat khau chi nhan POST nen quay ve trang ho so.
             path = "/account/profile";
+        } else if ("/notifications/read".equals(path)) {
+            path = "/notifications";
+        } else if ("/checkout/voucher".equals(path)) {
+            // Login xong trình duyệt gửi GET; quay về trang checkout.
+            path = "/checkout";
+        } else if ("/payment/vnpay/reconcile".equals(path)) {
+            // Đối soát chỉ POST: sau login quay về GET kết quả để lấy token mới.
+            Integer orderId = ParamUtil.intOrNull(req.getParameter("orderId"));
+            path = "/checkout/success";
+            if (orderId != null && orderId > 0) {
+                path += "?orderId=" + orderId;
+            }
         }
-        String login = req.getContextPath() + loginPath + "?next=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
-        if (HtmxUtil.isHtmx(req)) HtmxUtil.redirect(resp, login);
-        else resp.sendRedirect(login);
+
+        String login = req.getContextPath() + loginPath + "?next="
+                + URLEncoder.encode(path, StandardCharsets.UTF_8);
+
+        if (HtmxUtil.isHtmx(req)) {
+            HtmxUtil.redirect(resp, login);
+        } else {
+            resp.sendRedirect(login);
+        }
     }
 }
