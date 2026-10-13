@@ -33,7 +33,7 @@ Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Opti
 
 ### Khác
 - [Optional] Chat real-time với admin/shop
-- [Optional] AI chatbot hỗ trợ hỏi đáp sản phẩm
+- [Optional] Chatbot trả lời tự động theo luật Admin soạn (không dùng AI ngoài)
 
 ---
 

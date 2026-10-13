@@ -111,7 +111,7 @@ public class AdminChatServlet extends HttpServlet {
         req.setAttribute("selected", selected);
         req.setAttribute("filter", filter);
         req.setAttribute("q", q);
-        req.setAttribute("botEmail", ChatService.BOT_EMAIL); // JSP dung de nhan ra tin cua tro ly AI
+        req.setAttribute("botEmail", ChatService.BOT_EMAIL); // JSP dung de nhan ra tin cua tro ly tu dong
         if (selected != null) {
             List<Message> messages = chatService.messagesAfter(selected.getId(), 0);
             req.setAttribute("messages", messages);

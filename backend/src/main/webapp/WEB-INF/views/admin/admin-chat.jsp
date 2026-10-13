@@ -14,12 +14,12 @@
   <%-- ===== VUNG 1: TIEU DE TRANG ===== --%>
   <div class="mb-4">
     <h1 class="text-2xl font-bold">Chat với khách</h1>
-    <p class="text-sm text-base-content/60">Trợ lý AI trả lời trước; bạn tiếp quản khi khách cần nhân viên</p>
+    <p class="text-sm text-base-content/60">Trợ lý tự động trả lời trước; bạn tiếp quản khi khách cần nhân viên</p>
   </div>
 
   <div class="card bg-base-100 border border-base-300 overflow-hidden grid grid-cols-1 lg:grid-cols-[20rem_minmax(0,1fr)] 2xl:grid-cols-[20rem_minmax(0,1fr)_17rem] lg:h-[calc(100vh-11rem)] lg:min-h-[34rem]">
 
-    <%-- ===== VUNG 2 (cot 1): DANH SACH HOI THOAI + TIM KIEM + LOC AI / NHAN VIEN ===== --%>
+    <%-- ===== VUNG 2 (cot 1): DANH SACH HOI THOAI + TIM KIEM + LOC TU DONG / NHAN VIEN ===== --%>
     <div class="border-b lg:border-b-0 lg:border-r border-base-300 flex flex-col min-h-0 min-w-0 max-h-72 lg:max-h-none">
       <div class="px-5 pt-5 pb-4 space-y-3 border-b border-base-300">
         <div class="flex items-center justify-between"><h2 class="font-semibold">Hội thoại</h2><span class="text-xs text-base-content/50">${fn:length(conversations)} cuộc</span></div>
@@ -35,7 +35,7 @@
         <div class="join w-full">
           <a href="${ctx}/admin/chat?filter=all" class="join-item btn btn-sm flex-1 ${filter == 'all' ? 'btn-primary' : ''}">Tất cả</a>
           <a href="${ctx}/admin/chat?filter=human" class="join-item btn btn-sm flex-1 ${filter == 'human' ? 'btn-primary' : ''}">Nhân viên</a>
-          <a href="${ctx}/admin/chat?filter=ai" class="join-item btn btn-sm flex-1 ${filter == 'ai' ? 'btn-primary' : ''}">AI</a>
+          <a href="${ctx}/admin/chat?filter=ai" class="join-item btn btn-sm flex-1 ${filter == 'ai' ? 'btn-primary' : ''}">Tự động</a>
         </div>
       </div>
       <jsp:include page="/WEB-INF/views/admin/fragments/admin-chat-list.jsp" />
@@ -52,7 +52,7 @@
 
         <%-- ===== VUNG 3 (cot 2): KHUNG CHAT ===== --%>
         <div class="flex flex-col min-h-[34rem] lg:min-h-0 min-w-0 border-b lg:border-b-0 2xl:border-r border-base-300">
-          <%-- Dau khung: ten khach + che do + nut AI / Nhan vien (fragment, duoc thay khi bam nut hoac khi vua gui tin) --%>
+          <%-- Dau khung: ten khach + che do + nut Tu dong / Nhan vien (fragment, duoc thay khi bam nut hoac khi vua gui tin) --%>
           <jsp:include page="/WEB-INF/views/admin/fragments/admin-chat-head.jsp" />
 
           <%-- Cac bong bong chat + the #poll (hoi tin moi moi 3 giay). id chat-msgs de admin.js cuon xuong cuoi khi co tin moi --%>

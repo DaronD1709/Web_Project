@@ -11,7 +11,7 @@
     <div class="chat-header text-xs">
       <c:choose>
         <c:when test="${mine}">Bạn</c:when>
-        <c:when test="${isBot}">Trợ lý AI <span class="badge badge-xs badge-info">AI</span></c:when>
+        <c:when test="${isBot}">Trợ lý tự động</c:when>
         <c:otherwise>Nhân viên shop <span class="badge badge-xs badge-primary">Shop</span></c:otherwise>
       </c:choose>
       <time class="opacity-50"><fmt:formatNumber value="${m.sentAt.hour}" minIntegerDigits="2"/>:<fmt:formatNumber value="${m.sentAt.minute}" minIntegerDigits="2"/></time>

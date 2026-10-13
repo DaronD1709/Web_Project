@@ -61,7 +61,7 @@ public class ChatServlet extends HttpServlet {
         int lastId = messages.isEmpty() ? after : messages.get(messages.size() - 1).getId();
         req.setAttribute("messages", messages);
         req.setAttribute("lastId", lastId);
-        req.setAttribute("botEmail", ChatService.BOT_EMAIL); // JSP dung de nhan ra tin cua tro ly AI
+        req.setAttribute("botEmail", ChatService.BOT_EMAIL); // JSP dung de nhan ra tin cua tro ly tu dong
         req.getRequestDispatcher(view).forward(req, resp);
     }
 }

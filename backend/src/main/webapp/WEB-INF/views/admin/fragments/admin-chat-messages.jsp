@@ -7,7 +7,7 @@
   MANH: cac bong bong chat moi + 1 phan tu #poll o cuoi. Attr: messages (List<Message>), lastId (id tin cuoi da co), selected (Customer dang mo),
   botEmail (email tai khoan he thong cua chatbot), withHead (true khi vua gui tin: tra kem dau khung chat da cap nhat).
   #poll tu hoi /admin/chat/messages?c=..&after=lastId moi 3 giay (polling); ket qua thay chinh no bang tin moi + #poll moi.
-  3 kieu nguoi gui: khach (trang, ben trai), tro ly AI (vang nhat, ben phai), nhan vien (xanh dam, ben phai).
+  3 kieu nguoi gui: khach (trang, ben trai), tro ly tu dong (vang nhat, ben phai), nhan vien (xanh dam, ben phai).
 --%>
 <c:forEach var="m" items="${messages}">
   <c:set var="fromCustomer" value="${m.sender.id == m.customer.id}" />
@@ -22,7 +22,7 @@
       <div class="text-[11px] text-base-content/50 px-1">
         <c:choose>
           <c:when test="${fromCustomer}"><c:out value="${selected.fullName}"/></c:when>
-          <c:when test="${fromBot}">Trợ lý AI</c:when>
+          <c:when test="${fromBot}">Trợ lý tự động</c:when>
           <c:when test="${m.sender.id == sessionScope.currentUser.id}">Bạn</c:when>
           <c:otherwise><c:out value="${m.sender.fullName}"/></c:otherwise>
         </c:choose>

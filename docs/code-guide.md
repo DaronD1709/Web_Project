@@ -145,7 +145,7 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 
 ## 6. Chat với khách — nhánh `feat/chat-with-shop`
 
-**Làm gì:** trang chat 3 cột cho Admin (danh sách hội thoại, khung chat, thông tin khách), polling bằng htmx (không WebSocket), chuyển AI/Nhân viên, chatbot trả lời cho khách.
+**Làm gì:** trang chat 3 cột cho Admin (danh sách hội thoại, khung chat, thông tin khách), polling bằng htmx (không WebSocket), chuyển Tự động/Nhân viên, chatbot trả lời cho khách.
 
 | | File | |
 |---|---|---|
@@ -158,7 +158,7 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 | FE | `views/admin/admin-chat.jsp` | A · khung 3 cột |
 | FE | `views/admin/fragments/admin-chat-list.jsp` | A · danh sách hội thoại (tự hỏi lại 5 giây) |
 | FE | `views/admin/fragments/admin-chat-messages.jsp` | A · bong bóng chat + thẻ `#poll` (3 giây) |
-| FE | `views/admin/fragments/admin-chat-head.jsp` | A · đầu khung chat + nút AI / Nhân viên |
+| FE | `views/admin/fragments/admin-chat-head.jsp` | A · đầu khung chat + nút Tự động / Nhân viên |
 | FE | `static/js/admin.js` | M · `nvChatChip`, `nvChatScroll` |
 
 **Đọc:** `AdminChatServlet` → `AdminChatService` → `ChatService.sendFromCustomer` → `admin-chat.jsp` → 3 file trong `fragments/`.
