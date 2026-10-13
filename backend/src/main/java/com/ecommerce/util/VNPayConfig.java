@@ -117,8 +117,11 @@ public class VNPayConfig {
         String expectedIpnPath = path.substring(0, path.length() - suffix.length())
                 + "/payment/vnpay/ipn";
         URI ipn = URI.create(getIpnUrl());
+        // HTTPS không ghi port và :443 là cùng origin.
+        int returnPort = callback.getPort() == -1 ? 443 : callback.getPort();
+        int ipnPort = ipn.getPort() == -1 ? 443 : ipn.getPort();
         return callback.getHost().equalsIgnoreCase(ipn.getHost())
-                && callback.getPort() == ipn.getPort()
+                && returnPort == ipnPort
                 && expectedIpnPath.equals(ipn.getRawPath());
     }
 
@@ -133,10 +136,10 @@ public class VNPayConfig {
                 return false;
             }
         }
-        return !isProduction() || !isPrivateIpv4(parts);
+        return !isProduction() || !isNonPublicIpv4(parts);
     }
 
-    private boolean isPrivateIpv4(String[] parts) {
+    private boolean isNonPublicIpv4(String[] parts) {
         if (parts.length != 4) {
             return true;
         }
@@ -147,10 +150,21 @@ public class VNPayConfig {
         }
         int first = Integer.parseInt(parts[0]);
         int second = Integer.parseInt(parts[1]);
+        int third = Integer.parseInt(parts[2]);
+        int fourth = Integer.parseInt(parts[3]);
+        // Ngoài private/loopback, CGNAT và các dải tài liệu/benchmark
+        // cũng không phải IP public để VNPay kết nối production.
         return first == 0 || first == 10 || first == 127 || first >= 224
+                || (first == 100 && second >= 64 && second <= 127)
                 || (first == 169 && second == 254)
                 || (first == 172 && second >= 16 && second <= 31)
-                || (first == 192 && second == 168);
+                || (first == 192 && second == 168)
+                || (first == 192 && second == 0 && third == 0
+                    && fourth != 9 && fourth != 10)
+                || (first == 192 && second == 0 && third == 2)
+                || (first == 198 && (second == 18 || second == 19))
+                || (first == 198 && second == 51 && third == 100)
+                || (first == 203 && second == 0 && third == 113);
     }
 
     private boolean isPublicCallback(String value) {
@@ -160,7 +174,7 @@ public class VNPayConfig {
                 || host.endsWith(".trycloudflare.com") || host.contains(":")) {
             return false;
         }
-        return !host.matches("[0-9.]+") || !isPrivateIpv4(host.split("\\."));
+        return !host.matches("[0-9.]+") || !isNonPublicIpv4(host.split("\\."));
     }
 
     private boolean isHttpsUrl(String value) {
