@@ -3,7 +3,7 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Hồ sơ cá nhân — NôngViệt</title>
+  <title>Hồ sơ cá nhân — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
 <body class="bg-base-200 min-h-screen">
