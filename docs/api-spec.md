@@ -105,9 +105,9 @@ menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơ
 |---|---|---|---|---|---|
 | GET | `/` , `/home` | `HomeServlet` | — | `categories`, `featuredProducts` | `customer/home.jsp` |
 | GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc`, `page` (mặc định 1) | `filter`, `result`, `categories`, `selectedCategory` | `customer/products.jsp` |
-| GET | `/product` | `ProductDetailServlet` | `id` | `product`, `relatedProducts`, `reviews`, `avgRating`, `canReview` (đã mua) | `customer/product-detail.jsp` |
+| GET | `/product` | `ProductDetailServlet` | `id` | `product`, `relatedProducts`, `reviews` (tối đa 50, mới nhất trước), `reviewCount`, `avgRating`, `canReview` (đã mua), `myReview` (đánh giá cũ của khách), `reviewFlash` | `customer/product-detail.jsp` |
 **Chi tiết sản phẩm:** `GET /product?id={id}` hiển thị thông tin sản phẩm và tối đa 4 sản phẩm liên quan cùng danh mục, không bao gồm sản phẩm hiện tại. `id` bị thiếu, không phải số, không dương hoặc không tồn tại đều trả về HTTP 404. Khách chưa đăng nhập vẫn xem được chi tiết nhưng phải đăng nhập để mua hàng. Form thêm giỏ hàng chỉ hiển thị khi có `cartCsrfToken`.
-| POST | `/product/review` | `ReviewServlet` | `productId`, `rating` (1–5), `comment` | 302 `/product?id=..#reviews`; chưa mua → 403 | CUSTOMER |
+| POST | `/product/review` | `ReviewServlet` | `productId`, `rating` (1–5), `comment` (≤1000, tuỳ chọn), `cartCsrfToken` | **Đã code.** 302 `/product?id=..#reviews` (thông báo 1 lần qua session `reviewFlash`); sai dữ liệu → quay lại trang kèm lỗi; chưa mua → 403; thiếu/sai token → 403; chưa đăng nhập → `/login`. Đã đánh giá rồi thì **cập nhật** (mỗi khách 1 đánh giá/sản phẩm, ràng buộc unique ở DB) | CUSTOMER |
 
 Service: `ProductService.search(filter)`, `ReviewService.write(user, productId, rating, comment)` —
 **chỉ cho viết review nếu khách có đơn `COMPLETED`/`RETURNED` chứa sản phẩm** (rule ở Service, không phải entity).

@@ -3,6 +3,7 @@ package com.ecommerce.util;
 import com.ecommerce.dao.MessageDAO;
 import com.ecommerce.dao.OrderDAO;
 import com.ecommerce.dao.ProductDAO;
+import com.ecommerce.dao.ReviewDAO;
 import com.ecommerce.dao.UserDAO;
 import com.ecommerce.dao.VoucherDAO;
 import com.ecommerce.entity.Address;
@@ -18,6 +19,7 @@ import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.Payment;
 import com.ecommerce.entity.PaymentStatus;
 import com.ecommerce.entity.Product;
+import com.ecommerce.entity.Review;
 import com.ecommerce.entity.VNPayPayment;
 import com.ecommerce.entity.Voucher;
 
@@ -41,7 +43,10 @@ public class DemoDataSeeder {
         seedVouchers();
         seedExtraCustomers();
         seedChats();
-        if (orderDAO.count() > 0) return;
+        if (orderDAO.count() > 0) {
+            seedReviews(); // DB cu da co don nhung chua co danh gia
+            return;
+        }
         List<Product> products = productDAO.findAll();
         if (products.size() < 6) return; // chua co san pham mau thi thoi
 
@@ -73,6 +78,49 @@ public class DemoDataSeeder {
             for (int j = 0; j < items; j++) lines[j] = new int[]{rnd.nextInt(products.size()), 1 + rnd.nextInt(3)};
             OrderStatus st = rnd.nextInt(12) == 0 ? OrderStatus.CANCELLED : OrderStatus.COMPLETED;
             order(buyers[rnd.nextInt(buyers.length)], daysAgo, st, rnd.nextBoolean() ? "COD" : "VNPAY", products, lines, null);
+        }
+        seedReviews();
+    }
+
+    // Danh gia mau (chi khi bang reviews trong): cho cac cap (khach, san pham) co don COMPLETED de trang chi tiet san pham co sao + nhan xet de xem.
+    // Khong tao cho khach chua mua -> dung rule "chi khach da mua moi danh gia"; vai san pham de trong de thu viet danh gia moi.
+    private static void seedReviews() {
+        ReviewDAO reviewDAO = new ReviewDAO();
+        if (reviewDAO.count() > 0) return;
+        jakarta.persistence.EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        List<Object[]> pairs;
+        try {
+            pairs = em.createQuery("SELECT DISTINCT o.customer, i.product FROM Order o JOIN o.items i WHERE o.status = :st", Object[].class)
+                    .setParameter("st", OrderStatus.COMPLETED).getResultList();
+        } finally {
+            em.close();
+        }
+        pairs.sort((x, y) -> {
+            int byProduct = ((Product) x[1]).getId().compareTo(((Product) y[1]).getId());
+            return byProduct != 0 ? byProduct : ((Customer) x[0]).getId().compareTo(((Customer) y[0]).getId());
+        });
+        int[] stars = {5, 4, 5, 3, 4, 5, 4, 5, 2, 4, 5, 3};
+        String[] comments = {
+            "Hàng đúng mô tả, đóng gói cẩn thận, giao nhanh. Sẽ ủng hộ shop tiếp.",
+            "Chất lượng tốt so với giá tiền, dùng vụ này thấy hiệu quả rõ.",
+            "Rất hài lòng, nhân viên tư vấn nhiệt tình.",
+            "Tạm ổn, giao hơi chậm một chút nhưng sản phẩm không có vấn đề.",
+            "",
+            "Mua lần thứ hai rồi, vẫn chất lượng như lần đầu.",
+            "Sản phẩm dùng tốt, bà con trong xóm cũng hỏi mua theo.",
+            "Đóng gói chắc chắn, hạn sử dụng còn dài.",
+            "Không như kỳ vọng lắm, mong shop cải thiện chất lượng.",
+            "Giá hợp lý, dùng ổn định.",
+        };
+        for (int i = 0; i < pairs.size() && i < 14; i++) {
+            Review r = new Review();
+            r.setCustomer((Customer) pairs.get(i)[0]);
+            r.setProduct((Product) pairs.get(i)[1]);
+            r.setRating(stars[i % stars.length]);
+            String c = comments[i % comments.length];
+            r.setComment(c.isEmpty() ? null : c);
+            r.setCreatedAt(LocalDateTime.now().minusDays(1 + i));
+            reviewDAO.save(r);
         }
     }
 
