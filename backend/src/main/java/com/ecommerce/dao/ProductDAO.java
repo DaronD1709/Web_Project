@@ -8,6 +8,7 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Query;
 
 import java.util.List;
+import java.util.Locale;
 
 // Vi du DAO cu the: chi them nhung query dac thu, CRUD co ban da co san tu AbstractDAO.
 public class ProductDAO extends AbstractDAO<Product, Integer> {
@@ -107,7 +108,9 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
     private String buildWhere(ProductFilter f) {
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (f.getCategoryId() != null) where.append(" AND p.category.id = :categoryId");
-        if (f.getKeyword() != null) where.append(" AND LOWER(p.name) LIKE :keyword");
+        if (f.getKeyword() != null) {
+            where.append(" AND LOWER(p.name) LIKE :keyword ESCAPE '!'");
+        }
         if (f.getMinPrice() != null) where.append(" AND p.price >= :minPrice");
         if (f.getMaxPrice() != null) where.append(" AND p.price <= :maxPrice");
         if (f.isInStockOnly()) where.append(" AND p.stockQuantity > 0");
@@ -133,9 +136,25 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
     }
 
     private void setParams(Query query, ProductFilter f) {
-        if (f.getCategoryId() != null) query.setParameter("categoryId", f.getCategoryId());
-        if (f.getKeyword() != null) query.setParameter("keyword", "%" + f.getKeyword().toLowerCase() + "%");
-        if (f.getMinPrice() != null) query.setParameter("minPrice", f.getMinPrice());
-        if (f.getMaxPrice() != null) query.setParameter("maxPrice", f.getMaxPrice());
+        if (f.getCategoryId() != null) {
+            query.setParameter("categoryId", f.getCategoryId());
+        }
+        if (f.getKeyword() != null) {
+            String keyword = escapeLike(f.getKeyword().toLowerCase(Locale.ROOT));
+            query.setParameter("keyword", "%" + keyword + "%");
+        }
+        if (f.getMinPrice() != null) {
+            query.setParameter("minPrice", f.getMinPrice());
+        }
+        if (f.getMaxPrice() != null) {
+            query.setParameter("maxPrice", f.getMaxPrice());
+        }
+    }
+
+    private String escapeLike(String value) {
+        return value
+            .replace("!", "!!")
+            .replace("%", "!%")
+            .replace("_", "!_");
     }
 }
