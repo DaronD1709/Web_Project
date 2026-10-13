@@ -104,7 +104,7 @@ menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơ
 | Method | URL | Servlet | Tham số | Attr cho JSP | JSP |
 |---|---|---|---|---|---|
 | GET | `/` , `/home` | `HomeServlet` | — | `categories`, `featuredProducts` | `customer/home.jsp` |
-| GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc\|sold`, `page` (mặc định 1) | `products`, `categories`, `totalCount`, `page`, `totalPages`, `selectedCat`, `q` | `customer/products.jsp` |
+| GET | `/products` | `ProductServlet` | `cat` (categoryId), `q` (từ khoá), `min`, `max`, `instock=on`, `sort=new\|asc\|desc`, `page` (mặc định 1) | `filter`, `result`, `categories`, `selectedCategory` | `customer/products.jsp` |
 | GET | `/product` | `ProductDetailServlet` | `id` | `product`, `relatedProducts`, `reviews`, `avgRating`, `canReview` (đã mua) | `customer/product-detail.jsp` |
 **Chi tiết sản phẩm:** `GET /product?id={id}` hiển thị thông tin sản phẩm và tối đa 4 sản phẩm liên quan cùng danh mục, không bao gồm sản phẩm hiện tại. `id` bị thiếu, không phải số, không dương hoặc không tồn tại đều trả về HTTP 404. Khách chưa đăng nhập vẫn xem được chi tiết nhưng phải đăng nhập để mua hàng. Form thêm giỏ hàng chỉ hiển thị khi có `cartCsrfToken`.
 | POST | `/product/review` | `ReviewServlet` | `productId`, `rating` (1–5), `comment` | 302 `/product?id=..#reviews`; chưa mua → 403 | CUSTOMER |
@@ -112,6 +112,8 @@ menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơ
 Service: `ProductService.search(filter)`, `ReviewService.write(user, productId, rating, comment)` —
 **chỉ cho viết review nếu khách có đơn `COMPLETED`/`RETURNED` chứa sản phẩm** (rule ở Service, không phải entity).
 Tìm kiếm theo một phần tên sản phẩm và không phân biệt hoa thường (`LOWER(p.name) LIKE :keyword`). Từ khoá được truyền bằng query parameter; các ký tự wildcard `%`, `_` và ký tự escape `!` được xử lý như ký tự thông thường. Sản phẩm `stockQuantity = 0` vẫn hiện nhưng nút mua bị khoá.
+
+`View Products by Category`: người dùng không cần đăng nhập có thể chọn một danh mục bằng tham số `cat`. `ProductServlet` chuyển bộ lọc cho `ProductService`, lấy danh mục đang chọn qua `CategoryService`, sau đó JSP chỉ hiển thị sản phẩm phù hợp và tên danh mục trong tiêu đề. Các bộ lọc, cách sắp xếp và phân trang tiếp tục giữ tham số danh mục hiện tại.
 
 ---
 
