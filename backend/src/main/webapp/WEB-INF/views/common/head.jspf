@@ -8,8 +8,11 @@
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <%-- Icon Lucide: viet <i data-lucide="ten-icon" class="size-5"></i>, icons.js doi thanh SVG (va ve lai sau moi lan htmx doi noi dung) --%>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
+<script src="${ctx}/static/js/search.js?v=${applicationScope.assetVersion}" defer></script>
 <script src="${ctx}/static/js/icons.js?v=${applicationScope.assetVersion}" defer></script>
 <%-- Favicon: SVG (icon Lucide wheat tren nen xanh thuong hieu) + PNG cho iOS --%>
 <link rel="icon" type="image/svg+xml" href="${ctx}/static/img/favicon.svg">
 <link rel="apple-touch-icon" href="${ctx}/static/img/apple-touch-icon.png">
 <link href="${ctx}/static/css/design.css?v=${applicationScope.assetVersion}" rel="stylesheet">
+<%-- Anh san pham mo dan hien khi tai xong (.pc-img); khong co JS thi hien luon de khong mat anh --%>
+<noscript><style>.pc-img{opacity:1!important}</style></noscript>

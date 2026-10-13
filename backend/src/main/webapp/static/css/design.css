@@ -56,3 +56,12 @@ svg.lucide { display: inline-block; vertical-align: middle; flex-shrink: 0; }
 /* Admin: link khong gach chan (chi gach khi re chuot vao) */
 #adm-main .link { text-decoration: none; }
 #adm-main .link:hover { text-decoration: underline; }
+
+/* Anh the san pham: nen xam + mo dan hien khi tai xong -> doi danh muc/loc bang htmx khong bi nhay trang roi hien anh */
+.pc-img { opacity: 0; transition: opacity .25s ease; }
+.pc-img.is-loaded { opacity: 1; }
+
+/* Footer luon nam day man hinh ke ca khi trang ngan (trang co .site-footer: body xep doc, footer day xuong bang margin-top:auto) */
+body:has(> .site-footer) { display: flex; flex-direction: column; min-height: 100vh; }
+body:has(> .site-footer) > main { width: 100%; padding-bottom: 3rem; }
+.site-footer { margin-top: auto; }

@@ -26,8 +26,8 @@
       <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Đồng hành cùng<br>nhà nông Việt</h1>
       <p class="mt-4 text-white/80 max-w-md">Hạt giống, phân bón, thuốc BVTV, dụng cụ và máy móc nông nghiệp chính hãng — giao tận vườn, đổi trả trong 7 ngày.</p>
       <div class="mt-6 flex gap-3">
-        <a href="${ctx}/products" class="btn btn-accent btn-lg">Mua sắm ngay</a>
-        <a href="${ctx}/chat" class="btn btn-outline btn-lg text-white border-white/60 hover:bg-white hover:text-primary">Hỏi tư vấn</a>
+        <a href="${ctx}/products" class="btn btn-accent btn-lg"><i data-lucide="shopping-bag" class="size-5"></i> Mua sắm ngay</a>
+        <a href="${ctx}/chat" class="btn btn-outline btn-lg text-white border-white/60 hover:bg-white hover:text-primary"><i data-lucide="message-circle" class="size-5"></i> Hỏi tư vấn</a>
       </div>
     </div>
     <div class="hidden md:flex justify-center items-end gap-2 select-none" aria-hidden="true"><i data-lucide="wheat" stroke-width="1.25" class="size-40 text-white/90"></i><i data-lucide="tractor" stroke-width="1.25" class="size-28 -ml-6 mb-3 text-accent"></i></div>
@@ -62,7 +62,7 @@
   <section class="mt-12">
     <div class="flex items-end justify-between mb-4">
       <h2 class="text-2xl font-bold">Sản phẩm mới</h2>
-      <a href="${ctx}/products" class="link link-primary text-sm inline-flex items-center gap-1">Xem tất cả <i data-lucide="arrow-right" class="size-4"></i></a>
+      <a href="${ctx}/products" class="btn btn-outline btn-sm">Xem tất cả <i data-lucide="arrow-right" class="size-4"></i></a>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <c:forEach var="p" items="${featuredProducts}">

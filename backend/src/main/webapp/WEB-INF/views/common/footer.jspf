@@ -1,9 +1,47 @@
-<footer class="bg-neutral text-neutral-content mt-16">
-  <div class="max-w-7xl mx-auto px-4 py-8 text-sm flex flex-wrap justify-between gap-4">
-    <div><div class="text-lg font-bold mb-1 flex items-center gap-1.5"><i data-lucide="wheat" class="size-5"></i> Nông Việt</div><p class="opacity-70">Hạt giống, phân bón, dụng cụ và máy móc cho nhà nông.</p></div>
-    <div class="opacity-70">0900 000 000 · support@nongviet.vn</div>
+<%-- Footer dung chung cho moi trang khach hang: gioi thieu + dieu huong + tai khoan + lien he. Nut dieu huong dung btn-ghost (khong dung link tran). --%>
+<footer class="site-footer bg-neutral text-neutral-content mt-16">
+  <div class="max-w-7xl mx-auto px-4 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+    <div>
+      <div class="text-lg font-bold mb-2 flex items-center gap-1.5"><i data-lucide="wheat" class="size-5"></i> Nông Việt</div>
+      <p class="opacity-70">Hạt giống, phân bón, thuốc BVTV, dụng cụ và máy móc cho nhà nông. Giao tận vườn, đổi trả trong 7 ngày.</p>
+      <div class="mt-4 flex flex-wrap gap-2" aria-label="Phương thức thanh toán">
+        <span class="badge badge-outline gap-1"><i data-lucide="banknote" class="size-3.5"></i> COD</span>
+        <span class="badge badge-outline gap-1"><i data-lucide="credit-card" class="size-3.5"></i> VNPay</span>
+      </div>
+    </div>
+    <nav aria-label="Mua sắm">
+      <div class="font-semibold mb-2">Mua sắm</div>
+      <div class="flex flex-col items-start gap-1">
+        <a href="${ctx}/" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="house" class="size-4"></i> Trang chủ</a>
+        <a href="${ctx}/products" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="store" class="size-4"></i> Tất cả sản phẩm</a>
+        <a href="${ctx}/cart" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="shopping-cart" class="size-4"></i> Giỏ hàng</a>
+      </div>
+    </nav>
+    <nav aria-label="Tài khoản">
+      <div class="font-semibold mb-2">Tài khoản</div>
+      <div class="flex flex-col items-start gap-1">
+        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="package" class="size-4"></i> Đơn hàng của tôi</a>
+        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="bell" class="size-4"></i> Thông báo</a>
+        <a href="${ctx}/account/profile" class="btn btn-ghost btn-sm px-2 text-neutral-content/80 hover:bg-white/10"><i data-lucide="user" class="size-4"></i> Hồ sơ cá nhân</a>
+      </div>
+    </nav>
+    <div>
+      <div class="font-semibold mb-2">Liên hệ</div>
+      <ul class="space-y-2 opacity-80">
+        <li class="flex items-start gap-2"><i data-lucide="phone" class="size-4 mt-0.5 shrink-0"></i> 0900 000 000</li>
+        <li class="flex items-start gap-2"><i data-lucide="mail" class="size-4 mt-0.5 shrink-0"></i> support@nongviet.vn</li>
+        <li class="flex items-start gap-2"><i data-lucide="map-pin" class="size-4 mt-0.5 shrink-0"></i> 123 Đường Nông Nghiệp, TP. Hồ Chí Minh</li>
+        <li class="flex items-start gap-2"><i data-lucide="clock" class="size-4 mt-0.5 shrink-0"></i> Thứ 2 – Thứ 7, 8:00 – 17:30</li>
+      </ul>
+      <a href="${ctx}/chat" class="btn btn-outline btn-sm mt-3 border-white/30 text-neutral-content hover:bg-white/10"><i data-lucide="message-circle" class="size-4"></i> Chat với shop</a>
+    </div>
   </div>
-  <div class="text-center text-xs opacity-50 pb-6">© 2026 Nông Việt — đồ án môn học</div>
+  <div class="border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-4 text-xs opacity-60 flex flex-wrap items-center justify-between gap-2">
+      <span>© 2026 Nông Việt — đồ án môn học</span>
+      <span>Thanh toán thử nghiệm qua VNPay sandbox</span>
+    </div>
+  </div>
 </footer>
 <%-- Toast: server bao qua header HX-Trigger {"showToast":{"message":..,"type":"success|error"}} (xem util/HtmxUtil) --%>
 <div id="toast-box" class="toast toast-end toast-bottom z-50"></div>

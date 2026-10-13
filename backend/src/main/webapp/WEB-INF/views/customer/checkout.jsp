@@ -28,7 +28,7 @@
       <section class="card bg-base-100 border border-base-300 p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 class="font-bold">1. Địa chỉ giao hàng</h2>
-          <a href="${ctx}/account/addresses" class="link link-primary text-sm">+ Thêm / sửa địa chỉ</a>
+          <a href="${ctx}/account/addresses" class="btn btn-outline btn-sm"><i data-lucide="plus" class="size-4"></i> Thêm / sửa địa chỉ</a>
         </div>
         <c:choose>
           <c:when test="${empty addresses}"><p class="text-sm text-base-content/70">Bạn chưa có địa chỉ giao hàng.</p></c:when>

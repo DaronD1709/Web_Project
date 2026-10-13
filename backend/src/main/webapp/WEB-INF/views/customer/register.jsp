@@ -47,7 +47,7 @@
       <c:if test="${not empty errors.confirmPassword}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.confirmPassword}"/></span></div></c:if></label>
 
     <button class="btn btn-primary btn-block">Tạo tài khoản</button>
-    <div class="text-center text-sm">Đã có tài khoản? <a href="${ctx}/login" class="link link-primary font-medium">Đăng nhập</a></div>
+    <div class="text-center text-sm flex flex-col items-center gap-2">Đã có tài khoản? <a href="${ctx}/login" class="btn btn-outline btn-sm btn-block">Đăng nhập</a></div>
   </form>
   </div>
 </main>

@@ -128,7 +128,9 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         if (f.getCategoryId() != null) where.append(" AND p.category.id = :categoryId");
         if (f.getKeyword() != null) {
-            where.append(" AND LOWER(p.name) LIKE :keyword ESCAPE '!'");
+            // Khong phan biet hoa thuong VA dau tieng Viet: "thuoc tru sau" van ra "Thuốc trừ sâu". translate() la ham san co cua Postgres
+            // (doi tung ky tu co dau -> khong dau), 2 chuoi hang so ben duoi khong chua du lieu nguoi dung nen noi vao JPQL la an toan.
+            where.append(" AND CAST(function('translate', LOWER(p.name), '" + ACCENTED + "', '" + PLAIN + "') AS String) LIKE :keyword ESCAPE '!'");
         }
         if (f.getMinPrice() != null) where.append(" AND p.price >= :minPrice");
         if (f.getMaxPrice() != null) where.append(" AND p.price <= :maxPrice");
@@ -159,7 +161,7 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
             query.setParameter("categoryId", f.getCategoryId());
         }
         if (f.getKeyword() != null) {
-            String keyword = escapeLike(f.getKeyword().toLowerCase(Locale.ROOT));
+            String keyword = escapeLike(stripAccents(f.getKeyword()));
             query.setParameter("keyword", "%" + keyword + "%");
         }
         if (f.getMinPrice() != null) {
@@ -168,6 +170,29 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
         if (f.getMaxPrice() != null) {
             query.setParameter("maxPrice", f.getMaxPrice());
         }
+    }
+
+    // Bang doi dau: ACCENTED[i] -> PLAIN[i]. Gom chu thuong co dau + chu HOA co dau (phong khi LOWER cua DB khong doi duoc chu hoa co dau).
+    private static final String ACCENTED;
+    private static final String PLAIN;
+    static {
+        String[] groups = {"aàáạảãâầấậẩẫăằắặẳẵ", "eèéẹẻẽêềếệểễ", "iìíịỉĩ", "oòóọỏõôồốộổỗơờớợởỡ", "uùúụủũưừứựửữ", "yỳýỵỷỹ", "dđ"};
+        StringBuilder from = new StringBuilder(), to = new StringBuilder();
+        for (String g : groups) {
+            char plain = g.charAt(0);
+            for (char c : g.substring(1).toCharArray()) {
+                from.append(c).append(Character.toUpperCase(c));
+                to.append(plain).append(plain);
+            }
+        }
+        ACCENTED = from.toString();
+        PLAIN = to.toString();
+    }
+
+    /** "Thuốc Trừ Sâu" -> "thuoc tru sau" (chu thuong, bo dau tieng Viet; dong bo voi translate() o buildWhere). */
+    static String stripAccents(String value) {
+        String lower = value.toLowerCase(Locale.ROOT).replace('đ', 'd');
+        return java.text.Normalizer.normalize(lower, java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "");
     }
 
     private String escapeLike(String value) {

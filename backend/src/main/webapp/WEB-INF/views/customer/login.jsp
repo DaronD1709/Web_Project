@@ -33,11 +33,11 @@
       <input type="password" name="password" class="input w-full" placeholder="••••••••" autocomplete="current-password" required></label>
     <div class="flex items-center justify-between text-sm">
       <label class="flex items-center gap-2"><input type="checkbox" name="remember" class="checkbox checkbox-sm checkbox-primary" ${remember ? 'checked' : ''}> Ghi nhớ đăng nhập</label>
-      <a href="${ctx}/forgot-password" class="link link-primary">Quên mật khẩu?</a>
+      <a href="${ctx}/forgot-password" class="btn btn-ghost btn-xs">Quên mật khẩu?</a>
     </div>
 
     <button class="btn btn-primary btn-block">Đăng nhập</button>
-    <div class="text-center text-sm">Chưa có tài khoản? <a href="${ctx}/register" class="link link-primary font-medium">Đăng ký</a></div>
+    <div class="text-center text-sm flex flex-col items-center gap-2">Chưa có tài khoản? <a href="${ctx}/register" class="btn btn-outline btn-sm btn-block">Đăng ký</a></div>
   </form>
   </div>
 </main>

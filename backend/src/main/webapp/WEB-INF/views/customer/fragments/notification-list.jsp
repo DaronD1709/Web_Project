@@ -27,13 +27,13 @@
         <div class="flex-1 min-w-0"><div class="break-words ${notice.read ? '' : 'font-semibold'}"><c:out value="${notice.message}"/></div>
           <div class="text-xs text-base-content/50 mt-1"><c:out value="${notice.createdAtText}"/></div>
           <div class="flex flex-wrap items-center gap-3 mt-2 text-xs">
-            <a href="${ctx}/orders" hx-boost="false" class="link link-primary">Xem đơn hàng của tôi</a>
+            <a href="${ctx}/orders" hx-boost="false" class="btn btn-outline btn-sm">Xem đơn hàng của tôi</a>
             <c:choose><c:when test="${notice.read}"><span class="text-base-content/50">Đã đọc</span></c:when><c:otherwise>
               <form method="post" action="${ctx}/notifications/read" hx-post="${ctx}/notifications/read" hx-target="#notification-list"
                     hx-swap="outerHTML" hx-sync="#notification-list:replace" hx-disabled-elt="#notification-list button">
                 <input type="hidden" name="id" value="${notice.id}"><input type="hidden" name="filter" value="${selectedFilter}"><input type="hidden" name="page" value="${result.page}">
                 <input type="hidden" name="trackingCsrfToken" value="<c:out value='${trackingCsrfToken}'/>">
-                <button class="link link-primary">Đánh dấu đã đọc</button>
+                <button class="btn btn-ghost btn-xs">Đánh dấu đã đọc</button>
               </form>
             </c:otherwise></c:choose>
           </div>

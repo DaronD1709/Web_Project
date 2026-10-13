@@ -18,8 +18,8 @@
   <%-- Breadcrumb --%>
   <div class="text-sm breadcrumbs mb-5">
     <ul>
-      <li><a href="${ctx}/">Trang chủ</a></li>
-      <li><a href="${ctx}/products">Sản phẩm</a></li>
+      <li><a href="${ctx}/" class="btn btn-ghost btn-xs">Trang chủ</a></li>
+      <li><a href="${ctx}/products" class="btn btn-ghost btn-xs">Sản phẩm</a></li>
       <li><c:out value="${product.name}"/></li>
     </ul>
   </div>
@@ -178,7 +178,7 @@
       </c:when>
       <c:when test="${not isCustomer and empty sessionScope.currentUser}">
         <div class="alert alert-soft mb-4 text-sm">
-          <span><a class="link link-primary" href="${ctx}/login?next=${pageContext.request.servletPath}%3Fid%3D${product.id}">Đăng nhập</a> để viết đánh giá (chỉ dành cho khách đã mua sản phẩm này).</span>
+          <span><a class="btn btn-primary btn-sm" href="${ctx}/login?next=${pageContext.request.servletPath}%3Fid%3D${product.id}">Đăng nhập</a> để viết đánh giá (chỉ dành cho khách đã mua sản phẩm này).</span>
         </div>
       </c:when>
       <c:when test="${isCustomer}">
