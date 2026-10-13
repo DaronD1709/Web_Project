@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 public class AuthService {
 
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final Pattern PHONE = Pattern.compile("\\+?[0-9][0-9 .()-]*");
+    private static final int MAX_FULL_NAME_LENGTH = 255;
     private static final int MIN_PASSWORD_LENGTH = 6;
     private static final int RESET_TOKEN_MINUTES = 30;
 
@@ -30,29 +32,43 @@ public class AuthService {
 
     /** Dang ky khach hang moi (kem gio hang rong) va gui email chao mung. */
     public Customer register(String fullName, String email, String phone, String password, String confirm) {
-        Map<String, String> errors = new LinkedHashMap<>();
-        email = normalizeEmail(email);
+    Map<String, String> errors = new LinkedHashMap<>();
+    fullName = fullName == null ? "" : fullName.trim();
+    email = normalizeEmail(email);
+    phone = phone == null ? "" : phone.trim();
 
-        if (fullName == null || fullName.isBlank()) errors.put("fullName", "Vui lòng nhập họ tên");
-        if (!EMAIL.matcher(email).matches()) errors.put("email", "Email không hợp lệ");
-        else if (userDAO.findByEmail(email) != null) errors.put("email", "Email này đã được đăng ký");
-        validatePassword(password, confirm, "password", "confirmPassword", errors);
-        if (!errors.isEmpty()) throw new BusinessException(errors);
-
-        Customer customer = new Customer();
-        customer.setFullName(fullName.trim());
-        customer.setEmail(email);
-        customer.setPhone(phone == null || phone.isBlank() ? null : phone.trim());
-        customer.setPasswordHash(PasswordUtil.hash(password));
-        customer.setCreatedAt(LocalDateTime.now());
-        Cart cart = new Cart();           // Customer 1-1 Cart: tao san gio rong
-        cart.setCustomer(customer);
-        customer.setCart(cart);
-        userDAO.save(customer);
-
-        emailService.sendWelcome(customer); // chay nen, loi gui mail khong lam hong dang ky
-        return customer;
+    if (fullName.isBlank()) errors.put("fullName", "Vui lòng nhập họ tên");
+    else if (fullName.length() > MAX_FULL_NAME_LENGTH) {
+        errors.put("fullName", "Họ tên không được vượt quá 255 ký tự");
     }
+
+    if (!EMAIL.matcher(email).matches()) errors.put("email", "Email không hợp lệ");
+    else if (userDAO.findByEmail(email) != null) errors.put("email", "Email này đã được đăng ký");
+
+    if (!phone.isBlank()) {
+        int digitCount = phone.replaceAll("\\D", "").length();
+        if (!PHONE.matcher(phone).matches() || digitCount < 8 || digitCount > 15 || phone.length() > 255) {
+            errors.put("phone", "Số điện thoại cần có từ 8 đến 15 chữ số");
+        }
+    }
+
+    validatePassword(password, confirm, "password", "confirmPassword", errors);
+    if (!errors.isEmpty()) throw new BusinessException(errors);
+
+    Customer customer = new Customer();
+    customer.setFullName(fullName);
+    customer.setEmail(email);
+    customer.setPhone(phone.isBlank() ? null : phone);
+    customer.setPasswordHash(PasswordUtil.hash(password));
+    customer.setCreatedAt(LocalDateTime.now());
+    Cart cart = new Cart();           // Customer 1-1 Cart: tao san gio rong
+    cart.setCustomer(customer);
+    customer.setCart(cart);
+    userDAO.save(customer);
+
+    emailService.sendWelcome(customer); // chay nen, loi gui mail khong lam hong dang ky
+    return customer;
+}
 
     /** Sai email hay sai mat khau deu bao CUNG 1 loi, de ke xau khong do duoc email nao da dang ky. */
     public User login(String email, String password) {

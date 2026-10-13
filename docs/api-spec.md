@@ -50,7 +50,7 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 | Method | URL | Servlet | Tham số | Phản hồi | Quyền |
 |---|---|---|---|---|---|
 | GET | `/register` | `RegisterServlet` | — | `customer/register.jsp` | PUBLIC |
-| POST | `/register` | `RegisterServlet` | `fullName`, `email`, `phone`, `password`, `confirmPassword` | OK → tạo Customer + giỏ rỗng, **gửi email chào mừng**, 302 `/login?registered=1`; lỗi → form + `errors` (`email` trùng, `password` < 6 ký tự, không khớp) | PUBLIC |
+| POST | `/register` | `RegisterServlet` | `fullName`, `email`, `phone`, `password`, `confirmPassword` | OK → tạo Customer + giỏ rỗng, **gửi email chào mừng**, 302 `/login?registered=1`; lỗi → form + `errors` (`fullName` trống hoặc quá 255 ký tự, `email` sai/trùng, `phone` nếu nhập phải có 8–15 chữ số, `password` < 6 ký tự hoặc không khớp) | PUBLIC |
 | GET | `/login` | `LoginServlet` | `next` (tuỳ chọn) | `customer/login.jsp` | PUBLIC |
 | POST | `/login` | `LoginServlet` | `email`, `password`, `next`, `remember=on` (tuỳ chọn) | OK → session mới chứa `currentUser`, 302 `next` nội bộ hoặc `/`; sai → form + `error`, giữ email/next/remember, không giữ mật khẩu | PUBLIC |
 | POST | `/logout` | `LogoutServlet` | — | `session.invalidate()`, xoá cookie phiên, 302 `/`. Chỉ nhận POST (GET → 405) | CUSTOMER/ADMIN |
@@ -65,6 +65,8 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 | POST | `/account/addresses` | `AddressServlet` | `action=create\|update\|delete\|setDefault`, `id`, `recipientName`, `phone`, `street`, `city`, `isDefault` | 302 `/account/addresses` | CUSTOMER |
 
 Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/resetPassword`, `UserService.updateProfile/changePassword`, `AddressService.*`.
+
+`register`: họ tên bắt buộc, trim và tối đa 255 ký tự. Số điện thoại không bắt buộc; nếu nhập thì phải có 8–15 chữ số, cho phép dấu `+` ở đầu và các ký tự phân cách khoảng trắng, `.`, `-`, `(`, `)`. Email được trim, chuyển chữ thường và không được trùng. Mật khẩu tối thiểu 6 ký tự, phải khớp xác nhận và không được đưa trở lại HTML khi có lỗi.
 
 **Đã code & test (giỏ hàng, checkout COD/VNPay, lịch sử đơn, chat):** xem mục 4, 5 và 6 — `GET/POST /cart` (add/update/remove, htmx), `/checkout`, `/checkout/voucher`, `/checkout/success`, các tuyến `/payment/vnpay/*`, `GET /orders`, `GET /orders/detail`, `GET /chat`, `GET /chat/messages`, `POST /chat/send`. Chat có chatbot trả lời theo luật từ khoá và phía Admin (`/admin/chat`). VNPay đã kiểm thử sandbox; cấu hình production và điều kiện triển khai xem mục 4 cùng `docs/vnpay-setup.md`.
 

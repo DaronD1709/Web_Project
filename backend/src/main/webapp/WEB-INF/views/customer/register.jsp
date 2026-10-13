@@ -22,22 +22,28 @@
     <h1 class="text-2xl font-bold">Đăng ký</h1>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Họ và tên</span></div>
-      <input name="fullName" value="<c:out value='${fullName}'/>" class="input w-full ${not empty errors.fullName ? 'input-error' : ''}" required>
+      <input name="fullName" value="<c:out value='${fullName}'/>" maxlength="255" autocomplete="name"
+             class="input w-full ${not empty errors.fullName ? 'input-error' : ''}" required>
       <c:if test="${not empty errors.fullName}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.fullName}"/></span></div></c:if></label>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
-      <input type="email" name="email" value="<c:out value='${email}'/>" class="input w-full ${not empty errors.email ? 'input-error' : ''}" required>
+      <input type="email" name="email" value="<c:out value='${email}'/>" maxlength="255" autocomplete="email"
+             class="input w-full ${not empty errors.email ? 'input-error' : ''}" required>
       <c:if test="${not empty errors.email}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.email}"/></span></div></c:if></label>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Số điện thoại</span></div>
-      <input name="phone" value="<c:out value='${phone}'/>" class="input w-full" placeholder="09xx xxx xxx"></label>
+      <input type="tel" name="phone" value="<c:out value='${phone}'/>" maxlength="255" autocomplete="tel"
+             class="input w-full ${not empty errors.phone ? 'input-error' : ''}" placeholder="09xx xxx xxx">
+      <c:if test="${not empty errors.phone}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.phone}"/></span></div></c:if></label>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
-      <input type="password" name="password" class="input w-full ${not empty errors.password ? 'input-error' : ''}" placeholder="Tối thiểu 6 ký tự" required>
+      <input type="password" name="password" autocomplete="new-password"
+             class="input w-full ${not empty errors.password ? 'input-error' : ''}" placeholder="Tối thiểu 6 ký tự" required>
       <c:if test="${not empty errors.password}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.password}"/></span></div></c:if></label>
 
     <label class="form-control w-full"><div class="label"><span class="label-text">Nhập lại mật khẩu</span></div>
-      <input type="password" name="confirmPassword" class="input w-full ${not empty errors.confirmPassword ? 'input-error' : ''}" required>
+      <input type="password" name="confirmPassword" autocomplete="new-password"
+             class="input w-full ${not empty errors.confirmPassword ? 'input-error' : ''}" required>
       <c:if test="${not empty errors.confirmPassword}"><div class="label"><span class="label-text-alt text-error"><c:out value="${errors.confirmPassword}"/></span></div></c:if></label>
 
     <button class="btn btn-primary btn-block">Tạo tài khoản</button>
