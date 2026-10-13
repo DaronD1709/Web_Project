@@ -47,7 +47,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   session `cartCount` (đặt lúc đăng nhập, cập nhật khi thêm/xoá), đổi tức thì không reload (htmx + `hx-swap-oob`). Toast: server gửi header `HX-Trigger`
   (`util/HtmxUtil.toast`, tiếng Việt mã hoá `\uXXXX` vì header chỉ ASCII), listener ở `common/footer.jspf`. Chưa đăng nhập: `util/SessionUtil.requireCustomer`
   → `/login?next=...` (htmx: `HX-Redirect`); Admin vào `/cart`,`/chat` → 403. Mọi thao tác giỏ kiểm tra dòng thuộc **đúng giỏ của khách** (không sửa được giỏ người khác).
-  Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản hệ thống loại **Admin** "Trợ lý AI" (bot@nongviet.vn) để chatbot gửi lời chào (không có class AIBot/Conversation: `Message` gắn thẳng với khách qua `Message.customer`).
+  Chat không dùng WebSocket: `#poll` hỏi tin mới mỗi 3 giây. `DataSeeder` tạo thêm tài khoản hệ thống loại **Admin** "Trợ lý tự động" (bot@nongviet.vn) để chatbot gửi lời chào (không có class AIBot/Conversation: `Message` gắn thẳng với khách qua `Message.customer`).
   **Chưa làm:** nút "Thanh toán" (disabled, chờ `feat/place-order-pay`). Chatbot + phía Admin của chat đã xong (xem mục Admin > Chat bên dưới).
 - **Trang chủ thật:** `GET /` và `/home` → `HomeServlet` (map `""` + `/home`, không còn `welcome-file` trong `web.xml`) → `customer/home.jsp`
   (chuyển từ `mockup/home.html`: hero, danh mục, 8 sản phẩm mới nhất qua `ProductService.getLatestProducts`). Thẻ sản phẩm dùng chung ở
@@ -156,7 +156,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
 - [x] Mockup Admin (nhánh `feat/admin-ui`). [ ] Mockup forgot/reset password.
 - [ ] Đóng `EntityManagerFactory` khi app dừng (`contextDestroyed`) để không rò kết nối khi redeploy.
 - [ ] (Khi cần deploy) cho `JPAUtil`/`EmailService` đọc thêm biến môi trường để chạy trong Docker/cloud, không cần file `.properties`.
-- [ ] Phần Optional (Voucher, Review, Notification, chatbot AI, Return/Refund) — chỉ làm sau khi Core xong hết.
+- [ ] Phần Optional (Voucher, Review, Notification, chatbot tự động, Return/Refund) — chỉ làm sau khi Core xong hết.
 
 ## 5. Nghiệp vụ quan trọng đã bàn kỹ khi thiết kế — PHẢI nhớ khi viết Service (phần Auth/email đã code; còn lại chưa code, chỉ mới quyết định)
 
@@ -178,7 +178,7 @@ daisyUI + htmx thay thế vai trò shadcn/React để giao diện vẫn đẹp v
   `quantityUsed < quantityIssued`) vào đúng 1 chỗ, gọi khi áp dụng voucher lúc checkout — tránh if-else rải rác.
 - **Notification:** tạo tự động mỗi khi `Order.updateStatus()` được gọi (ví dụ trong `NotificationService`
   gọi kèm theo `OrderService.updateStatus()`).
-- **Chatbot (không có class AIBot/Conversation, KHÔNG gọi AI ngoài):** tin của bot gửi bằng tài khoản hệ thống loại Admin ("Trợ lý AI"). `ChatBotService.reply()` đọc các luật **Admin tự soạn** ở bảng `auto_replies` (entity `AutoReply`: từ khoá → câu trả lời, ưu tiên, cờ chuyển nhân viên),
+- **Chatbot (không có class AIBot/Conversation, KHÔNG gọi AI ngoài):** tin của bot gửi bằng tài khoản hệ thống loại Admin ("Trợ lý tự động"). `ChatBotService.reply()` đọc các luật **Admin tự soạn** ở bảng `auto_replies` (entity `AutoReply`: từ khoá → câu trả lời, ưu tiên, cờ chuyển nhân viên),
   chọn luật đầu tiên khớp (khớp nguyên từ, bỏ dấu + chữ thường); không luật nào khớp ⇒ câu mặc định trong code + chuyển nhân viên. Luật `handoff` hoặc không hiểu ⇒ `Customer.handledByHuman = true` và bot im lặng cho tới khi Admin bật lại AI. `DataSeeder` nạp 10 luật mặc định (gồm luật `*`). Muốn dùng AI thật chỉ cần sửa `reply()`.
 - **Không có class `Account` riêng:** Admin/Customer đều là `User` — "khoá/mở tài khoản" dùng field `User.active` (cột `users.is_active`, mặc định true; `Boolean` + `isActive()` coi null là true để các dòng cũ không hỏng).
 

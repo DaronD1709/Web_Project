@@ -134,7 +134,7 @@ public class DemoDataSeeder {
         Customer lan = (Customer) userDAO.findByEmail("lan.vo@gmail.com");
         if (bot == null || admin == null || nam == null || mai == null || lan == null) return;
 
-        chat(nam, bot, "Xin chào! Mình là trợ lý AI của Nông Việt. Bạn cần tư vấn gì?", 40);
+        chat(nam, bot, "Xin chào! Mình là trợ lý tự động của Nông Việt. Bạn cần tư vấn gì?", 40);
         chat(nam, nam, "Mình muốn mua máy cắt cỏ, còn hàng không?", 38);
         chat(nam, bot, "Máy cắt cỏ cầm tay chạy xăng hiện còn 3 máy. Bạn muốn mình chuyển nhân viên hỗ trợ không?", 38);
         chat(nam, nam, "Có, gọi nhân viên giúp mình", 37);

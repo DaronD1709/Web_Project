@@ -371,4 +371,4 @@ Quy ước: nội dung email dựng **ngay trên thread gọi** (còn đủ dữ
 3. **Giỏ hàng:** `/cart`.
 4. **Checkout + đơn hàng:** `/checkout`, `/orders*` (có trừ/hoàn kho, `Order.updateStatus()`).
 5. **Admin đơn hàng:** `/admin/orders*`.
-6. Optional: voucher, review, notification, chat/AI, địa chỉ nhiều (nếu chưa xong), dashboard.
+6. Optional: voucher, review, notification, chat/chatbot tự động, địa chỉ nhiều (nếu chưa xong), dashboard.

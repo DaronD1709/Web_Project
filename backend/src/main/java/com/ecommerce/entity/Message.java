@@ -18,7 +18,7 @@ public class Message {
     private Customer customer;
 
     // User, khong phai Customer/Admin cu the - polymorphism: la Customer (khach nhan) hoac Admin (nhan vien shop,
-    // hoac tai khoan he thong "Tro ly AI" cua chatbot - khong co class AIBot rieng).
+    // hoac tai khoan he thong "Tro ly tu dong" cua chatbot - khong co class AIBot rieng).
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;

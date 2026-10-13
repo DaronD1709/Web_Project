@@ -10,6 +10,7 @@ import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.Category;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.Product;
+import com.ecommerce.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -29,6 +30,23 @@ public class DataSeeder {
     private static final ProductDAO productDAO = new ProductDAO();
     private static final UserDAO userDAO = new UserDAO();
     private static final AutoReplyDAO autoReplyDAO = new AutoReplyDAO();
+
+    // DB da seed tu truoc: bot ten "Tro ly AI" va cac tin chao cu nhac "tro ly AI" -> doi thanh "tu dong" (day la tra loi theo tu khoa, khong phai AI)
+    private static void renameBotLabel() {
+        User bot = userDAO.findByEmail("bot@nongviet.vn");
+        if (bot != null && "Trợ lý AI".equals(bot.getFullName())) {
+            bot.setFullName("Trợ lý tự động");
+            userDAO.update(bot);
+        }
+        jakarta.persistence.EntityManager em = com.ecommerce.util.JPAUtil.getEmFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.createQuery("UPDATE Message m SET m.content = REPLACE(m.content, 'trợ lý AI', 'trợ lý tự động') WHERE m.content LIKE '%trợ lý AI%'").executeUpdate();
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+    }
 
     // Anh mau cua 12 san pham mau (file nam trong webapp/static/img/products/, nguon + giay phep ghi o docs/credits.md).
     // imageUrl la duong dan tuong doi so voi ung dung (JSP ghep "${ctx}/" + imageUrl), giong anh Admin tai len ("uploads/...").
@@ -115,10 +133,11 @@ public class DataSeeder {
             Admin bot = new Admin();
             bot.setEmail("bot@nongviet.vn");
             bot.setPasswordHash(PasswordUtil.hash(java.util.UUID.randomUUID().toString()));
-            bot.setFullName("Trợ lý AI");
+            bot.setFullName("Trợ lý tự động");
             bot.setCreatedAt(LocalDateTime.now());
             userDAO.save(bot);
         }
+        renameBotLabel();
         if (userDAO.findByEmail("khach@nongviet.vn") == null) {
             Customer customer = new Customer();
             customer.setEmail("khach@nongviet.vn");

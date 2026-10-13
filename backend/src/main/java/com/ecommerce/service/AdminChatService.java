@@ -64,6 +64,6 @@ public class AdminChatService {
     public String setHuman(Integer customerId, boolean human) {
         getCustomer(customerId); // khong ton tai thi bao loi
         chatService.setHandledByHuman(customerId, human);
-        return human ? "Bạn đã tiếp quản cuộc trò chuyện" : "Đã chuyển lại cho trợ lý AI";
+        return human ? "Bạn đã tiếp quản cuộc trò chuyện" : "Đã chuyển lại cho trợ lý tự động";
     }
 }

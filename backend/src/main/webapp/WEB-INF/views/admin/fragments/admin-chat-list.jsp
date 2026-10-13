@@ -35,7 +35,7 @@
           </div>
           <div><c:choose>
             <c:when test="${cu.handledByHuman}"><span class="badge badge-soft badge-primary badge-sm"><i data-lucide="user" class="size-4"></i> Nhân viên</span></c:when>
-            <c:otherwise><span class="badge badge-soft badge-accent badge-sm"><i data-lucide="bot" class="size-4"></i> AI</span></c:otherwise>
+            <c:otherwise><span class="badge badge-soft badge-accent badge-sm"><i data-lucide="bot" class="size-4"></i> Tự động</span></c:otherwise>
           </c:choose></div>
         </div>
       </a>

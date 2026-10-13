@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Chat giua khach va shop. Khong co bang "cuoc tro chuyen": moi Message gan truc tiep voi khach so huu luong chat
  * (Message.customer) va co nguoi gui (Message.sender = Customer hoac Admin).
- * Chatbot tra loi bang 1 tai khoan he thong loai Admin ("Tro ly AI", email BOT_EMAIL) do DataSeeder tao - khong co class AIBot.
+ * Chatbot tra loi bang 1 tai khoan he thong loai Admin ("Tro ly tu dong", email BOT_EMAIL) do DataSeeder tao - khong co class AIBot.
  * Hien tai: khach gui va xem tin (polling bang htmx). Chatbot tu tra loi va phia Admin lam o nhanh feat/chat-with-shop.
  */
 public class ChatService {
@@ -63,7 +63,7 @@ public class ChatService {
     private void greet(Integer customerId) {
         User bot = userDAO.findByEmail(BOT_EMAIL);
         if (bot == null) return; // chua seed tai khoan chatbot thi bo qua loi chao
-        addMessage(requireCustomer(customerId), bot, "Xin chào! Mình là trợ lý AI của Nông Việt. Bạn cần tư vấn gì về hạt giống, "
+        addMessage(requireCustomer(customerId), bot, "Xin chào! Mình là trợ lý tự động của Nông Việt. Bạn cần tư vấn gì về hạt giống, "
                 + "phân bón, thuốc BVTV hay máy móc nông nghiệp? Nhân viên shop sẽ hỗ trợ thêm khi cần.");
     }
 

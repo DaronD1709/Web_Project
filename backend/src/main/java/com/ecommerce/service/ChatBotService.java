@@ -7,7 +7,7 @@ import java.text.Normalizer;
 import java.util.List;
 
 /**
- * Chatbot tra loi theo cac LUAT DO ADMIN SOAN (bang auto_replies, quan ly o Admin > Tra loi tu dong) - khong goi AI ben ngoai.
+ * Chatbot tra loi theo cac LUAT DO ADMIN SOAN (bang auto_replies, quan ly o Admin > Tra loi tu dong) - khong goi AI ben ngoai (day la tra loi tu dong theo tu khoa, KHONG phai AI).
  * Cach hoat dong: chuan hoa cau cua khach (bo dau, chu thuong, bo dau cau) roi xet cac luat dang bat theo thu tu uu tien;
  * luat dau tien co 1 tu khoa khop (khop NGUYEN TU/CUM TU) thi dung cau tra loi cua luat do. Khong luat nao khop thi dung cau mac dinh
  * va chuyen cho nhan vien. Luat chuyen cho nhan vien (handoff) lam ChatService chuyen cuoc tro chuyen sang NHAN VIEN, chatbot ngung tra loi.
