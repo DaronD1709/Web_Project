@@ -23,8 +23,8 @@ public class ProductService {
         return productDAO.findByCategoryId(categoryId);
     }
 
-    public Product createProduct(Product product) {
-        return productDAO.save(product);
+    public List<Product> getLatestProducts(int limit) {
+        return productDAO.findLatest(limit);
     }
 
     /** Trang /products: 1 query lay san pham cua trang + 1 query dem tong de tinh so trang. */

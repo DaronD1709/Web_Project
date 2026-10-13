@@ -13,7 +13,7 @@ Maven Web Application. Mo truc tiep thu muc nay bang NetBeans ("Open Project").
 
 ```
 src/main/java/com/ecommerce/
-├── entity/        Model — 22 JPA entity + 4 enum, dung chung cho ca JSP lan service
+├── entity/        Model — 20 JPA entity + 4 enum, dung chung cho ca JSP lan service
 ├── dto/           Goi tham so/ket qua di chuyen giua cac lop (ProductFilter, PageResult) — chi tao khi can
 ├── dao/           Data Access — AbstractDAO<T,ID> (CRUD chung) + DAO cu the
 ├── service/       Business logic — AuthService, ProductService, EmailService (gui mail), BusinessException
@@ -63,7 +63,7 @@ Da co 2 vi du hoan chinh: danh sach san pham (ProductServlet → ProductService 
 
 - Dung `jakarta.persistence.*`, KHONG dung `javax.persistence.*` — bat buoc vi Tomcat 10.1.
 - `User` va `Payment` dung `@Inheritance(strategy = InheritanceType.SINGLE_TABLE)` —
-  Customer/Admin/AIBot gop chung bang `users`, CODPayment/VNPayPayment gop chung bang `payments`,
+  Customer/Admin gop chung bang `users`, CODPayment/VNPayPayment gop chung bang `payments`,
   phan biet qua cot discriminator (`user_type`, `payment_type`). Chi dung trong slide neu co
   phan ke thua — neu mon hoc chua day toi InheritanceType thi day la phan can tu doc them
   (tu khoa de tra: "JPA single table inheritance").

@@ -1,0 +1,4 @@
+<%-- Nhan trang thai don hang (mau theo trang thai). Dung bang <%@ include %>; truoc do phai c:set bien "st" = OrderStatus can hien. --%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<c:set var="badgeCls" value="${st == 'PENDING' ? 'badge-warning' : st == 'COMPLETED' ? 'badge-success' : st == 'RETURN_REQUESTED' ? 'badge-error' : (st == 'CANCELLED' or st == 'RETURNED') ? 'badge-neutral' : 'badge-info'}" />
+<span class="badge ${badgeCls} badge-sm whitespace-nowrap"><c:out value="${st.label}"/></span>

@@ -29,6 +29,8 @@ Không tách frontend riêng, không REST API, không build pipeline (npm/Vite) 
 3. **Email (tuỳ chọn):** copy `mail.properties.example` → `mail.properties`. Để `mail.enabled=false` thì email chỉ được in ra log Tomcat (kể cả link đặt lại mật khẩu) — đủ để dev. Muốn gửi thật: dùng Gmail + App password (hoặc SMTP giả: `python3 -m smtpd -n -c DebuggingServer localhost:1025`).
 4. Deploy lên Tomcat 10.1. Lần chạy đầu Hibernate tự tạo bảng và `DataSeeder` nạp dữ liệu mẫu (danh mục, sản phẩm, tài khoản dev).
 
+**Khi entity thay đổi** (có commit sửa/xoá entity hoặc cột): `hibernate.hbm2ddl.auto=update` chỉ thêm bảng/cột, **không xoá** bảng/cột cũ, nên DB cũ có thể lỗi khi chạy. Cách xử lý cho DB dev: tạo lại DB (`dropdb ecommerce_db && createdb ecommerce_db`, dữ liệu mẫu tự nạp lại) và **Clean and Build** trong NetBeans (hoặc `mvn clean package`) để xoá các file `.class` cũ còn sót trong `target/`.
+
 ## Tính năng đã có
 - Danh sách sản phẩm: tìm kiếm, lọc, sắp xếp, phân trang (`/products`)
 - Đăng ký (gửi email chào mừng), đăng nhập, đăng xuất, **quên mật khẩu qua email**

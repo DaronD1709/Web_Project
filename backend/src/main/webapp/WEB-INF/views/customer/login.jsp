@@ -5,14 +5,21 @@
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
-  <title>Đăng nhập — NôngViệt</title>
+  <title>Đăng nhập — Nông Việt</title>
   <%@ include file="/WEB-INF/views/common/head.jspf" %>
 </head>
-<body class="bg-base-200 min-h-screen">
+<body class="bg-base-200 min-h-screen flex flex-col [&>footer]:mt-0">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<main class="max-w-md mx-auto px-4 py-12">
-  <form method="post" action="${ctx}/login" class="card bg-base-100 border border-base-300 p-8 space-y-4">
+<%-- flex-1 + items-center: khung dang nhap nam GIUA vung giua header va footer, footer luon sat day man hinh --%>
+<main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
+  <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
+    <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
+      <div class="text-7xl" aria-hidden="true">🌾</div>
+      <h2 class="text-3xl font-extrabold mt-4">Chào mừng trở lại!</h2>
+      <p class="text-white/80 mt-2">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ giao hàng và chat với shop.</p>
+    </div>
+  <form method="post" action="${ctx}/login" class="p-8 space-y-4">
     <h1 class="text-2xl font-bold">Đăng nhập</h1>
 
     <c:if test="${param.registered == '1'}"><div class="alert alert-success alert-soft text-sm">Đăng ký thành công! Hãy đăng nhập. Chúng tôi đã gửi email chào mừng tới hộp thư của bạn.</div></c:if>
@@ -21,14 +28,18 @@
 
     <input type="hidden" name="next" value="<c:out value='${next}'/>">
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
-      <input type="email" name="email" value="<c:out value='${email}'/>" class="input w-full" placeholder="ban@email.com" required></label>
+      <input type="email" name="email" value="<c:out value='${email}'/>" class="input w-full" placeholder="ban@email.com" autocomplete="username" required></label>
     <label class="form-control w-full"><div class="label"><span class="label-text">Mật khẩu</span></div>
-      <input type="password" name="password" class="input w-full" required></label>
-    <div class="text-right text-sm"><a href="${ctx}/forgot-password" class="link link-primary">Quên mật khẩu?</a></div>
+      <input type="password" name="password" class="input w-full" placeholder="••••••••" autocomplete="current-password" required></label>
+    <div class="flex items-center justify-between text-sm">
+      <label class="flex items-center gap-2"><input type="checkbox" name="remember" class="checkbox checkbox-sm checkbox-primary" ${remember ? 'checked' : ''}> Ghi nhớ đăng nhập</label>
+      <a href="${ctx}/forgot-password" class="link link-primary">Quên mật khẩu?</a>
+    </div>
 
     <button class="btn btn-primary btn-block">Đăng nhập</button>
     <div class="text-center text-sm">Chưa có tài khoản? <a href="${ctx}/register" class="link link-primary font-medium">Đăng ký</a></div>
   </form>
+  </div>
 </main>
 
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>

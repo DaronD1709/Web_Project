@@ -3,6 +3,7 @@ package com.ecommerce.controller.customer;
 import com.ecommerce.dto.ProductFilter;
 import com.ecommerce.service.CategoryService;
 import com.ecommerce.service.ProductService;
+import com.ecommerce.util.CartCsrf;
 import com.ecommerce.util.ParamUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -22,6 +23,10 @@ public class ProductServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
+        if (CartCsrf.prepare(req) != null) {
+            resp.setHeader("Cache-Control", "no-store");
+        }
 
         // Đọc các tham số lọc từ request.
         ProductFilter filter = new ProductFilter();

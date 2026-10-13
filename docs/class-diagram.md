@@ -18,6 +18,7 @@ public abstract class User {
     protected String fullName;
     protected String phone;
     protected Date createdAt;
+    protected boolean isActive = true; // false = Admin đã khoá tài khoản (không đăng nhập được); cột users.is_active, mặc định true
     protected String resetTokenHash;   // băm SHA-256 của token quên mật khẩu (null nếu không có yêu cầu)
     protected Date resetTokenExpiry;   // hết hạn sau 30 phút
 
@@ -33,6 +34,7 @@ public class Customer extends User {
     private List<Address> addresses = new ArrayList<>();
     private List<Order> orders = new ArrayList<>();
     private Cart cart;
+    private boolean handledByHuman; // true = nhân viên đang tiếp quản chat (chatbot im lặng); cột users.handled_by_human, mặc định false
 
     public void addToCart(Product product, int qty) { ... }
     public Order placeOrder() { ... }
@@ -47,6 +49,7 @@ public class Customer extends User {
 public class Admin extends User {
     public void manageProduct(Product product) { ... }
     public void manageOrder(Order order) { ... }
+    public void manageVoucher(Voucher voucher) { ... }
 }
 ```
 
@@ -59,6 +62,7 @@ public class Address {
     private String street;
     private String city;
     private boolean isDefault;
+    private Customer customer; // chủ sở hữu (phía giữ khoá ngoại)
 }
 ```
 
@@ -94,6 +98,7 @@ public class Product {
 public class Cart {
     private int id;
     private List<CartItem> items = new ArrayList<>();
+    private Customer customer; // chủ giỏ hàng
 
     public void addItem(CartItem item) { items.add(item); }
     public void removeItem(int itemId) { ... }
@@ -108,6 +113,7 @@ public class CartItem {
     private int id;
     private int quantity;
     private double priceAtAdd;
+    private Cart cart; // giỏ chứa dòng này
     private Product product; // aggregation — chỉ giữ reference
 }
 ```
@@ -117,16 +123,21 @@ public class CartItem {
 public class Order {
     private int id;
     private Date orderDate;
+    private Customer customer; // người đặt (Customer 1 — 0..* Order)
     private OrderStatus status;
     private double totalAmount;
     private List<OrderItem> items = new ArrayList<>();
     private Payment payment;
     private Address shippingAddress;
+    private Voucher voucher; // null nếu không dùng mã giảm giá
     private String returnReason; // null nếu không có yêu cầu hoàn hàng
+    private double discountAmount; // snapshot số tiền giảm lúc đặt (voucher có thể đổi/tắt sau này)
+    private double shippingFee; // snapshot phí vận chuyển lúc đặt; totalAmount = tổng hàng − discountAmount + shippingFee
 
     public void confirmOrder() { ... }
     public void cancelOrder() { ... } // Customer (chủ đơn) hoặc Admin đều gọi được — check quyền ở tầng service
-    public void updateStatus(OrderStatus status) { ... }
+    public boolean canMoveTo(OrderStatus next) { ... } // luật chuyển trạng thái hợp lệ (nơi duy nhất định nghĩa)
+    public void updateStatus(OrderStatus next) { ... } // ném lỗi nếu !canMoveTo(next); hoàn kho do Service/DAO lo
     public double calculateTotal() { ... }
     public void requestReturn(String reason) { ... } // Customer gọi, chỉ hợp lệ khi status = COMPLETED
     public void approveReturn() { ... } // Admin gọi, chuyển RETURN_REQUESTED -> RETURNED, restock
@@ -139,6 +150,7 @@ public class Order {
 public class OrderItem {
     private int id;
     private int quantity;
+    private Order order; // đơn chứa dòng này
     private double priceAtOrder; // snapshot giá, không đổi dù Product đổi giá sau
     private Product product; // aggregation
 }
@@ -165,6 +177,7 @@ public abstract class Payment {
     protected double amount;
     protected Date paymentDate;
     protected PaymentStatus status;
+    protected Order order; // đơn được thanh toán
 
     public abstract boolean processPayment();
 }
@@ -203,6 +216,7 @@ public class Review {
     private String comment;
     private Date createdAt;
     private Customer customer; // tác giả
+    private Product product; // sản phẩm được đánh giá
 }
 ```
 
@@ -226,13 +240,12 @@ public class Review {
 | Customer — Order | Association | 1 — 0..* | places |
 | Admin — Product | Association | 1 — 0..* | manages |
 | Admin — Order | Association | 1 — 0..* | processes |
+| Admin — Voucher | Association | 1 — 0..* | manages |
 | Order — Address (shippingAddress) | Association | 0..* — 1 | ships to |
 | Review — Customer | Association | 0..* — 1 | written by |
 | User — Notification | Composition | 1 — 0..* | receives |
-| Customer — Conversation | Composition | 1 — 1 | has |
-| Conversation — Message | Composition | 1 — 0..* | contains |
+| Message — Customer | Association | 0..* — 1 | belongs to (khách sở hữu luồng chat) |
 | Message — User | Association | 0..* — 1 | sent by |
-| User — AIBot | Inheritance | — | (không ghi) |
 | Order — Voucher | Association | 0..* — 0..1 | applies |
 | Voucher → DiscountType | Dependency | — | `<<use>>` |
 | Order → OrderStatus | Dependency | — | `<<use>>` |
@@ -247,41 +260,26 @@ public class Notification {
     private String message;
     private boolean isRead;
     private Date createdAt;
+    private User user; // người nhận
 }
 ```
 Tạo tự động mỗi khi `Order.updateStatus()` được gọi — không cần class Order gọi trực tiếp constructor, có thể tách 1 service riêng `NotificationService` để lo việc này (không cần class diagram thể hiện service layer).
 
-## 18. Conversation (mới)
-```java
-public class Conversation {
-    private int id;
-    private Date createdAt;
-}
-```
-
-## 19. Message (mới)
+## 18. Message (mới)
 ```java
 public class Message {
     private int id;
     private String content;
     private Date sentAt;
+    private Customer customer; // khách sở hữu luồng chat (mọi tin của khách lẫn shop đều gắn với 1 khách)
+    private User sender; // Customer hoặc Admin (đa hình); chatbot dùng 1 tài khoản hệ thống loại Admin
 }
 ```
 `sender` không lưu field riêng `isAdmin` hay tương tự — chỉ cần tham chiếu kiểu `User`, polymorphism tự lo việc phân biệt Customer hay Admin gửi.
 
----
+**Không có class `Conversation` và `AIBot`:** mỗi `Message` gắn trực tiếp với khách qua `customer` (khách chỉ thấy tin có `customer` là mình, Admin lọc theo khách). Chatbot trả lời bằng một tài khoản hệ thống loại `Admin` ("Trợ lý AI"); logic gọi API AI (OpenAI/Anthropic...) nằm ở tầng Service (`ChatBotService.generateReply(...)`), không thể hiện trong class diagram.
 
-## 20. AIBot (mới)
-```java
-public class AIBot extends User {
-    public Message generateReply(Conversation conversation) { ... }
-}
-```
-Không có field riêng — dùng lại field kế thừa từ `User` (có thể để placeholder cho email/password vì bot không thật sự đăng nhập). `Message.sender` giữ nguyên kiểu `User`, không cần sửa gì — `AIBot` tự động hợp lệ nhờ polymorphism. Logic gọi API AI thật (OpenAI/Anthropic...) nằm trong thân `generateReply()`, không thể hiện trong class diagram.
-
----
-
-## 21. Voucher (mới)
+## 19. Voucher (mới)
 ```java
 public class Voucher {
     private int id;
@@ -299,12 +297,27 @@ public class Voucher {
 }
 ```
 
-## 22. DiscountType (mới, enum)
+## 20. DiscountType (mới, enum)
 ```java
 public enum DiscountType {
     PERCENTAGE, FIXED_AMOUNT
 }
 ```
+
+## 21. AutoReply (mới)
+```java
+public class AutoReply {
+    private int id;
+    private String keywords;   // các từ khoá/cụm từ cách nhau bằng dấu phẩy; "*" (đứng một mình) = khớp mọi câu
+    private String replyText;  // câu chatbot trả lời
+    private boolean handoff;   // true = sau khi trả lời chuyển cuộc trò chuyện sang nhân viên
+    private boolean isActive;
+    private int priority;      // số nhỏ được xét trước; luật đầu tiên khớp thắng
+
+    public List<String> getKeywordList() { ... }
+}
+```
+Luật trả lời tự động do Admin soạn ở CMS (Admin > Trả lời tự động); `ChatBotService` đọc các luật đang bật theo `priority` và chọn luật đầu tiên có từ khoá khớp (khớp nguyên từ, không phân biệt hoa thường/dấu). Không quan hệ với entity nào khác.
 
 ---
 
@@ -350,10 +363,7 @@ classDiagram
     class Admin {
         +manageProduct(product : Product) void
         +manageOrder(order : Order) void
-    }
-
-    class AIBot {
-        +generateReply(conversation : Conversation) Message
+        +manageVoucher(voucher : Voucher) void
     }
 
     class Address {
@@ -363,6 +373,7 @@ classDiagram
         -street : String
         -city : String
         -isDefault : boolean
+        -customer : Customer
         +Getters/Setters
     }
 
@@ -391,6 +402,7 @@ classDiagram
     class Cart {
         -id : int
         -items : List~CartItem~
+        -customer : Customer
         +addItem(item : CartItem) void
         +removeItem(itemId : int) void
         +calculateTotal() double
@@ -403,6 +415,7 @@ classDiagram
         -quantity : int
         -priceAtAdd : double
         -product : Product
+        -cart : Cart
         +Getters/Setters
     }
 
@@ -415,6 +428,10 @@ classDiagram
         -payment : Payment
         -shippingAddress : Address
         -returnReason : String
+        -discountAmount : double
+        -shippingFee : double
+        -customer : Customer
+        -voucher : Voucher
         +confirmOrder() void
         +cancelOrder() void
         +updateStatus(status : OrderStatus) void
@@ -430,6 +447,7 @@ classDiagram
         -quantity : int
         -priceAtOrder : double
         -product : Product
+        -order : Order
         +Getters/Setters
     }
 
@@ -450,6 +468,7 @@ classDiagram
         #amount : double
         #paymentDate : Date
         #status : PaymentStatus
+        #order : Order
         +processPayment() boolean
         +Getters/Setters
     }
@@ -477,6 +496,7 @@ classDiagram
         -comment : String
         -createdAt : Date
         -customer : Customer
+        -product : Product
         +Getters/Setters
     }
 
@@ -485,12 +505,7 @@ classDiagram
         -message : String
         -isRead : boolean
         -createdAt : Date
-        +Getters/Setters
-    }
-
-    class Conversation {
-        -id : int
-        -createdAt : Date
+        -user : User
         +Getters/Setters
     }
 
@@ -498,6 +513,19 @@ classDiagram
         -id : int
         -content : String
         -sentAt : Date
+        -customer : Customer
+        -sender : User
+        +Getters/Setters
+    }
+
+    class AutoReply {
+        -id : int
+        -keywords : String
+        -replyText : String
+        -handoff : boolean
+        -isActive : boolean
+        -priority : int
+        +getKeywordList() List~String~
         +Getters/Setters
     }
 
@@ -524,7 +552,6 @@ classDiagram
 
     User <|-- Customer
     User <|-- Admin
-    User <|-- AIBot
     Payment <|-- CODPayment
     Payment <|-- VNPayPayment
 
@@ -541,12 +568,12 @@ classDiagram
     Customer "1" --> "0..*" Order : places
     Admin "1" --> "0..*" Product : manages
     Admin "1" --> "0..*" Order : processes
+    Admin "1" --> "0..*" Voucher : manages
     Order "0..*" --> "1" Address : ships to
     Product "1" *-- "0..*" Review : has
     Review "0..*" --> "1" Customer : written by
     User "1" *-- "0..*" Notification : receives
-    Customer "1" *-- "1" Conversation : has
-    Conversation "1" *-- "0..*" Message : contains
+    Message "0..*" --> "1" Customer : belongs to
     Message "0..*" --> "1" User : sent by
     Order "0..*" --> "0..1" Voucher : applies
     Voucher ..> DiscountType : <<use>>

@@ -34,4 +34,10 @@ public class Notification {
     public void setRead(boolean isRead) { this.isRead = isRead; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @Transient
+    public String getCreatedAtText() {
+        return createdAt == null ? "" : createdAt.format(
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
 }
