@@ -59,8 +59,8 @@ Giỏ hàng lưu DB (quan hệ `Customer 1—1 Cart`), **không** lưu session; 
 | GET | `/reset-password` | `ResetPasswordServlet` | `token` | `customer/reset-password.jsp`: form mật khẩu mới, hoặc thông báo "liên kết không hợp lệ/hết hạn" (attr `invalid`) | PUBLIC |
 | POST | `/reset-password` | `ResetPasswordServlet` | `token`, `password`, `confirmPassword` | OK → 302 `/login?reset=1`; lỗi → form + `errors`; token sai/hết hạn/đã dùng → thông báo không hợp lệ | PUBLIC |
 | GET | `/account/profile` | `ProfileServlet` | — | `customer/profile.jsp` (attr `user`) | CUSTOMER |
-| POST | `/account/profile` | `ProfileServlet` | `fullName`, `phone` | 302 `/account/profile?saved=1` | CUSTOMER |
-| POST | `/account/password` | `ProfileServlet` | `current`, `newPassword`, `confirm` | 302 hoặc form + `errors` | CUSTOMER |
+| POST | `/account/profile` | `ProfileServlet` | `fullName`, `phone`, `csrfToken` | Thường: 302 `/account/profile?saved=1`; htmx: `fragments/profile-info.jsp`, cập nhật tên header qua OOB; lỗi: form + `profileErrors` (htmx 422) | CUSTOMER |
+| POST | `/account/password` | `ProfileServlet` | `current`, `newPassword`, `confirm`, `csrfToken` | Thường: 302 `/account/profile?passwordChanged=1`; htmx: `fragments/profile-password.jsp`; lỗi: form + `passwordErrors` (htmx 422) | CUSTOMER |
 | GET | `/account/addresses` | `AddressServlet` | — | `customer/addresses.jsp` (attr `addresses`) | CUSTOMER |
 | POST | `/account/addresses` | `AddressServlet` | `action=create\|update\|delete\|setDefault`, `id`, `recipientName`, `phone`, `street`, `city`, `isDefault` | 302 `/account/addresses` | CUSTOMER |
 
@@ -74,6 +74,26 @@ Service: `AuthService.register/login/requestPasswordReset/isResetTokenValid/rese
 Ô **Ghi nhớ đăng nhập** giữ đúng mockup: `remember=on` đặt cookie phiên tối đa **7 ngày kể từ lúc đăng nhập**, session timeout không hoạt động là 7 ngày; không tích thì dùng cookie phiên trình duyệt và timeout mặc định của ứng dụng. Cookie chỉ chứa ID phiên, có HttpOnly, SameSite=Lax và Secure khi chạy HTTPS; không lưu mật khẩu. Đây là ghi nhớ dựa trên session Tomcat, không bảo đảm giữ đăng nhập khi session mất do redeploy/restart. Logout xoá cả session và cookie ghi nhớ. Login/logout gửi `Cache-Control: no-store`.
 Link trong email dùng `app.base.url` trong `mail.properties` (nếu có), nếu không thì suy từ request.
 Email không đổi được (chỉ đọc). Địa chỉ chỉ thao tác trên địa chỉ của `currentUser`.
+
+**Manage Profile đã triển khai:** `ProfileServlet → UserService → UserDAO`; dùng `SessionUtil.requireCustomer`
+trong khi chờ AuthFilter. Khách chưa đăng nhập → `/login?next=/account/profile` (next được URL encode),
+kể cả khi hết phiên lúc POST `/account/password`, để sau login quay về trang GET hợp lệ. Admin → 403. GET `/account/password` → 405.
+ID lấy từ session; tham số `id`, `email`, `role` gửi thêm không được dùng để cập nhật.
+`SessionUtil.requireCustomer` giữ kiểm tra tài khoản bị Admin khoá giữa phiên từ dev;
+POST đổi mật khẩu hết phiên hoặc bị khoá đều quay về GET `/account/profile` sau login, tránh 405.
+Họ tên bắt buộc, trim và tối đa 255 ký tự; số điện thoại tùy chọn, nếu nhập cần 8–15 chữ số,
+cho phép dấu `+` ở đầu và ký tự phân cách khoảng trắng, `.`, `-`, `(`, `)`.
+Đổi mật khẩu kiểm tra mật khẩu hiện tại bằng hash mới nhất trong DB, mật khẩu mới tối thiểu 6 ký tự và phải khớp xác nhận;
+không trim hay đưa mật khẩu trở lại HTML. Đổi thành công xóa token reset cũ và giữ phiên hiện tại;
+các phiên đăng nhập khác chưa được thu hồi tự động. Cập nhật chỉ tác động các cột cần thiết, không merge toàn bộ Customer.
+Hai POST yêu cầu đúng một token CSRF gắn với session (thiếu/sai/trùng → 403).
+Tạo token trong khoá session để hai tab mở lần đầu nhận cùng token; không đổi token sau mỗi lần lưu.
+GET/POST gửi `Cache-Control: no-store`.
+Form thường dùng PRG; htmx trả fragment, lỗi 422 được trang Profile cho phép swap để hiện lỗi tại ô nhập.
+Sau khi lưu, session `currentUser` được cập nhật và `cartCount` giữ nguyên; menu tài khoản trên header được thay qua OOB.
+Menu dropdown từ `mockup/layout.js` mở được Hồ sơ trên cả mobile và desktop, Logout vẫn dùng POST.
+UI chuyển từ `mockup/profile.html`,
+menu tài khoản dùng `common/account-nav.jspf`; liên kết địa chỉ/đơn hàng/thông báo giữ URL theo hợp đồng để các nhánh tương ứng nối sau.
 
 ---
 
