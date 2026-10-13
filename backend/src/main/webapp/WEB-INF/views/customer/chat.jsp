@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%-- Trang /chat (chi cho khach da dang nhap). Chuyen tu mockup/chat.html. Khong WebSocket: #poll hoi tin moi moi 3 giay (htmx). --%>
+<%-- Trang /chat: khach co tai khoan HOAC khach vang lai da nhap ten (xem ChatServlet). Chuyen tu mockup/chat.html. Khong WebSocket: #poll hoi tin moi moi 3 giay (htmx). --%>
 <!doctype html>
 <html lang="vi" data-theme="nongnghiep">
 <head>
@@ -17,6 +17,12 @@
       <div class="flex-1"><div class="font-semibold">Nông Việt</div><div class="text-xs text-success">Gửi tin nhắn cho shop — nhân viên sẽ phản hồi trong giờ làm việc</div></div>
     </div>
 
+    <c:if test="${isGuestChat}">
+      <div class="px-5 py-3 border-b border-base-300 bg-info/10 text-sm flex flex-wrap items-center justify-between gap-2">
+        <span class="flex items-center gap-2"><i data-lucide="user-round" class="size-4"></i> Bạn đang chat với tên <b><c:out value="${chatOwner.fullName}"/></b> (khách vãng lai)</span>
+        <a href="${ctx}/login?next=/chat" class="btn btn-outline btn-xs">Đăng nhập để lưu lịch sử chat</a>
+      </div>
+    </c:if>
     <div id="msgs" class="p-5 space-y-1 h-[26rem] overflow-y-auto bg-base-200/50">
       <jsp:include page="/WEB-INF/views/customer/fragments/chat-messages.jsp" />
     </div>

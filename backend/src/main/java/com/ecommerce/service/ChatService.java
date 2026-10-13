@@ -5,9 +5,11 @@ import com.ecommerce.dao.UserDAO;
 import com.ecommerce.entity.Customer;
 import com.ecommerce.entity.Message;
 import com.ecommerce.entity.User;
+import com.ecommerce.util.PasswordUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Chat giua khach va shop. Khong co bang "cuoc tro chuyen": moi Message gan truc tiep voi khach so huu luong chat
@@ -19,6 +21,7 @@ public class ChatService {
 
     public static final String BOT_EMAIL = "bot@nongviet.vn"; // tai khoan he thong cua chatbot (do DataSeeder tao)
     private static final int MAX_LENGTH = 1000;
+    private static final int MAX_GUEST_NAME = 60;
 
     private final MessageDAO messageDAO = new MessageDAO();
     private final UserDAO userDAO = new UserDAO();
@@ -58,6 +61,30 @@ public class ChatService {
         if (customer.isHandledByHuman() == human) return; // khong doi thi khong ghi DB
         customer.setHandledByHuman(human);
         userDAO.update(customer);
+    }
+
+    /**
+     * Khach CHUA dang nhap bat dau chat: tao 1 Customer "vang lai" chi de gan tin nhan (xem User.guest). Chi can nhap ten.
+     * Tra ve khach vua tao; Servlet luu id vao session de nhan ra lan sau.
+     */
+    public Customer startGuest(String name) {
+        String clean = name == null ? "" : name.replaceAll("\\p{Cntrl}", " ").trim().replaceAll("\\s+", " ");
+        if (clean.length() < 2) throw new BusinessException("Vui lòng nhập tên của bạn (ít nhất 2 ký tự).");
+        if (clean.length() > MAX_GUEST_NAME) throw new BusinessException("Tên tối đa " + MAX_GUEST_NAME + " ký tự.");
+        Customer guest = new Customer();
+        guest.setGuest(true);
+        guest.setFullName(clean);
+        guest.setEmail("guest-" + UUID.randomUUID() + "@guest.invalid"); // ten mien .invalid khong ton tai that
+        guest.setPasswordHash(PasswordUtil.hash(UUID.randomUUID().toString())); // mat khau ngau nhien bi bo di -> khong ai dang nhap duoc
+        guest.setCreatedAt(LocalDateTime.now());
+        userDAO.save(guest); // khong tao Cart: khach vang lai khong mua hang
+        return guest;
+    }
+
+    /** Khach vang lai theo id (luu trong session), hoac null neu id khong con hop le / khong phai khach vang lai. */
+    public Customer findGuest(Integer id) {
+        User user = id == null ? null : userDAO.findById(id);
+        return user instanceof Customer c && c.isGuest() ? c : null;
     }
 
     private void greet(Integer customerId) {

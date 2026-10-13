@@ -65,3 +65,23 @@ svg.lucide { display: inline-block; vertical-align: middle; flex-shrink: 0; }
 body:has(> .site-footer) { display: flex; flex-direction: column; min-height: 100vh; }
 body:has(> .site-footer) > main { width: 100%; padding-bottom: 3rem; }
 .site-footer { margin-top: auto; }
+
+/* Chat: ten nguoi gui + gio cach bong bong chat mot chut (daisyUI mac dinh de sat nhau) */
+.chat-header { margin-bottom: .35rem; }
+.chat-header time { margin-left: .5rem; }
+
+/* Header khach: bo cuc dat san trong CSS nay (link render-blocking) thay vi chi dua vao Tailwind CDN (sinh CSS bang JS sau khi trang ve) -> chuyen trang
+   thanh tim kiem khong bi "dai roi ngan lai". Chieu rong o tim co dinh (co the co lai khi man hinh hep), khong phu thuoc nut ben canh. */
+.nv-header { position: sticky; top: 0; z-index: 30; }
+.nv-header-inner { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; max-width: 80rem; margin: 0 auto; padding: .5rem 1rem; min-height: 4rem; }
+.nv-brand { display: inline-flex; align-items: center; gap: .375rem; white-space: nowrap; font-weight: 800; }
+.nv-search { position: relative; min-width: 0; order: 9; flex: 1 1 100%; }
+.nv-search label.input { width: 100%; }
+.nv-actions { display: flex; align-items: center; gap: .25rem; margin-left: auto; }
+.nv-actions .btn { padding-inline: .5rem; }
+@media (min-width: 640px) {
+  .nv-header-inner { flex-wrap: nowrap; gap: .75rem; height: 4rem; padding-block: 0; }
+  .nv-search { order: 0; flex: 0 1 34rem; margin-inline: auto; }
+  .nv-actions { gap: .5rem; margin-left: 0; }
+  .nv-actions .btn { padding-inline: .75rem; }
+}

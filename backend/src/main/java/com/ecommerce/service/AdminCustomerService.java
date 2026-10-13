@@ -37,7 +37,7 @@ public class AdminCustomerService {
 
     public Customer getById(Integer id) {
         Customer c = id == null ? null : customerDAO.findById(id);
-        if (c == null) throw new BusinessException("Khách hàng không tồn tại.");
+        if (c == null || c.isGuest()) throw new BusinessException("Khách hàng không tồn tại.");
         return c;
     }
 
@@ -52,7 +52,7 @@ public class AdminCustomerService {
      */
     public String setLocked(Integer id, boolean locked) {
         User user = id == null ? null : userDAO.findById(id);
-        if (!(user instanceof Customer customer)) throw new BusinessException("Khách hàng không tồn tại.");
+        if (!(user instanceof Customer customer) || customer.isGuest()) throw new BusinessException("Khách hàng không tồn tại.");
         customer.setActive(!locked);
         userDAO.update(customer);
         return (locked ? "Đã khoá tài khoản " : "Đã mở khoá tài khoản ") + customer.getFullName();
