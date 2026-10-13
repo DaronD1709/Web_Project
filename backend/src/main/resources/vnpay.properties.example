@@ -1,0 +1,31 @@
+# Copy to vnpay.properties; local credentials must never be committed.
+# Keep false until the VNPay integration and callback URLs are ready.
+vnpay.enabled=false
+vnpay.environment=sandbox
+
+# Values issued to your sandbox merchant by VNPAY.
+vnpay.tmnCode=
+vnpay.hashSecret=
+
+# Sandbox payment endpoint; do not use production credentials here.
+vnpay.paymentUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnpay.queryUrl=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+# IP of the server issuing QueryDr (sandbox accepts loopback for local testing).
+vnpay.queryIpAddress=127.0.0.1
+
+# Full HTTPS URLs for this app (include its context path if applicable).
+# Browser Return: https://YOUR_HOST/payment/vnpay/return
+# Server IPN: https://YOUR_HOST/payment/vnpay/ipn
+# Register the IPN URL with VNPAY; Return is sent in each payment request.
+vnpay.returnUrl=
+vnpay.ipnUrl=
+
+# Production: use a SEPARATE deployment/database and production merchant credentials.
+# Set environment=production and BOTH endpoint URLs exactly as issued by VNPAY.
+# Endpoints must use HTTPS on pay.vnpay.vn; sandbox/production mixing is rejected.
+# Set queryIpAddress to the public server IPv4 registered/approved by VNPAY.
+# Return/IPN must use the same stable HTTPS host and app context path (no quick tunnel).
+# Keep enabled=false until merchant registration and deployment testing are complete.
+# Optional environment overrides: VNPAY_ENABLED, VNPAY_ENVIRONMENT, VNPAY_TMN_CODE,
+# VNPAY_HASH_SECRET, VNPAY_PAYMENT_URL, VNPAY_QUERY_URL, VNPAY_QUERY_IP_ADDRESS,
+# VNPAY_RETURN_URL, VNPAY_IPN_URL. Do not commit secrets or use sandbox keys in production.

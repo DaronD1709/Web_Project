@@ -1,7 +1,7 @@
 # Đề tài: Website Thương mại điện tử (Java Servlet/JSP)
 
-Chủ đề gợi ý: Thuỷ sinh / Dụng cụ nông nghiệp / Bánh
-Stack: NetBeans + Servlet/JSP + Tomcat + PostgreSQL
+Chủ đề: **Nông nghiệp** (hạt giống, phân bón, thuốc BVTV, dụng cụ, máy móc & tưới tiêu, nông sản) — đã chốt
+Stack: NetBeans + Servlet/JSP + Tomcat + PostgreSQL + Jakarta Mail (gửi email qua SMTP)
 
 Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Optional] = làm sau nếu còn thời gian
 
@@ -10,8 +10,9 @@ Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Opti
 ## 1. Chức năng Customer
 
 ### Tài khoản
-- [Core] Đăng ký (Register)
+- [Core] Đăng ký (Register) — thành công thì **gửi email chào mừng** tới email vừa đăng ký
 - [Core] Đăng nhập / Đăng xuất (Login/Logout)
+- [Core] **Quên mật khẩu (Forgot password)** — nhập email → nhận email chứa liên kết đặt lại mật khẩu (hiệu lực 30 phút, dùng 1 lần) → đặt mật khẩu mới
 - [Core] Phân quyền hồ sơ theo role (RBAC) — chỉnh sửa thông tin cá nhân
 - [Optional] Quản lý địa chỉ giao hàng (thêm/sửa/xoá nhiều địa chỉ)
 
@@ -25,7 +26,7 @@ Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Opti
 
 ### Mua hàng
 - [Core] Giỏ hàng (Shopping cart)
-- [Core] Thanh toán (Payment) — gợi ý: COD giả lập hoặc sandbox VNPay/Momo
+- [Core] Thanh toán (Payment) — gợi ý: COD giả lập hoặc sandbox VNPay/Momo. Đặt hàng xong **gửi email xác nhận đơn hàng** (danh sách sản phẩm, tổng tiền, địa chỉ, phương thức thanh toán) tới email khách
 - [Optional] Áp dụng mã giảm giá (Voucher) khi checkout
 - [Core] Lịch sử mua hàng (Purchase history)
 - [Core] Theo dõi trạng thái đơn hàng (Chờ xác nhận → Đang giao → Hoàn tất → Huỷ)
@@ -67,6 +68,7 @@ Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Opti
 
 - [Core] RBAC rõ 2 role: Customer / Admin (có thể thêm Staff nếu muốn phức tạp hơn)
 - [Core] Validate input cơ bản: PreparedStatement (chống SQL injection), escape output (chống XSS ở review/chat)
+- [Core] **Gửi email (Jakarta Mail/SMTP):** chào mừng khi đăng ký, đặt lại mật khẩu, xác nhận đơn hàng. Gửi ở luồng nền; lỗi gửi mail chỉ ghi log, không làm hỏng đăng ký/đặt hàng
 - [Optional] Email/notification khi đơn hàng đổi trạng thái
 
 ---
@@ -87,3 +89,7 @@ Ký hiệu: [Core] = bắt buộc để chạy đủ luồng mua hàng — [Opti
 **Chat real-time không cần WebSocket:** có thể giả lập bằng AJAX polling (fetch tin nhắn mới mỗi vài giây) — đủ hiệu quả demo mà không cần setup thêm hạ tầng.
 
 **Payment:** với đồ án sinh viên, ưu tiên COD giả lập hoặc tích hợp sandbox VNPay/Momo thay vì cổng thanh toán thật.
+
+**Email (Jakarta Mail + SMTP):** cấu hình ở `backend/src/main/resources/mail.properties` (không commit; mẫu `mail.properties.example`). Dev không có SMTP thì để `mail.enabled=false` — nội dung email (kể cả link đặt lại mật khẩu) được in ra log Tomcat. Dùng Gmail: bật xác thực 2 bước và tạo "App password".
+
+**Quên mật khẩu — thiết kế an toàn:** token ngẫu nhiên 32 byte chỉ nằm trong link email; DB chỉ lưu bản băm SHA-256 + thời điểm hết hạn (cột `users.reset_token_hash/reset_token_expiry`); token dùng 1 lần; email có tồn tại hay không đều trả cùng một thông báo (chống dò email).

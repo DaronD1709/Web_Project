@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Lop cha abstract. SINGLE_TABLE: Customer/Admin/AIBot deu luu chung 1 bang "users",
+ * Lop cha abstract. SINGLE_TABLE: Customer/Admin deu luu chung 1 bang "users",
  * phan biet nhau qua cot discriminator "user_type". Don gian, nhanh, phu hop vi
  * cac lop con hau nhu khong co cot rieng (chi co quan he OneToMany/OneToOne).
  */
@@ -32,6 +32,19 @@ public abstract class User {
     @Column(name = "created_at")
     protected LocalDateTime createdAt;
 
+    // Quen mat khau: chi luu BAM SHA-256 cua token (token that chi nam trong link gui qua email),
+    // nen lo DB cung khong dung duoc de doi mat khau. Het han / da dung xong thi 2 cot nay = null.
+    @Column(name = "reset_token_hash")
+    protected String resetTokenHash;
+
+    @Column(name = "reset_token_expiry")
+    protected LocalDateTime resetTokenExpiry;
+
+    // Khoa/mo tai khoan (Admin). Dung Boolean + default true de cac dong users CO SAN (cot moi them bang hbm2ddl=update) tu thanh "dang hoat dong";
+    // isActive() coi null la true cho chac. Tai khoan bi khoa khong dang nhap duoc (AuthService.login) va bi dang xuat khi dang dung (SessionUtil).
+    @Column(name = "is_active", columnDefinition = "boolean default true")
+    protected Boolean active = true;
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getEmail() { return email; }
@@ -44,4 +57,17 @@ public abstract class User {
     public void setPhone(String phone) { this.phone = phone; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public boolean isActive() { return active == null || active; }
+    /** Chỉ để view hiện menu Customer; không thêm cột DB hay thay kiểm tra quyền ở Service. */
+    @Transient
+    public boolean isCustomer() { return this instanceof Customer; }
+    public void setActive(boolean active) { this.active = active; }
+    /** Ngay tham gia dang "05/10/2026" cho JSP (JSTL fmt:formatDate khong doc duoc LocalDateTime). */
+    public String getCreatedAtText() {
+        return createdAt == null ? "" : createdAt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+    public String getResetTokenHash() { return resetTokenHash; }
+    public void setResetTokenHash(String resetTokenHash) { this.resetTokenHash = resetTokenHash; }
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 }

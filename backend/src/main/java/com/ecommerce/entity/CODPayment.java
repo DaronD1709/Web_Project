@@ -8,6 +8,11 @@ import jakarta.persistence.Entity;
 public class CODPayment extends Payment {
 
     @Override
+    public String getMethod() {
+        return "COD";
+    }
+
+    @Override
     public boolean processPayment() {
         // COD: coi nhu PENDING cho toi khi giao hang thanh cong moi doi sang SUCCESS
         this.status = PaymentStatus.PENDING;
