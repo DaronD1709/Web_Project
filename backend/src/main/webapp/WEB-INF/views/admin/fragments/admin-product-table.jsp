@@ -12,7 +12,7 @@
 <c:choose>
   <%-- ===== Khong co ket qua ===== --%>
   <c:when test="${empty result.items}">
-    <div class="p-12 text-center text-base-content/60"><div class="text-4xl">📦</div>Không có sản phẩm phù hợp.</div>
+    <div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="package" class="size-10 text-primary"></i></div>Không có sản phẩm phù hợp.</div>
   </c:when>
   <c:otherwise>
     <%-- ===== BANG: moi san pham 1 dong ===== --%>
@@ -28,7 +28,7 @@
                   <c:choose>
                     <%-- Co anh thi hien anh (duong dan /uploads/... do ImageServlet tra), chua co thi hien o gia lap --%>
                     <c:when test="${not empty p.imageUrl}"><img src="${ctx}/${p.imageUrl}" alt="" class="size-12 rounded-field object-cover shrink-0"></c:when>
-                    <c:otherwise><div class="ph ph-sm size-12 rounded-field shrink-0">🌾</div></c:otherwise>
+                    <c:otherwise><div class="ph ph-sm size-12 rounded-field shrink-0"><i data-lucide="wheat" class="size-6 text-primary/50"></i></div></c:otherwise>
                   </c:choose>
                   <div>
                     <a href="${ctx}/admin/products/edit?id=${p.id}" class="font-medium hover:text-primary"><c:out value="${p.name}"/></a>

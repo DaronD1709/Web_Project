@@ -173,7 +173,7 @@ public class EmailService {
                 "<p style=\"margin:4px 0\">Mã giảm giá: <b>" + esc(order.getVoucher().getCode()) + "</b></p>";
 
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222\">"
-                + "<h2 style=\"color:#2f7d3b\">🌾 Nông Việt</h2>"
+                + "<h2 style=\"color:#2f7d3b\">Nông Việt</h2>"
                 + "<p>Xin chào <b>" + esc(order.getCustomer().getFullName()) + "</b>,</p>"
                 + "<p>Cảm ơn bạn đã đặt hàng! Đơn <b>#" + order.getId() + "</b> (" + date + ") đã được ghi nhận "
                 + "và đang chờ shop xác nhận. Bạn sẽ nhận thông báo khi trạng thái đơn thay đổi.</p>"
@@ -194,7 +194,7 @@ public class EmailService {
     // Khung chung cho cac email don gian (tieu de thuong hieu + noi dung + chan trang)
     private static String frame(String bodyHtml) {
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222\">"
-                + "<h2 style=\"color:#2f7d3b\">🌾 Nông Việt</h2>" + bodyHtml
+                + "<h2 style=\"color:#2f7d3b\">Nông Việt</h2>" + bodyHtml
                 + "<hr style=\"border:none;border-top:1px solid #ddd;margin:20px 0\">"
                 + "<p style=\"color:#888;font-size:12px\">Email tự động từ Nông Việt, vui lòng không trả lời.</p></div>";
     }

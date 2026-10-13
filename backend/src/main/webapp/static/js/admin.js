@@ -36,7 +36,8 @@ function nvProductPreview() {
   // Badge ton kho giong the san pham that: 0 = Het hang, <= 5 = Chi con N, con lai = Con hang
   var s = f.elements.stock.value, box = document.getElementById('pv-stock');
   box.innerHTML = s === '' ? '' : Number(s) === 0 ? '<span class="badge badge-neutral badge-sm">Hết hàng</span>'
-    : Number(s) <= 5 ? '<span class="badge badge-warning badge-sm">Chỉ còn ' + Number(s) + '</span>' : '<span class="text-success">● Còn hàng</span>';
+    : Number(s) <= 5 ? '<span class="badge badge-warning badge-sm">Chỉ còn ' + Number(s) + '</span>' : '<span class="text-success inline-flex items-center gap-1"><i data-lucide="circle-check" class="size-3.5"></i> Còn hàng</span>';
+  if (window.nvIcons) nvIcons(); // vua gan HTML moi co the chua the <i data-lucide> -> ve lai icon
 
   // Neu vua chon anh moi: hien anh do (URL.createObjectURL = duong dan tam trong trinh duyet, chua gui len server) va an anh cu
   var file = f.elements.image.files[0], img = document.getElementById('pv-img');

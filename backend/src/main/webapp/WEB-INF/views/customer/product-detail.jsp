@@ -36,7 +36,7 @@
                  class="w-full h-full max-h-[34rem] object-cover">
           </c:when>
           <c:otherwise>
-            <div class="ph min-h-80 h-full text-8xl">🌾</div>
+            <div class="ph min-h-80 h-full text-8xl"><i data-lucide="wheat" class="size-24 text-primary/50"></i></div>
           </c:otherwise>
         </c:choose>
       </div>
@@ -54,7 +54,7 @@
         <a href="#reviews" class="flex items-center gap-2 mt-3 no-underline">
           <c:choose>
             <c:when test="${reviewCount > 0}">
-              <span class="text-warning">★</span>
+              <i data-lucide="star" class="size-4 text-warning fill-current"></i>
               <span class="font-semibold"><fmt:formatNumber value="${avgRating}" minFractionDigits="1" maxFractionDigits="1"/></span>
               <span class="text-sm text-base-content/60">(${reviewCount} đánh giá)</span>
             </c:when>
@@ -149,7 +149,7 @@
       <c:if test="${reviewCount > 0}">
         <div class="flex items-center gap-2">
           <span class="text-3xl font-extrabold text-primary"><fmt:formatNumber value="${avgRating}" minFractionDigits="1" maxFractionDigits="1"/></span>
-          <span class="text-warning text-xl" aria-hidden="true">★</span>
+          <i data-lucide="star" class="size-5 text-warning fill-current" aria-hidden="true"></i>
           <span class="text-sm text-base-content/60">${reviewCount} đánh giá</span>
         </div>
       </c:if>
@@ -190,7 +190,7 @@
     <c:choose>
       <c:when test="${empty reviews}">
         <div class="card bg-base-100 border border-base-300 p-8 text-center">
-          <div class="text-4xl">⭐</div>
+          <div class="text-4xl"><i data-lucide="star" class="size-10 text-primary"></i></div>
           <p class="font-semibold mt-2">Chưa có đánh giá</p>
           <p class="text-sm text-base-content/60">Sản phẩm này chưa nhận được đánh giá nào.</p>
         </div>
@@ -203,8 +203,8 @@
                 <div class="font-semibold"><c:out value="${review.customer.fullName}"/></div>
                 <div class="text-xs text-base-content/50">${review.createdAtText}</div>
               </div>
-              <div class="text-warning mt-1" aria-label="${review.rating} trên 5 sao">
-                <c:forEach var="i" begin="1" end="5">${i <= review.rating ? '★' : '☆'}</c:forEach>
+              <div class="text-warning mt-1 flex gap-0.5" aria-label="${review.rating} trên 5 sao">
+                <c:forEach var="i" begin="1" end="5"><i data-lucide="star" class="size-4 ${i <= review.rating ? 'fill-current' : 'opacity-30'}"></i></c:forEach>
               </div>
               <%-- Nhan xet do khach nhap: luon <c:out> de chong XSS --%>
               <c:if test="${not empty review.comment}"><p class="mt-2 whitespace-pre-line break-words"><c:out value="${review.comment}"/></p></c:if>
@@ -232,7 +232,7 @@
                      class="h-40 w-full object-cover">
               </c:when>
               <c:otherwise>
-                <div class="ph h-40">🌾</div>
+                <div class="ph h-40"><i data-lucide="wheat" class="size-12 text-primary/50"></i></div>
               </c:otherwise>
             </c:choose>
 

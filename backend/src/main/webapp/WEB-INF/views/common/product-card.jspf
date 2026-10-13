@@ -12,7 +12,7 @@
         </a>
       </c:when>
       <c:otherwise>
-        <div class="ph rounded-t-[var(--radius-box)] h-44">🌾</div>
+        <div class="ph rounded-t-[var(--radius-box)] h-44"><i data-lucide="wheat" class="size-12 text-primary/50"></i></div>
       </c:otherwise>
     </c:choose>
     <c:if test="${p.stockQuantity == 0}"><span class="badge badge-neutral absolute top-2 right-2">Hết hàng</span></c:if>

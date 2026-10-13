@@ -19,7 +19,7 @@
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI + TIEU DE ===== --%>
   <div>
-    <a href="${ctx}/admin/products" class="btn btn-outline btn-sm mb-2">← Danh sách sản phẩm</a>
+    <a href="${ctx}/admin/products" class="btn btn-outline btn-sm mb-2"><i data-lucide="arrow-left" class="size-4"></i> Danh sách sản phẩm</a>
     <h1 class="text-2xl font-bold">${editing ? 'Sửa sản phẩm #' : 'Thêm sản phẩm'}${draft.id}</h1>
   </div>
 
@@ -105,7 +105,7 @@
           <div id="pv-img">
             <c:choose>
               <c:when test="${not empty draft.imageUrl}"><img src="${ctx}/${draft.imageUrl}" alt="" class="h-36 w-full object-cover rounded-t-[var(--radius-box)]"></c:when>
-              <c:otherwise><div class="ph h-36 rounded-t-[var(--radius-box)]">🌾</div></c:otherwise>
+              <c:otherwise><div class="ph h-36 rounded-t-[var(--radius-box)]"><i data-lucide="wheat" class="size-12 text-primary/50"></i></div></c:otherwise>
             </c:choose>
           </div>
           <div class="p-4 space-y-1">

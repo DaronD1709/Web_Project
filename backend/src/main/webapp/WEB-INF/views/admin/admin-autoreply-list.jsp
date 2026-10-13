@@ -29,7 +29,7 @@
   <%-- ===== VUNG 3: BANG LUAT ===== --%>
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <c:choose>
-      <c:when test="${empty rules}"><div class="p-12 text-center text-base-content/60"><div class="text-4xl">🤖</div>Chưa có câu trả lời tự động nào.</div></c:when>
+      <c:when test="${empty rules}"><div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="bot" class="size-10 text-primary"></i></div>Chưa có câu trả lời tự động nào.</div></c:when>
       <c:otherwise>
         <div class="overflow-x-auto">
           <table class="table">
@@ -42,7 +42,7 @@
                     <c:forEach var="k" items="${r.keywordList}"><span class="badge badge-sm badge-soft ${k == '*' ? 'badge-warning' : 'badge-primary'} mr-1 mb-1"><c:out value="${k == '*' ? '* (mọi câu)' : k}"/></span></c:forEach>
                   </td>
                   <td class="max-w-md text-sm"><span class="line-clamp-2"><c:out value="${r.replyText}"/></span></td>
-                  <td><c:if test="${r.handoff}"><span class="badge badge-sm badge-warning whitespace-nowrap">👤 Có</span></c:if></td>
+                  <td><c:if test="${r.handoff}"><span class="badge badge-sm badge-warning whitespace-nowrap"><i data-lucide="user" class="size-4"></i> Có</span></c:if></td>
                   <%-- Cong tac bat/tat. htmx: gat la form tu POST /admin/auto-replies/toggle (hx-trigger="change"); "active" la gia tri MONG MUON
                        (nguoc voi hien tai) nen bam nhanh nhieu lan khong bi lech. Server redirect ve "back" kem toast. --%>
                   <td class="text-center">

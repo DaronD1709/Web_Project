@@ -15,7 +15,7 @@
 <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
   <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
-      <div class="text-7xl" aria-hidden="true">🌾</div>
+      <div class="text-7xl" aria-hidden="true"><i data-lucide="wheat" class="size-20"></i></div>
       <h2 class="text-3xl font-extrabold mt-4">Chào mừng trở lại!</h2>
       <p class="text-white/80 mt-2">Đăng nhập để theo dõi đơn hàng, lưu địa chỉ giao hàng và chat với shop.</p>
     </div>

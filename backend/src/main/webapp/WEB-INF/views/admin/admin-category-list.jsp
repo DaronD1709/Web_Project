@@ -19,7 +19,7 @@
   <%-- ===== VUNG 2: BANG DANH MUC ===== --%>
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <c:choose>
-      <c:when test="${empty categories}"><div class="p-12 text-center text-base-content/60"><div class="text-4xl">🏷️</div>Chưa có danh mục nào.</div></c:when>
+      <c:when test="${empty categories}"><div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="tag" class="size-10 text-primary"></i></div>Chưa có danh mục nào.</div></c:when>
       <c:otherwise>
         <div class="overflow-x-auto">
           <table class="table">

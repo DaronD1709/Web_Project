@@ -12,7 +12,7 @@
 
   <%-- ===== VUNG 1: LIEN KET QUAY LAI + TIEU DE ===== --%>
   <div>
-    <a href="${ctx}/admin/auto-replies" class="btn btn-outline btn-sm mb-2">← Danh sách câu trả lời tự động</a>
+    <a href="${ctx}/admin/auto-replies" class="btn btn-outline btn-sm mb-2"><i data-lucide="arrow-left" class="size-4"></i> Danh sách câu trả lời tự động</a>
     <h1 class="text-2xl font-bold">${editing ? 'Sửa câu trả lời tự động' : 'Thêm câu trả lời tự động'}</h1>
   </div>
 

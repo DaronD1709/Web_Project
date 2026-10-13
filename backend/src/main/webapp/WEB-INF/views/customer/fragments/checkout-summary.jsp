@@ -10,7 +10,7 @@
       <div class="flex items-center gap-2 min-w-0">
         <c:choose>
           <c:when test="${not empty i.product.imageUrl}"><img src="${ctx}/<c:out value='${i.product.imageUrl}'/>" alt="" class="size-10 rounded-field shrink-0 object-cover"></c:when>
-          <c:otherwise><div class="ph ph-sm size-10 rounded-field shrink-0" aria-hidden="true">🌾</div></c:otherwise>
+          <c:otherwise><div class="ph ph-sm size-10 rounded-field shrink-0" aria-hidden="true"><i data-lucide="wheat" class="size-6 text-primary/50"></i></div></c:otherwise>
         </c:choose>
         <div class="flex-1 min-w-0 truncate" title="<c:out value='${i.product.name}'/>"><c:out value="${i.product.name}"/> <span class="text-base-content/60">×${i.quantity}</span></div>
         <div class="shrink-0 tabular-nums"><fmt:formatNumber value="${i.priceAtAdd * i.quantity}" pattern="#,##0"/>₫</div>

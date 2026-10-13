@@ -45,7 +45,7 @@
       <%-- ===== Chua co cuoc tro chuyen nao (hoac khong khop bo loc) ===== --%>
       <c:when test="${empty selected}">
         <div class="lg:col-span-1 2xl:col-span-2 p-12 text-center text-base-content/60 flex flex-col items-center justify-center">
-          <div class="text-5xl">💬</div><div class="mt-2">Chưa có cuộc trò chuyện nào để hiển thị.</div>
+          <div class="text-5xl"><i data-lucide="message-circle" class="size-12 text-primary"></i></div><div class="mt-2">Chưa có cuộc trò chuyện nào để hiển thị.</div>
         </div>
       </c:when>
       <c:otherwise>

@@ -13,7 +13,7 @@
 <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
   <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
-      <div class="text-7xl" aria-hidden="true">🔑</div>
+      <div class="text-7xl" aria-hidden="true"><i data-lucide="key-round" class="size-20"></i></div>
       <h2 class="text-3xl font-extrabold mt-4">Quên mật khẩu?</h2>
       <p class="text-white/80 mt-2">Đừng lo, chỉ cần email đã đăng ký — chúng tôi sẽ gửi liên kết để bạn đặt lại mật khẩu trong vài giây.</p>
     </div>
@@ -29,7 +29,7 @@
     <label class="form-control w-full"><div class="label"><span class="label-text">Email</span></div>
       <input type="email" name="email" class="input w-full" placeholder="ban@email.com" required></label>
     <button class="btn btn-primary btn-block">Gửi liên kết đặt lại</button>
-    <a href="${ctx}/login" class="btn btn-ghost btn-sm btn-block">← Quay lại đăng nhập</a>
+    <a href="${ctx}/login" class="btn btn-ghost btn-sm btn-block"><i data-lucide="arrow-left" class="size-4"></i> Quay lại đăng nhập</a>
   </form>
   </div>
 </main>

@@ -15,7 +15,7 @@
   <div class="flex items-end gap-2.5 chat-bubble-row ${fromCustomer ? '' : 'flex-row-reverse'}">
     <c:choose>
       <c:when test="${fromCustomer}"><div class="size-8 rounded-full bg-base-300 text-base-content/70 grid place-items-center text-xs font-semibold shrink-0">${fn:toUpperCase(fn:substring(selected.fullName, 0, 1))}</div></c:when>
-      <c:when test="${fromBot}"><div class="size-8 rounded-full bg-accent/40 grid place-items-center text-sm shrink-0">🤖</div></c:when>
+      <c:when test="${fromBot}"><div class="size-8 rounded-full bg-accent/40 grid place-items-center text-sm shrink-0"><i data-lucide="bot" class="size-4"></i></div></c:when>
       <c:otherwise><div class="size-8 rounded-full bg-primary text-primary-content grid place-items-center text-xs font-semibold shrink-0">NV</div></c:otherwise>
     </c:choose>
     <div class="flex flex-col gap-1 min-w-0 max-w-[78%] ${fromCustomer ? 'items-start' : 'items-end'}">

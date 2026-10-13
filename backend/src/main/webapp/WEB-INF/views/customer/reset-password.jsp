@@ -14,14 +14,14 @@
 <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 flex items-center">
   <div class="w-full card bg-base-100 border border-base-300 overflow-hidden md:grid md:grid-cols-2">
     <div class="hero-bg text-white p-10 hidden md:flex flex-col justify-center">
-      <div class="text-7xl" aria-hidden="true">🔒</div>
+      <div class="text-7xl" aria-hidden="true"><i data-lucide="lock" class="size-20"></i></div>
       <h2 class="text-3xl font-extrabold mt-4">Đặt mật khẩu mới</h2>
       <p class="text-white/80 mt-2">Chọn mật khẩu mạnh, tối thiểu 6 ký tự, để bảo vệ tài khoản của bạn.</p>
     </div>
     <div class="p-8 flex items-center justify-center"><c:choose>
     <c:when test="${invalid}">
       <div class="space-y-4 text-center">
-        <div class="text-5xl">⏰</div>
+        <div class="text-5xl"><i data-lucide="clock" class="size-12 text-primary"></i></div>
         <h1 class="text-xl font-bold">Liên kết không hợp lệ hoặc đã hết hạn</h1>
         <p class="text-sm text-base-content/70">Liên kết đặt lại mật khẩu chỉ có hiệu lực 30 phút và dùng được một lần.</p>
         <a href="${ctx}/forgot-password" class="btn btn-primary">Gửi lại liên kết mới</a>

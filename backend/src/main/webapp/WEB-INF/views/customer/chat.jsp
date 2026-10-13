@@ -13,7 +13,7 @@
 <main class="max-w-3xl mx-auto px-4 py-6">
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <div class="flex items-center gap-3 px-5 py-3 border-b border-base-300">
-      <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary text-primary-content w-10 rounded-full">🌾</div></div>
+      <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary text-primary-content w-10 rounded-full"><i data-lucide="wheat" class="size-5"></i></div></div>
       <div class="flex-1"><div class="font-semibold">Nông Việt</div><div class="text-xs text-success">Gửi tin nhắn cho shop — nhân viên sẽ phản hồi trong giờ làm việc</div></div>
     </div>
 

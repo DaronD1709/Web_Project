@@ -20,9 +20,9 @@
 
   <%-- ===== VUNG 2: VIEC CAN XU LY (chi hien muc co viec; bam de toi dung trang xu ly) ===== --%>
   <div class="grid gap-3 md:grid-cols-2">
-    <c:if test="${pending > 0}"><a href="${ctx}/admin/orders?status=pending" class="alert alert-warning alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${pending} đơn đang chờ xác nhận</span><span aria-hidden="true">→</span></a></c:if>
-    <c:if test="${returnRequests > 0}"><a href="${ctx}/admin/orders?status=return" class="alert alert-error alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${returnRequests} yêu cầu hoàn hàng chờ duyệt</span><span aria-hidden="true">→</span></a></c:if>
-    <c:if test="${chatWaiting > 0}"><a href="${ctx}/admin/chat" class="alert alert-info alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${chatWaiting} khách đang chờ trả lời chat</span><span aria-hidden="true">→</span></a></c:if>
+    <c:if test="${pending > 0}"><a href="${ctx}/admin/orders?status=pending" class="alert alert-warning alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${pending} đơn đang chờ xác nhận</span><span aria-hidden="true"><i data-lucide="arrow-right" class="size-4"></i></span></a></c:if>
+    <c:if test="${returnRequests > 0}"><a href="${ctx}/admin/orders?status=return" class="alert alert-error alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${returnRequests} yêu cầu hoàn hàng chờ duyệt</span><span aria-hidden="true"><i data-lucide="arrow-right" class="size-4"></i></span></a></c:if>
+    <c:if test="${chatWaiting > 0}"><a href="${ctx}/admin/chat" class="alert alert-info alert-soft text-sm justify-between hover:brightness-95"><span><b>Cần xử lý:</b> ${chatWaiting} khách đang chờ trả lời chat</span><span aria-hidden="true"><i data-lucide="arrow-right" class="size-4"></i></span></a></c:if>
   </div>
 
   <%-- ===== VUNG 3: 4 THE SO LIEU ===== --%>
@@ -34,7 +34,7 @@
         <c:choose>
           <c:when test="${empty revenueDelta}"><span class="text-base-content/50">Chưa có số liệu hôm qua để so sánh</span></c:when>
           <c:otherwise>
-            <span class="${revenueDelta >= 0 ? 'text-success' : 'text-error'}">${revenueDelta >= 0 ? '▲ +' : '▼ −'}<c:choose><c:when test="${revenueDelta > 999 or revenueDelta < -999}">999+</c:when><c:otherwise><fmt:formatNumber value="${revenueDelta >= 0 ? revenueDelta : -revenueDelta}" pattern="0.0"/></c:otherwise></c:choose>%</span>
+            <span class="${revenueDelta >= 0 ? 'text-success' : 'text-error'}"><i data-lucide="${revenueDelta >= 0 ? 'trending-up' : 'trending-down'}" class="size-3.5 inline-block align-middle"></i> ${revenueDelta >= 0 ? '+' : '−'}<c:choose><c:when test="${revenueDelta > 999 or revenueDelta < -999}">999+</c:when><c:otherwise><fmt:formatNumber value="${revenueDelta >= 0 ? revenueDelta : -revenueDelta}" pattern="0.0"/></c:otherwise></c:choose>%</span>
             <span class="text-base-content/50">so với hôm qua</span>
           </c:otherwise>
         </c:choose>
@@ -48,7 +48,7 @@
       <div class="mt-2 text-xs text-base-content/50">Chưa hoàn tất</div></a>
     <a href="${ctx}/admin/products?stock=low" class="card bg-base-100 border border-base-300 p-4 hover:border-primary transition">
       <div class="text-sm text-base-content/60">Sản phẩm sắp hết</div><div class="mt-1 text-2xl font-bold tabular-nums">${lowCount}</div>
-      <div class="mt-2 text-xs text-warning">⚠ Tồn kho ≤ 5</div></a>
+      <div class="mt-2 text-xs text-warning"><i data-lucide="triangle-alert" class="size-4"></i> Tồn kho ≤ 5</div></a>
   </div>
 
   <div class="grid xl:grid-cols-3 gap-4">

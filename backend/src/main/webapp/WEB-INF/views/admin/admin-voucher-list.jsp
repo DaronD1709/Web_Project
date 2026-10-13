@@ -34,7 +34,7 @@
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <c:choose>
       <c:when test="${empty vouchers}">
-        <div class="p-12 text-center text-base-content/60"><div class="text-4xl">🎟️</div>Không có voucher.</div>
+        <div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="ticket" class="size-10 text-primary"></i></div>Không có voucher.</div>
       </c:when>
       <c:otherwise>
         <div class="overflow-x-auto">

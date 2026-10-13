@@ -16,7 +16,7 @@
   <div class="space-y-4">
     <c:choose>
       <c:when test="${empty orders}">
-        <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center"><div class="text-5xl" aria-hidden="true">📦</div><div class="mt-2 font-semibold">Chưa có đơn hàng nào</div><a href="${ctx}/products" class="link link-primary mt-2">Tiếp tục mua sắm</a></div>
+        <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center"><div class="text-5xl" aria-hidden="true"><i data-lucide="package" class="size-12 text-primary"></i></div><div class="mt-2 font-semibold">Chưa có đơn hàng nào</div><a href="${ctx}/products" class="link link-primary mt-2">Tiếp tục mua sắm</a></div>
       </c:when>
       <c:otherwise>
         <c:forEach var="order" items="${orders}">
@@ -28,7 +28,7 @@
             <div class="px-5 py-3 space-y-2">
               <c:forEach var="item" items="${order.items}">
                 <div class="flex items-center gap-3 text-sm">
-                  <c:choose><c:when test="${not empty item.product.imageUrl}"><img src="${ctx}/<c:out value='${item.product.imageUrl}'/>" alt="" class="size-12 shrink-0 rounded-field object-cover"></c:when><c:otherwise><div class="ph ph-sm size-12 shrink-0 rounded-field" aria-hidden="true">🌾</div></c:otherwise></c:choose>
+                  <c:choose><c:when test="${not empty item.product.imageUrl}"><img src="${ctx}/<c:out value='${item.product.imageUrl}'/>" alt="" class="size-12 shrink-0 rounded-field object-cover"></c:when><c:otherwise><div class="ph ph-sm size-12 shrink-0 rounded-field" aria-hidden="true"><i data-lucide="wheat" class="size-6 text-primary/50"></i></div></c:otherwise></c:choose>
                   <div class="flex-1 min-w-0 break-words"><c:out value="${item.product.name}"/></div><div class="text-base-content/60 shrink-0">×${item.quantity}</div>
                 </div>
               </c:forEach>
@@ -45,9 +45,9 @@
   </div>
   <c:if test="${result.totalPages > 1}">
     <nav aria-label="Phân trang đơn hàng" class="flex flex-wrap items-center justify-center gap-2 mt-6">
-      <c:if test="${result.page > 1}"><a class="btn btn-sm btn-outline" href="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page - 1}" hx-get="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page - 1}" hx-target="#order-history" hx-swap="outerHTML" hx-push-url="true">← Trước</a></c:if>
+      <c:if test="${result.page > 1}"><a class="btn btn-sm btn-outline" href="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page - 1}" hx-get="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page - 1}" hx-target="#order-history" hx-swap="outerHTML" hx-push-url="true"><i data-lucide="arrow-left" class="size-4"></i> Trước</a></c:if>
       <span class="text-sm">Trang ${result.page}/${result.totalPages}</span>
-      <c:if test="${result.page < result.totalPages}"><a class="btn btn-sm btn-outline" href="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page + 1}" hx-get="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page + 1}" hx-target="#order-history" hx-swap="outerHTML" hx-push-url="true">Sau →</a></c:if>
+      <c:if test="${result.page < result.totalPages}"><a class="btn btn-sm btn-outline" href="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page + 1}" hx-get="${ctx}/orders?status=${selectedStatus}&amp;page=${result.page + 1}" hx-target="#order-history" hx-swap="outerHTML" hx-push-url="true">Sau <i data-lucide="arrow-right" class="size-4"></i></a></c:if>
     </nav>
   </c:if>
 </div>

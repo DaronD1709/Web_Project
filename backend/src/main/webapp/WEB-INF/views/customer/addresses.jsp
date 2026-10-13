@@ -64,7 +64,7 @@
         <c:when test="${empty addresses}">
           <div class="card bg-base-100 border border-dashed border-base-300">
             <div class="card-body items-center text-center py-10">
-              <div class="text-5xl" aria-hidden="true">📍</div>
+              <div class="text-5xl" aria-hidden="true"><i data-lucide="map-pin" class="size-12 text-primary"></i></div>
               <h2 class="card-title mt-2">
                 Bạn chưa có địa chỉ giao hàng
               </h2>

@@ -7,6 +7,6 @@
     <div class="alert alert-error alert-soft text-sm" role="alert"><c:out value="${voucherError}"/></div>
   </c:when>
   <c:when test="${not empty voucher}">
-    <div class="alert alert-success alert-soft text-sm">✔ Đã áp dụng <b><c:out value="${voucher.code}"/></b>: giảm <fmt:formatNumber value="${discountAmount}" pattern="#,##0"/>₫.</div>
+    <div class="alert alert-success alert-soft text-sm"><i data-lucide="circle-check" class="size-4 inline-block align-middle"></i> Đã áp dụng <b><c:out value="${voucher.code}"/></b>: giảm <fmt:formatNumber value="${discountAmount}" pattern="#,##0"/>₫.</div>
   </c:when>
 </c:choose>

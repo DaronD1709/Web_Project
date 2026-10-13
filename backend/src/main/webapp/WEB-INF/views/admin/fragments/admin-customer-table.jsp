@@ -11,7 +11,7 @@
 <c:choose>
   <%-- ===== Khong co khach nao khop ===== --%>
   <c:when test="${empty result.items}">
-    <div class="p-12 text-center text-base-content/60"><div class="text-4xl">👥</div>Không có khách hàng phù hợp.</div>
+    <div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="users" class="size-10 text-primary"></i></div>Không có khách hàng phù hợp.</div>
   </c:when>
   <c:otherwise>
     <%-- ===== BANG: moi khach 1 dong (tai khoan bi khoa hien mo di) ===== --%>
@@ -36,7 +36,7 @@
               <td>
                 <c:choose>
                   <c:when test="${u.active}"><span class="badge badge-success badge-sm whitespace-nowrap">Hoạt động</span></c:when>
-                  <c:otherwise><span class="badge badge-error badge-sm whitespace-nowrap">🔒 Đã khoá</span></c:otherwise>
+                  <c:otherwise><span class="badge badge-error badge-sm whitespace-nowrap"><i data-lucide="lock" class="size-4"></i> Đã khoá</span></c:otherwise>
                 </c:choose>
               </td>
               <%-- Nut Khoa/Mo khoa la form POST /admin/users/lock (hx-boost gui bang htmx, hx-confirm hoi truoc). "locked" la trang thai MONG MUON
