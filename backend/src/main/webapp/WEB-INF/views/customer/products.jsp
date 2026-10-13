@@ -24,7 +24,10 @@
 
     <%-- Bo loc: gui GET /products, cac o input trung ten tham so ma ProductServlet doc --%>
     <aside>
-      <form id="filter" method="get" action="${ctx}/products" class="card bg-base-100 border border-base-300 p-4 space-y-5">
+      <%-- Tu loc ngay khi doi o chon (change) hoac Enter (submit), khong can bam nut: htmx gui GET /products roi chi thay vung #product-results
+         (hx-select lay dung vung do tu trang day du server tra ve) va doi URL (hx-push-url) de Back/Forward va chia se link van dung. Khong co JS thi nut "Ap dung" van chay nhu form thuong. --%>
+      <form id="filter" method="get" action="${ctx}/products" class="card bg-base-100 border border-base-300 p-4 space-y-5"
+            hx-get="${ctx}/products" hx-trigger="change, submit" hx-target="#product-results" hx-select="#product-results" hx-swap="outerHTML" hx-push-url="true">
         <input type="hidden" name="q" value="<c:out value='${filter.keyword}'/>">
         <div>
           <div class="font-semibold mb-2">Danh mục</div>
@@ -54,7 +57,7 @@
       </form>
     </aside>
 
-    <section>
+    <section id="product-results">
       <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h1 class="text-xl font-bold">
@@ -75,7 +78,7 @@
         </div>
         <%-- Select nam ngoai <form> nhung thuoc ve form#filter (thuoc tinh form=) va tu gui khi doi gia tri --%>
         <label class="select select-sm w-56"><span class="label">Sắp xếp</span>
-          <select name="sort" form="filter" onchange="this.form.submit()">
+          <select name="sort" form="filter" onchange="this.form.requestSubmit()">
             <option value="new" ${filter.sort == 'new' ? 'selected' : ''}>Mới nhất</option>
             <option value="asc" ${filter.sort == 'asc' ? 'selected' : ''}>Giá: thấp → cao</option>
             <option value="desc" ${filter.sort == 'desc' ? 'selected' : ''}>Giá: cao → thấp</option>
