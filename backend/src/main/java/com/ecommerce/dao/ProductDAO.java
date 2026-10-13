@@ -27,7 +27,26 @@ public class ProductDAO extends AbstractDAO<Product, Integer> {
             em.close();
         }
     }
-
+    public List<Product> findRelated(Integer categoryId, Integer excludedProductId, int limit) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            return em.createQuery(
+                        """
+                        SELECT p
+                        FROM Product p
+                        WHERE p.category.id = :categoryId
+                          AND p.id <> :excludedProductId
+                        ORDER BY p.id DESC
+                        """,
+                        Product.class)
+                .setParameter("categoryId", categoryId)
+                .setParameter("excludedProductId", excludedProductId)
+                .setMaxResults(limit)
+                .getResultList();
+        } finally {
+            em.close();
+        }
+    }
     /** Cac san pham moi nhat (id lon nhat truoc) - dung cho muc "noi bat" o trang chu. */
     public List<Product> findLatest(int limit) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
