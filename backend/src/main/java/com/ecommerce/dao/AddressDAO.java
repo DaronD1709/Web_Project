@@ -74,6 +74,7 @@ public class AddressDAO extends AbstractDAO<Address, Integer> {
 
         try {
             tx.begin();
+            lockCustomer(em, customerId); // chay lan luot theo tung khach: 2 request cung luc khong tao ra 2 dia chi mac dinh
 
             long currentCount = em.createQuery(
                             """
@@ -124,12 +125,20 @@ public class AddressDAO extends AbstractDAO<Address, Integer> {
 
         try {
             tx.begin();
+            lockCustomer(em, customerId); // chay lan luot theo tung khach: 2 request cung luc khong tao ra 2 dia chi mac dinh
 
             Address address = findOwned(em, addressId, customerId);
 
             if (address == null) {
                 tx.rollback();
                 return null;
+            }
+
+            // Don hang giu THAM CHIEU toi dia chi (khong sao chep), nen sua dia chi da dung se doi luon noi nhan hang cua don cu.
+            // Kiem tra lai o day (sau khi da khoa khach) de khong lot khi vua co don moi dung dia chi nay.
+            if (countReferences(em, addressId) > 0) {
+                tx.rollback();
+                throw new IllegalStateException(ADDRESS_IN_USE);
             }
 
             address.setRecipientName(values.getRecipientName());
@@ -164,6 +173,7 @@ public class AddressDAO extends AbstractDAO<Address, Integer> {
 
         try {
             tx.begin();
+            lockCustomer(em, customerId); // chay lan luot theo tung khach: 2 request cung luc khong tao ra 2 dia chi mac dinh
 
             Address address = findOwned(em, addressId, customerId);
 
@@ -225,6 +235,7 @@ public class AddressDAO extends AbstractDAO<Address, Integer> {
 
         try {
             tx.begin();
+            lockCustomer(em, customerId); // chay lan luot theo tung khach: 2 request cung luc khong tao ra 2 dia chi mac dinh
 
             Address address = findOwned(em, addressId, customerId);
 
@@ -303,6 +314,38 @@ public class AddressDAO extends AbstractDAO<Address, Integer> {
                 .getResultStream()
                 .findFirst()
                 .orElse(null);
+    }
+
+    /** Thong diep ma DAO nem khi sua dia chi da nam trong don hang (Service doi thanh BusinessException). */
+    public static final String ADDRESS_IN_USE = "ADDRESS_IN_USE";
+
+    /**
+     * Khoá dòng khách hàng (JPQL + PESSIMISTIC_WRITE, không dùng em.find vì Hibernate đọc trước khi khoá) để các thao tác
+     * ghi địa chỉ của CÙNG 1 khách chạy lần lượt: không có cách nào hai request đồng thời cùng đặt "mặc định".
+     */
+    private void lockCustomer(EntityManager em, Integer customerId) {
+        em.createQuery("SELECT c.id FROM Customer c WHERE c.id = :id", Integer.class)
+                .setParameter("id", customerId)
+                .setLockMode(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+                .getResultList();
+    }
+
+    private long countReferences(EntityManager em, Integer addressId) {
+        return em.createQuery("SELECT COUNT(o) FROM Order o WHERE o.shippingAddress.id = :addressId", Long.class)
+                .setParameter("addressId", addressId)
+                .getSingleResult();
+    }
+
+    /** Id các địa chỉ của khách đã được dùng trong ít nhất 1 đơn (trang địa chỉ dùng để ẩn form sửa). */
+    public java.util.Set<Integer> findUsedAddressIds(Integer customerId) {
+        EntityManager em = JPAUtil.getEmFactory().createEntityManager();
+        try {
+            return new java.util.HashSet<>(em.createQuery(
+                            "SELECT DISTINCT o.shippingAddress.id FROM Order o WHERE o.customer.id = :cid AND o.shippingAddress IS NOT NULL", Integer.class)
+                    .setParameter("cid", customerId).getResultList());
+        } finally {
+            em.close();
+        }
     }
 
     /**

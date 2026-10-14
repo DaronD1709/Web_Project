@@ -42,6 +42,14 @@ public class AddressService {
         );
     }
 
+    private static final String IN_USE_MESSAGE =
+            "Địa chỉ này đã được dùng trong đơn hàng nên không thể sửa. Hãy thêm địa chỉ mới.";
+
+    /** Id các địa chỉ của khách đã dùng trong đơn (không sửa được). */
+    public java.util.Set<Integer> getUsedAddressIds(Integer customerId) {
+        return addressDAO.findUsedAddressIds(customerId);
+    }
+
     public Address update(Integer customerId,
                           Integer addressId,
                           String recipientName,
@@ -61,12 +69,18 @@ public class AddressService {
                 city
         );
 
-        Address updated = addressDAO.updateOwned(
-                customerId,
-                addressId,
-                values,
-                isDefault
-        );
+        // Dia chi da nam trong don hang thi khong sua (se doi noi giao cua don cu): khach them dia chi moi
+        if (addressDAO.countOrderReferences(addressId) > 0) {
+            throw new BusinessException(IN_USE_MESSAGE);
+        }
+
+        Address updated;
+        try {
+            updated = addressDAO.updateOwned(customerId, addressId, values, isDefault);
+        } catch (IllegalStateException e) { // vua co don dung dia chi nay giua luc kiem tra va luc luu
+            if (AddressDAO.ADDRESS_IN_USE.equals(e.getMessage())) throw new BusinessException(IN_USE_MESSAGE);
+            throw e;
+        }
 
         if (updated == null) {
             throw new BusinessException(

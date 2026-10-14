@@ -98,6 +98,11 @@ public class SessionUtil {
         } else if ("/account/password".equals(path)) {
             // Sau login trinh duyet gui GET; endpoint doi mat khau chi nhan POST nen quay ve trang ho so.
             path = "/account/profile";
+        } else if ("/product/review".equals(path)) {
+            // Gui danh gia luc het phien: /product/review chi nhan POST nen sau login khong quay lai duoc (405).
+            // Ve trang chi tiet san pham de lay form + token moi.
+            Integer productId = ParamUtil.intOrNull(req.getParameter("productId"));
+            path = productId != null && productId > 0 ? "/product?id=" + productId + "#reviews" : "/products";
         } else if ("/notifications/read".equals(path)) {
             path = "/notifications";
         } else if ("/checkout/voucher".equals(path)) {

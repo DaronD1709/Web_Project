@@ -280,6 +280,8 @@ public class AddressServlet extends HttpServlet {
                 addressService.getAddresses(customer.getId())
         );
 
+        req.setAttribute("usedAddressIds", addressService.getUsedAddressIds(customer.getId()));
+
         req.setAttribute(
                 "csrfToken",
                 getOrCreateCsrfToken(req)

@@ -153,7 +153,14 @@
                   </div>
                 </div>
 
-                <%-- Form sửa của từng địa chỉ --%>
+                <%-- Form sửa của từng địa chỉ. Địa chỉ ĐÃ DÙNG trong đơn hàng không sửa được (đơn giữ tham chiếu tới địa chỉ,
+                     sửa sẽ làm đổi nơi giao của đơn cũ) -> hiện ghi chú, khách thêm địa chỉ mới. --%>
+                <c:choose>
+                <c:when test="${usedAddressIds.contains(address.id)}">
+                  <div class="alert alert-soft text-sm"><i data-lucide="lock" class="size-4"></i>
+                    <span>Địa chỉ này đã được dùng trong đơn hàng nên không thể sửa. Hãy thêm địa chỉ mới nếu cần thay đổi.</span></div>
+                </c:when>
+                <c:otherwise>
                 <details class="collapse collapse-arrow border border-base-300 bg-base-200/50"
                          ${editingThis ? 'open' : ''}>
 
@@ -282,6 +289,8 @@
                     </form>
                   </div>
                 </details>
+                </c:otherwise>
+                </c:choose>
 
               </div>
             </article>
