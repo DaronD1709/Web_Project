@@ -216,6 +216,10 @@ Việc cần làm khi tới bước deploy (sau khi xong Core): `Dockerfile` (To
 đổi `hibernate.hbm2ddl.auto` sang `validate`/`none` (hoặc giữ `update` có chủ đích), tắt/đổi tài khoản của `DataSeeder`, đặt `app.base.url` = https://tên-miền,
 bỏ `hibernate.show_sql`, cấu hình SMTP thật.
 
+**Đã làm (nhánh `feat/deploy-docker`):** `Dockerfile` (gốc repo, build WAR rồi chạy `ROOT.war` trên Tomcat 10.1, đọc cổng từ `PORT`, tin `X-Forwarded-*` sau reverse proxy) + `deploy/entrypoint.sh` + `.dockerignore`.
+`JPAUtil` đọc `DB_URL/DB_USER/DB_PASSWORD/DB_SHOW_SQL/DB_HBM2DDL`, `EmailService` đọc `MAIL_*` + `APP_BASE_URL` (biến môi trường ưu tiên hơn file `.properties`), `DataSeeder` đọc `ADMIN_PASSWORD` (lần tạo Admin đầu tiên), `UploadUtil` đọc `UPLOAD_DIR`, VNPay đọc `VNPAY_*`.
+Đã chạy thử image với Postgres tạm: app lên, nạp 82 sản phẩm, mật khẩu Admin mặc định bị từ chối khi đặt `ADMIN_PASSWORD`. Hướng dẫn từng bước (Render + Neon, bảng biến môi trường, đăng ký IPN VNPay, checklist): `docs/deploy-guide.md`. Chưa deploy thật.
+
 ## 9. Phân công (theo use case diagram; mỗi use case 1 nhánh `feat/<tên>` tách từ `dev`)
 
 | Người | Use case → nhánh |

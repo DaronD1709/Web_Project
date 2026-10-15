@@ -127,7 +127,9 @@ public class DataSeeder {
         if (userDAO.findByEmail("admin@nongviet.vn") == null) {
             Admin admin = new Admin();
             admin.setEmail("admin@nongviet.vn");
-            admin.setPasswordHash(PasswordUtil.hash("Admin@123"));
+            // Deploy that: dat bien moi truong ADMIN_PASSWORD de KHONG dung mat khau mac dinh (repo cong khai).
+            String adminPassword = System.getenv("ADMIN_PASSWORD");
+            admin.setPasswordHash(PasswordUtil.hash(adminPassword != null && !adminPassword.isBlank() ? adminPassword : "Admin@123"));
             admin.setFullName("Quản trị viên");
             admin.setCreatedAt(LocalDateTime.now());
             userDAO.save(admin);

@@ -41,6 +41,14 @@ public class JPAUtil {
         } catch (IOException e) {
             throw new IllegalStateException("Khong doc duoc db.properties", e);
         }
+        // Khi deploy (Docker/cloud) khong co db.properties: cau hinh qua bien moi truong, UU TIEN hon db.properties.
+        //   DB_URL (jdbc:postgresql://host:5432/ten_db?sslmode=require), DB_USER, DB_PASSWORD
+        //   DB_SHOW_SQL=false (tat in SQL ra log), DB_HBM2DDL=update|validate|none (mac dinh theo persistence.xml)
+        putIfPresent(overrides, "jakarta.persistence.jdbc.url", System.getenv("DB_URL"));
+        putIfPresent(overrides, "jakarta.persistence.jdbc.user", System.getenv("DB_USER"));
+        putIfPresent(overrides, "jakarta.persistence.jdbc.password", System.getenv("DB_PASSWORD"));
+        putIfPresent(overrides, "hibernate.show_sql", System.getenv("DB_SHOW_SQL"));
+        putIfPresent(overrides, "hibernate.hbm2ddl.auto", System.getenv("DB_HBM2DDL"));
         // "ecommercePU" = ten khoi cau hinh trong persistence.xml (phai khop tung chu)
         return Persistence.createEntityManagerFactory("ecommercePU", overrides);
     }
