@@ -226,6 +226,14 @@ public class EmailService {
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Khong doc duoc mail.properties", e);
         }
+        // Khi deploy khong co mail.properties: bien moi truong MAIL_* / APP_BASE_URL, UU TIEN hon file.
+        String[][] env = {{"MAIL_ENABLED", "mail.enabled"}, {"MAIL_HOST", "mail.host"}, {"MAIL_PORT", "mail.port"},
+                {"MAIL_AUTH", "mail.auth"}, {"MAIL_STARTTLS", "mail.starttls"}, {"MAIL_USERNAME", "mail.username"},
+                {"MAIL_PASSWORD", "mail.password"}, {"MAIL_FROM", "mail.from"}, {"APP_BASE_URL", "app.base.url"}};
+        for (String[] e : env) {
+            String v = System.getenv(e[0]);
+            if (v != null && !v.isBlank()) p.setProperty(e[1], v.trim());
+        }
         return p;
     }
 }
