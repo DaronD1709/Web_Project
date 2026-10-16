@@ -22,6 +22,72 @@ document.addEventListener('DOMContentLoaded', function () {
   if (f) nvToast(f.textContent, f.dataset.type);
 });
 
+// ---------------------------------------------------------------------------------------------------------------------
+// HOP THOAI XAC NHAN rieng (thay cho confirm() mac dinh cua trinh duyet, vi cai mac dinh xau va khong dong bo giao dien).
+//
+// Cach dung trong JSP: gan hx-confirm="Cau hoi?" len form hoac nut (nhu truoc day, khong phai doi gi them):
+//     <form method="post" action="..." hx-confirm="Xoá voucher &quot;ABC&quot;? Không thể hoàn tác.">
+// htmx KHONG tu hien confirm() nua: truoc khi gui request no phat su kien "htmx:confirm" (kem cau hoi trong evt.detail.question),
+// ta chan lai (preventDefault), hien hop thoai rieng; nguoi dung dong y thi goi evt.detail.issueRequest(true) de gui tiep
+// (tham so true = "da xac nhan roi, dung hoi lai"). Bam Huy / Esc / bam ra ngoai = khong gui gi ca.
+// Tuy chon tren chinh phan tu co hx-confirm:  data-confirm-title="..."  data-confirm-ok="Chu tren nut dong y".
+// Cau hoi bat dau bang Xoa / Huy / Tu choi / Khoa duoc coi la thao tac nguy hiem: icon va nut dong y mau do.
+// ---------------------------------------------------------------------------------------------------------------------
+var nvConfirmBox = null; // <dialog> tao 1 lan khi can, dung lai cho moi lan hoi
+
+function nvConfirmBuild() {
+  var d = document.createElement('dialog'); // <dialog> co san cua trinh duyet: showModal() tu khoa trang phia sau, Esc dong, Tab khong thoat ra ngoai
+  d.id = 'confirm-dialog';
+  d.className = 'modal';
+  // Noi dung CO DINH (khong chen chuoi do nguoi dung nhap vao day); cau hoi duoc gan sau bang textContent nen khong the chen HTML.
+  d.innerHTML =
+    '<div class="modal-box max-w-md">' +
+      '<div class="flex items-start gap-3">' +
+        '<span id="cf-icon" class="size-10 shrink-0 rounded-full flex items-center justify-center"><i data-lucide="triangle-alert" class="size-5"></i></span>' +
+        '<div class="min-w-0"><h3 id="cf-title" class="font-semibold text-lg"></h3><p id="cf-msg" class="py-2 text-sm text-base-content/70 whitespace-pre-line"></p></div>' +
+      '</div>' +
+      '<div class="modal-action">' +
+        '<button type="button" id="cf-no" class="btn btn-ghost">Quay lại</button>' +
+        '<button type="button" id="cf-yes" class="btn"></button>' +
+      '</div>' +
+    '</div>' +
+    '<form method="dialog" class="modal-backdrop"><button aria-label="Đóng">đóng</button></form>'; // bam ra ngoai hop thoai = dong
+  document.body.appendChild(d);
+  // returnValue cho biet nut nao dong hop thoai: "yes" = dong y; Esc / bam ra ngoai / "Quay lai" = khong phai "yes"
+  d.querySelector('#cf-yes').addEventListener('click', function () { d.close('yes'); });
+  d.querySelector('#cf-no').addEventListener('click', function () { d.close('no'); });
+  return d;
+}
+
+// Hien hop thoai, tra ve Promise<boolean> (true = nguoi dung dong y). elt = phan tu co hx-confirm (de doc data-confirm-*).
+function nvConfirm(question, elt) {
+  var d = nvConfirmBox || (nvConfirmBox = nvConfirmBuild());
+  var danger = /^(xoá|huỷ|từ chối|khoá)/.test(String(question).normalize('NFC').toLowerCase());
+  var data = (elt && elt.dataset) || {};
+  d.querySelector('#cf-title').textContent = data.confirmTitle || (danger ? 'Bạn chắc chắn chứ?' : 'Xác nhận thao tác');
+  d.querySelector('#cf-msg').textContent = question;
+  var icon = d.querySelector('#cf-icon'), yes = d.querySelector('#cf-yes');
+  icon.className = 'size-10 shrink-0 rounded-full flex items-center justify-center ' + (danger ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary');
+  yes.className = 'btn ' + (danger ? 'btn-error' : 'btn-primary');
+  yes.textContent = data.confirmOk || (danger ? 'Đồng ý' : 'Xác nhận');
+  if (window.nvIcons) nvIcons(); // the <i data-lucide> vua tao can duoc doi thanh SVG
+  return new Promise(function (resolve) {
+    d.addEventListener('close', function () { resolve(d.returnValue === 'yes'); }, { once: true }); // moi lan hoi 1 lan nghe, tu go
+    d.returnValue = '';
+    d.showModal();
+    (danger ? d.querySelector('#cf-no') : yes).focus(); // nguy hiem thi mac dinh chon "Quay lai" de lo bam Enter khong xoa nham
+  });
+}
+
+// htmx phat su kien nay truoc MOI request; chi chen vao khi phan tu co hx-confirm (evt.detail.question co gia tri)
+document.body.addEventListener('htmx:confirm', function (evt) {
+  if (!evt.detail.question) return;               // khong co hx-confirm -> de htmx gui binh thuong
+  evt.preventDefault();                           // chan confirm() mac dinh va chan request cho den khi nguoi dung chon
+  nvConfirm(evt.detail.question, evt.detail.elt).then(function (ok) {
+    if (ok) evt.detail.issueRequest(true);        // true = bo qua buoc hoi lai
+  });
+});
+
 // Xem truoc the san pham trong form them/sua san pham: goi tu oninput/onchange cua form (admin-product-form.jsp)
 function nvProductPreview() {
   var f = document.getElementById('product-form');

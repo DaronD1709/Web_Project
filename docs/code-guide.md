@@ -111,7 +111,7 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 | FE | `views/admin/admin-layout.jsp` | Khung chung của mọi trang admin (2 nhánh: cả trang / chỉ nội dung) |
 | FE | `views/admin/common/admin-header.jspf` · `admin-sidebar.jspf` · `admin-nav.jspf` · `admin-title.jspf` | Thanh trên, menu trái, danh sách mục menu, tiêu đề |
 | FE | `views/admin/common/admin-order-badge.jspf` | Nhãn trạng thái đơn (dùng ở nhiều trang) |
-| FE | `static/js/admin.js` | Toast, xem trước sản phẩm/voucher, cuộn chat, nút "Xem dạng bảng" của biểu đồ |
+| FE | `static/js/admin.js` | Toast, **hộp thoại xác nhận riêng** (thay `confirm()` mặc định: bắt sự kiện `htmx:confirm` của mọi `hx-confirm`), xem trước sản phẩm/voucher, cuộn chat, nút "Xem dạng bảng" của biểu đồ |
 | FE | `static/css/design.css` | Theme màu xanh lá, vài chỉnh sửa daisyUI |
 
 ---
