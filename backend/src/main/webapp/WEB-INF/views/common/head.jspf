@@ -10,6 +10,8 @@
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
 <script src="${ctx}/static/js/search.js?v=${applicationScope.assetVersion}" defer></script>
 <script src="${ctx}/static/js/icons.js?v=${applicationScope.assetVersion}" defer></script>
+<%-- Hop thoai xac nhan rieng (thay confirm() cua trinh duyet): hx-confirm="..." (form/nut htmx) hoac data-confirm="..." (form thuong). Xem static/js/confirm.js --%>
+<script src="${ctx}/static/js/confirm.js?v=${applicationScope.assetVersion}" defer></script>
 <%-- Favicon: SVG (icon Lucide wheat tren nen xanh thuong hieu) + PNG cho iOS --%>
 <link rel="icon" type="image/svg+xml" href="${ctx}/static/img/favicon.svg">
 <link rel="apple-touch-icon" href="${ctx}/static/img/apple-touch-icon.png">

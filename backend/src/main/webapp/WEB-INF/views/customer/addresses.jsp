@@ -132,7 +132,7 @@
 
                     <form method="post"
                           action="${ctx}/account/addresses"
-                          onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');">
+                          data-confirm="Xoá địa chỉ này? Địa chỉ đã dùng trong đơn hàng sẽ không xoá được.">
 
                       <input type="hidden"
                              name="csrfToken"
