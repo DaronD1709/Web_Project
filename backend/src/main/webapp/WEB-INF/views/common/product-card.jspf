@@ -1,11 +1,36 @@
-<%-- The san pham dung chung (trang chu, danh sach). Dung trong vong <c:forEach var="p" ...>: p = Product. Du lieu nhap tay luon qua <c:out>. --%>
+<%--
+  The san pham dung chung (trang chu, danh sach). Dung trong vong <c:forEach var="p" ...>: p = Product. Du lieu nhap tay luon qua <c:out>.
+
+  CACH DUNG
+    Dat trong vong lap, ten bien vong lap PHAI la "p":
+        <c:forEach var="p" items="${...}">
+          <%@ include file="/WEB-INF/views/common/product-card.jspf" %>
+        </c:forEach>
+    Hien duoc dung o: customer/home.jsp (san pham noi bat) va customer/products.jsp (danh sach co loc/phan trang).
+    "include file" la gop file luc BIEN DICH JSP (khong phai goi them 1 request), nen file nay dung chung duoc cac bien cua trang cha.
+
+  DU LIEU FILE NAY DOC TU TRANG CHA (khong tu khai bao)
+    p                : Product dang xet (id, name, price, stockQuantity, imageUrl, category). Category la @ManyToOne eager nen doc duoc.
+    ctx              : duong dan goc cua ung dung (vd "" hoac "/ecommerce"), duoc dat boi common/head.jspf nen trang cha phai include head.jspf truoc.
+    cartCsrfToken    : token chong CSRF cho form them vao gio. Servlet cua trang (HomeServlet, ProductServlet) goi CartCsrf.prepare(req) de
+                       dat vao request; khach CHUA dang nhap thi khong co token (o trong de trong, server se bat dang nhap truoc).
+    taglib c, fm    t    : khai bao lai o dau file nay de file con dung doc lap duoc khi gop vao trang khac.
+
+  BAO MAT
+    Moi chuoi do Admin/nguoi dung nhap (ten, danh muc, duong dan anh, token) di qua <c:out> de ma hoa HTML -> chan XSS.
+    Cac gia tri con lai la SO do he thong sinh (id, gia, ton kho) nen in thang duoc.
+--%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <div class="card bg-base-100 border border-base-300 hover:shadow-lg transition">
   <div class="relative">
+    <%-- ANH: co imageUrl thi hien anh that (anh Admin tai len "uploads/..." hoac anh mau "static/img/..." deu ghep sau ctx);
+         chua co anh thi hien o placeholder voi icon bong lua mi. Ca hai deu bam vao de mo trang chi tiet (placeholder khong phai link). --%>
     <c:choose>
       <c:when test="${not empty p.imageUrl}">
         <a href="${ctx}/product?id=${p.id}">
+            <%-- .pc-img: bat dau opacity 0, onload them lop is-loaded de anh HIEN DAN khi tai xong (design.css) -> chuyen danh muc khong bi nhay anh.
+                 decoding="async": cho trinh duyet giai ma anh khong chan viec ve trang. h-44 + object-cover: khung co dinh, anh cat vua khung. --%>
             <img src="${ctx}/<c:out value='${p.imageUrl}'/>"
                 alt="<c:out value='${p.name}'/>"
                 class="pc-img h-44 w-full object-cover rounded-t-[var(--radius-box)] bg-base-200" decoding="async" onload="this.classList.add('is-loaded')">
@@ -15,23 +40,35 @@
         <div class="ph rounded-t-[var(--radius-box)] h-44"><i data-lucide="wheat" class="size-12 text-primary/50"></i></div>
       </c:otherwise>
     </c:choose>
+    <%-- NHAN TON KHO (goc tren phai anh): het hang (0) = nhan xam; sap het (1-5) = nhan vang kem so con lai.
+         Nguong 5 khop voi "sap het hang" ben Admin (AdminStatsService.LOW_STOCK_LIMIT). Con nhieu hon 5 thi khong hien gi. --%>
     <c:if test="${p.stockQuantity == 0}"><span class="badge badge-neutral absolute top-2 right-2">Hết hàng</span></c:if>
     <c:if test="${p.stockQuantity > 0 && p.stockQuantity <= 5}"><span class="badge badge-warning absolute top-2 right-2">Chỉ còn ${p.stockQuantity}</span></c:if>
   </div>
   <div class="card-body p-4 gap-1">
     <span class="text-xs text-base-content/60"><c:out value="${p.category.name}"/></span>
+    <%-- Ten san pham: toi da 2 dong (line-clamp-2), chieu cao toi thieu 2 dong (min-h-10) de cac the cung hang cao bang nhau du ten dai hay ngan. --%>
     <a href="${ctx}/product?id=${p.id}"
         class="font-semibold leading-snug line-clamp-2 min-h-10 hover:text-primary">
     <c:out value="${p.name}"/>
     </a>
+    <%-- Gia: dinh dang so kieu 1,250,000 roi them ky hieu dong. Luu y: fmt chi nhan so (price la double), khong phai chuoi. --%>
     <span class="text-lg font-bold text-primary"><fmt:formatNumber value="${p.price}" pattern="#,##0"/>₫</span>
-    <%-- htmx: bam -> POST /cart (action=add) -> chi doi badge #cart-count tren header, khong reload. Chua dang nhap: server tra HX-Redirect toi /login. --%>
+    <%-- htmx: bam -> POST /cart (action=add) -> chi doi badge #cart-count tren header, khong reload. Chua dang nhap: server tra HX-Redirect toi /login.
+         Luong chi tiet:
+           1. Form co CA "method=post action=..." (de van chay neu khong co JavaScript) VA hx-post (htmx gui nen khi co JavaScript).
+           2. hx-target="#cart-count" hx-swap="outerHTML": ket qua server tra ve (doan HTML badge moi) THAY THE nguyen phan tu #cart-count.
+           3. hx-disabled-elt="find button": khoa nut trong luc dang gui de bam dup khong them 2 lan.
+           4. Thanh cong/that bai: CartServlet gui toast qua header HX-Trigger (khong doi noi dung the san pham).
+         Cac o an: action=add chon thao tac cua CartServlet; cartCsrfToken chong gia mao yeu cau; productId la san pham nay; qty co dinh 1
+         (muon chon so luong thi vao trang chi tiet). Server van kiem tra lai ton kho, khong tin nut bi disabled phia trinh duyet. --%>
     <form method="post" action="${ctx}/cart" class="mt-2" hx-post="${ctx}/cart"
           hx-target="#cart-count" hx-swap="outerHTML" hx-disabled-elt="find button">
       <input type="hidden" name="action" value="add">
       <input type="hidden" name="cartCsrfToken" value="<c:out value='${cartCsrfToken}'/>">
       <input type="hidden" name="productId" value="${p.id}">
       <input type="hidden" name="qty" value="1">
+      <%-- Het hang: nut bi disabled va doi chu thanh "Het hang". --%>
       <button type="submit" class="btn btn-primary btn-sm btn-block" ${p.stockQuantity <= 0 ? 'disabled' : ''}>
         ${p.stockQuantity <= 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
       </button>
