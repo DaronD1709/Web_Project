@@ -18,13 +18,16 @@ public abstract class User {
     protected String fullName;
     protected String phone;
     protected Date createdAt;
-    protected boolean isActive = true; // false = Admin đã khoá tài khoản (không đăng nhập được); cột users.is_active, mặc định true
     protected String resetTokenHash;   // băm SHA-256 của token quên mật khẩu (null nếu không có yêu cầu)
     protected Date resetTokenExpiry;   // hết hạn sau 30 phút
+    protected boolean active = true;   // false = Admin đã khoá tài khoản (không đăng nhập được); cột users.is_active, mặc định true
+    protected boolean guest = false;   // true = khách vãng lai chỉ dùng để chat (không đăng nhập được); cột users.is_guest, mặc định false
 
-    public boolean login(String email, String password) { ... }
-    public void logout() { ... }
-    public void updateProfile() { ... }
+    public User login(String email, String password) { ... }      // AuthService.login
+    public void logout() { ... }                                    // LogoutServlet
+    public void forgotPassword(String email) { ... }                // AuthService.requestPasswordReset/resetPassword
+    public void updateProfile(String fullName, String phone) { ... }          // UserService
+    public void changePassword(String current, String newPassword) { ... }    // UserService
 }
 ```
 
@@ -36,10 +39,14 @@ public class Customer extends User {
     private Cart cart;
     private boolean handledByHuman; // true = nhân viên đang tiếp quản chat (chatbot im lặng); cột users.handled_by_human, mặc định false
 
-    public void addToCart(Product product, int qty) { ... }
-    public Order placeOrder() { ... }
-    public List<Order> viewOrderHistory() { return orders; }
-    public Review writeReview(Product product, int rating, String comment) { ... }
+    public Customer register(String email, String password) { ... }
+    public Address manageAddress(Address address) { ... }
+    public Order placeOrder(Address address, Voucher voucher) { ... }
+    public List<Order> viewOrderHistory(String status) { ... }
+    public Order trackOrder(int orderId) { ... }
+    public boolean writeReview(Product product, int rating, String comment) { ... }
+    public List<Notification> viewNotifications(String filter) { ... }
+    public void sendChatMessage(String content) { ... }
 }
 ```
 `writeReview()` phải validate ở tầng service: chỉ cho tạo Review nếu Customer có ít nhất 1 Order chứa Product này với status `COMPLETED` (hoặc `RETURNED`). Đây là business rule, không thể hiện trong class diagram — chỉ thể hiện qua method signature.
@@ -47,9 +54,14 @@ public class Customer extends User {
 ## 3. Admin extends User
 ```java
 public class Admin extends User {
-    public void manageProduct(Product product) { ... }
-    public void manageOrder(Order order) { ... }
-    public void manageVoucher(Voucher voucher) { ... }
+    public Product manageProduct(Product product) { ... }
+    public Category manageCategory(Category category) { ... }
+    public void changeOrderStatus(Order order, OrderStatus next) { ... }
+    public Voucher manageVoucher(Voucher voucher) { ... }
+    public void lockCustomer(Customer customer, boolean locked) { ... }
+    public void replyChat(Customer customer, String content) { ... }
+    public AutoReply manageAutoReply(AutoReply rule) { ... }
+    public void viewDashboard() { ... }
 }
 ```
 
@@ -89,7 +101,7 @@ public class Product {
     private List<Review> reviews = new ArrayList<>();
 
     public void updateStock(int qty) { ... }
-    public String getDetails() { ... }
+    public double getAverageRating() { ... } // ReviewService.summary
 }
 ```
 
@@ -101,9 +113,9 @@ public class Cart {
     private Customer customer; // chủ giỏ hàng
 
     public void addItem(CartItem item) { items.add(item); }
-    public void removeItem(int itemId) { ... }
+    public void updateQuantity(CartItem item, int qty) { ... } // CartService
+    public void removeItem(CartItem item) { ... }             // CartService
     public double calculateTotal() { ... }
-    public Order checkout() { ... }
 }
 ```
 
@@ -140,8 +152,7 @@ public class Order {
     public void updateStatus(OrderStatus next) { ... } // ném lỗi nếu !canMoveTo(next); hoàn kho do Service/DAO lo
     public double calculateTotal() { ... }
     public void requestReturn(String reason) { ... } // Customer gọi, chỉ hợp lệ khi status = COMPLETED
-    public void approveReturn() { ... } // Admin gọi, chuyển RETURN_REQUESTED -> RETURNED, restock
-    public void rejectReturn() { ... } // Admin gọi, chuyển RETURN_REQUESTED -> COMPLETED (giữ nguyên)
+    // Admin duyệt hoàn (RETURN_REQUESTED -> RETURNED, hoàn kho) hoặc từ chối (-> COMPLETED) bằng updateStatus() qua AdminOrderService.changeStatus
 }
 ```
 
@@ -232,18 +243,23 @@ public class Review {
 | Customer — Cart | Composition | 1 — 1 | owns |
 | Cart — CartItem | Composition | 1 — 0..* | contains |
 | Order — OrderItem | Composition | 1 — 1..* | contains |
-| Order — Payment | Composition | 1 — 1 | has |
+| Order — Payment | Composition | 1 — 1 | paid by |
 | Product — Review | Composition | 1 — 0..* | has |
 | CartItem — Product | Aggregation | 0..* — 1 | refers to |
 | OrderItem — Product | Aggregation | 0..* — 1 | refers to |
 | Category — Product | Aggregation | 1 — 0..* | groups |
 | Customer — Order | Association | 1 — 0..* | places |
-| Admin — Product | Association | 1 — 0..* | manages |
-| Admin — Order | Association | 1 — 0..* | processes |
-| Admin — Voucher | Association | 1 — 0..* | manages |
+| Admin → AutoReply | Dependency | 1 — 0..* | manages (soạn luật trả lời tự động) |
+| Admin → Customer | Dependency | 1 — 0..* | manages (khoá/mở tài khoản) |
+| Admin → Order | Dependency | 1 — 0..* | manages (đổi trạng thái) |
+| Admin → Product | Dependency | 1 — 0..* | manages (thêm/sửa/xoá) |
+| Admin → Voucher | Dependency | 1 — 0..* | manages (thêm/sửa/bật tắt/xoá) |
+| Admin → Category | Dependency | 1 — 0..* | manages (thêm/sửa/xoá) |
+
+Các quan hệ `Admin → …` là phụ thuộc về mặt nghiệp vụ (các hàm `manage…` của Admin tác động lên class đó); không có khoá ngoại tới Admin trong code, nên vẽ bằng đường đứt.
 | Order — Address (shippingAddress) | Association | 0..* — 1 | ships to |
 | Review — Customer | Association | 0..* — 1 | written by |
-| User — Notification | Composition | 1 — 0..* | receives |
+| User — Notification | Association | 1 — 0..* | receives |
 | Message — Customer | Association | 0..* — 1 | belongs to (khách sở hữu luồng chat) |
 | Message — User | Association | 0..* — 1 | sent by |
 | Order — Voucher | Association | 0..* — 0..1 | applies |
@@ -293,7 +309,9 @@ public class Voucher {
     private Date endDate;
     private boolean isActive;
 
-    public boolean isValid() { ... } // check startDate <= now <= endDate, isActive, quantityUsed < quantityIssued
+    public String getState() { ... } // active|expired|soldout|off — nơi duy nhất định nghĩa điều kiện
+    public double calculateDiscount(double subtotal) { ... } // VoucherService
+    public boolean isValid() { ... } // state == active; check startDate <= now <= endDate, isActive, quantityUsed < quantityIssued
 }
 ```
 
@@ -321,6 +339,40 @@ Luật trả lời tự động do Admin soạn ở CMS (Admin > Trả lời t�
 
 ---
 
+## Đối chiếu hàm trên sơ đồ ↔ code thật (`docs/class-diagram.drawio`)
+
+Nguyên tắc vẽ: mỗi hàm chỉ đặt ở class sở hữu dữ liệu đó, không lặp lại hàm kế thừa (Admin dùng `login/logout` của User) và không liệt kê getter đơn thuần. Trong code, hàm nghiệp vụ nằm ở lớp Service; entity giữ luật nhỏ.
+
+| Class | Hàm trên sơ đồ | Nằm ở đâu trong code |
+|---|---|---|
+| User | `login`, `forgotPassword` | `AuthService.login`; `AuthService.requestPasswordReset/resetPassword`; `logout` = `LogoutServlet` |
+| User | `updateProfile`, `changePassword` | `UserService.updateProfile/changePassword` (app chỉ mở trang hồ sơ cho Customer) |
+| Customer | `register` | `AuthService.register` |
+| Customer | `manageAddress` | `AddressService.create/update/setDefault/delete` |
+| Customer | `placeOrder` | `OrderService.checkout` |
+| Customer | `viewOrderHistory`, `trackOrder` | `OrderService.getOwnHistory/getOwnOrder` |
+| Customer | `writeReview` | `ReviewService.write` |
+| Customer | `viewNotifications` | `NotificationService.getOwn` |
+| Customer | `sendChatMessage` | `ChatService.sendFromCustomer` |
+| Admin | `manageProduct` | `AdminProductService.save/delete` |
+| Admin | `manageCategory` | `AdminCategoryService.save/delete` |
+| Admin | `changeOrderStatus` | `AdminOrderService.changeStatus` → `Order.canMoveTo/updateStatus` |
+| Admin | `manageVoucher` | `AdminVoucherService.save/setActive/delete` |
+| Admin | `lockCustomer` | `AdminCustomerService.setLocked` |
+| Admin | `replyChat` | `AdminChatService.send/setHuman` |
+| Admin | `manageAutoReply` | `AdminAutoReplyService.save/setActive/delete/test` |
+| Admin | `viewDashboard` | `AdminStatsService` |
+| Cart | `addItem`, `calculateTotal` | entity `Cart` |
+| Cart | `updateQuantity`, `removeItem` | `CartService.updateQuantity/removeItem` |
+| Order | `canMoveTo`, `updateStatus`, `confirmOrder`, `cancelOrder`, `requestReturn`, `calculateTotal` | entity `Order` (khách huỷ/hoàn qua `OrderService.cancelOwnOrder/requestOwnReturn`) |
+| Voucher | `getState`, `isValid`, `calculateDiscount` | entity `Voucher`; `VoucherService.calculateDiscount` |
+| Product | `updateStock`, `getAverageRating` | entity `Product`; `ReviewService.summary` |
+| Notification | `markAsRead` | `NotificationService.markOwnRead` |
+| AutoReply | `matches` | `ChatBotService.match` |
+| Payment / COD / VNPay | `processPayment`, `getMethod`; VNPay thêm `buildPaymentUrl`, `verifyResponse` | entity `Payment`; `VNPayService` |
+
+Khách vãng lai (Unregistered Customer: xem/tìm sản phẩm, chi tiết, đăng ký, chat vãng lai) không có class riêng — dùng `ProductService`, `AuthService.register`, `ChatService.startGuest`.
+
 ---
 
 ## Phần Optional còn lại (chưa đưa vào diagram)
@@ -333,6 +385,68 @@ Luật trả lời tự động do Admin soạn ở CMS (Admin > Trả lời t�
 
 ```mermaid
 classDiagram
+    class Admin {
+        +manageProduct(product : Product) Product
+        +changeOrderStatus(order : Order, next : OrderStatus) void
+        +manageCategory(category : Category) Category
+        +manageVoucher(voucher : Voucher) Voucher
+        +lockCustomer(customer : Customer, locked : boolean) void
+        +replyChat(customer : Customer, content : String) void
+        +manageAutoReply(rule : AutoReply) AutoReply
+        +viewDashboard() void
+    }
+
+    class AutoReply {
+        -id : int
+        -keywords : String
+        -replyText : String
+        -handoff : boolean
+        -active : boolean
+        -priority : int
+        +matches(message : String) boolean
+        +Getters/Setters
+    }
+
+    class Message {
+        -id : int
+        -customer : Customer
+        -sender : User
+        -content : String
+        -sentAt : DateTime
+        +Getters/Setters
+    }
+
+    class Address {
+        -id : int
+        -customer : Customer
+        -recipientName : String
+        -phone : String
+        -street : String
+        -city : String
+        -isDefault : boolean
+        +Getters/Setters
+    }
+
+    class Cart {
+        -id : int
+        -customer : Customer
+        -items : List~CartItem~
+        +addItem(item : CartItem) void
+        +updateQuantity(item : CartItem, qty : int) void
+        +removeItem(item : CartItem) void
+        +calculateTotal() double
+        +Getters/Setters
+    }
+
+    class CartItem {
+        -id : int
+        -cart : Cart
+        -product : Product
+        -quantity : int
+        -priceAtAdd : double
+        +Getters/Setters
+    }
+
     class User {
         <<abstract>>
         #id : int
@@ -340,114 +454,49 @@ classDiagram
         #passwordHash : String
         #fullName : String
         #phone : String
-        #createdAt : Date
+        #createdAt : DateTime
         #resetTokenHash : String
-        #resetTokenExpiry : Date
-        +login(email : String, password : String) boolean
+        #resetTokenExpiry : DateTime
+        #active : boolean
+        #guest : boolean
+        +login(email : String, password : String) User
         +logout() void
-        +updateProfile() void
+        +forgotPassword(email : String) void
+        +updateProfile(fullName : String, phone : String) void
+        +changePassword(current : String, newPassword : String) void
         +Getters/Setters
     }
 
     class Customer {
-        -addresses : List~Address~
-        -orders : List~Order~
-        -cart : Cart
-        +addToCart(product : Product, qty : int) void
-        +placeOrder() Order
-        +viewOrderHistory() List~Order~
-        +writeReview(product : Product, rating : int, comment : String) Review
+        -handledByHuman : boolean
+        +register(email : String, password : String) Customer
+        +manageAddress(address : Address) Address
+        +placeOrder(address : Address, voucher : Voucher) Order
+        +viewOrderHistory(status : String) List~Order~
+        +trackOrder(orderId : int) Order
+        +writeReview(product : Product, rating : int, comment : String) boolean
+        +viewNotifications(filter : String) List~Notification~
+        +sendChatMessage(content : String) void
         +Getters/Setters
     }
 
-    class Admin {
-        +manageProduct(product : Product) void
-        +manageOrder(order : Order) void
-        +manageVoucher(voucher : Voucher) void
-    }
-
-    class Address {
+    class Review {
         -id : int
-        -recipientName : String
-        -phone : String
-        -street : String
-        -city : String
-        -isDefault : boolean
-        -customer : Customer
-        +Getters/Setters
-    }
-
-    class Category {
-        -id : int
-        -name : String
-        -description : String
-        -products : List~Product~
-        +Getters/Setters
-    }
-
-    class Product {
-        -id : int
-        -name : String
-        -description : String
-        -price : double
-        -stockQuantity : int
-        -imageUrl : String
-        -category : Category
-        -reviews : List~Review~
-        +updateStock(qty : int) void
-        +getDetails() String
-        +Getters/Setters
-    }
-
-    class Cart {
-        -id : int
-        -items : List~CartItem~
-        -customer : Customer
-        +addItem(item : CartItem) void
-        +removeItem(itemId : int) void
-        +calculateTotal() double
-        +checkout() Order
-        +Getters/Setters
-    }
-
-    class CartItem {
-        -id : int
-        -quantity : int
-        -priceAtAdd : double
         -product : Product
-        -cart : Cart
-        +Getters/Setters
-    }
-
-    class Order {
-        -id : int
-        -orderDate : Date
-        -status : OrderStatus
-        -totalAmount : double
-        -items : List~OrderItem~
-        -payment : Payment
-        -shippingAddress : Address
-        -returnReason : String
-        -discountAmount : double
-        -shippingFee : double
         -customer : Customer
-        -voucher : Voucher
-        +confirmOrder() void
-        +cancelOrder() void
-        +updateStatus(status : OrderStatus) void
-        +calculateTotal() double
-        +requestReturn(reason : String) void
-        +approveReturn() void
-        +rejectReturn() void
+        -rating : int
+        -comment : String
+        -createdAt : DateTime
         +Getters/Setters
     }
 
-    class OrderItem {
+    class Notification {
         -id : int
-        -quantity : int
-        -priceAtOrder : double
-        -product : Product
-        -order : Order
+        -user : User
+        -message : String
+        -isRead : boolean
+        -createdAt : DateTime
+        +markAsRead() void
         +Getters/Setters
     }
 
@@ -462,70 +511,45 @@ classDiagram
         RETURNED
     }
 
-    class Payment {
-        <<abstract>>
-        #id : int
-        #amount : double
-        #paymentDate : Date
-        #status : PaymentStatus
-        #order : Order
-        +processPayment() boolean
-        +Getters/Setters
-    }
-
-    class PaymentStatus {
-        <<enumeration>>
-        PENDING
-        SUCCESS
-        FAILED
-    }
-
-    class CODPayment {
-        +processPayment() boolean
-    }
-
-    class VNPayPayment {
-        -transactionId : String
-        +processPayment() boolean
-        +Getters/Setters
-    }
-
-    class Review {
+    class Order {
         -id : int
-        -rating : int
-        -comment : String
-        -createdAt : Date
         -customer : Customer
+        -orderDate : DateTime
+        -status : OrderStatus
+        -totalAmount : double
+        -discountAmount : double
+        -shippingFee : double
+        -shippingAddress : Address
+        -voucher : Voucher
+        -returnReason : String
+        +canMoveTo(next : OrderStatus) boolean
+        +updateStatus(next : OrderStatus) void
+        +confirmOrder() void
+        +cancelOrder() void
+        +requestReturn(reason : String) void
+        +calculateTotal() double
+        +Getters/Setters
+    }
+
+    class OrderItem {
+        -id : int
+        -order : Order
         -product : Product
+        -quantity : int
+        -priceAtOrder : double
         +Getters/Setters
     }
 
-    class Notification {
+    class Product {
         -id : int
-        -message : String
-        -isRead : boolean
-        -createdAt : Date
-        -user : User
-        +Getters/Setters
-    }
-
-    class Message {
-        -id : int
-        -content : String
-        -sentAt : Date
-        -customer : Customer
-        -sender : User
-        +Getters/Setters
-    }
-
-    class AutoReply {
-        -id : int
-        -keywords : String
-        -replyText : String
-        -handoff : boolean
-        -isActive : boolean
-        -priority : int
-        +getKeywordList() List~String~
+        -name : String
+        -description : String
+        -price : double
+        -stockQuantity : int
+        -imageUrl : String
+        -category : Category
+        +updateStock(qty : int) void
+        +getAverageRating() double
         +Getters/Setters
     }
 
@@ -537,10 +561,35 @@ classDiagram
         -minOrderValue : double
         -quantityIssued : int
         -quantityUsed : int
-        -startDate : Date
-        -endDate : Date
+        -startDate : DateTime
+        -endDate : DateTime
         -isActive : boolean
+        +getState() String
         +isValid() boolean
+        +calculateDiscount(subtotal : double) double
+        +Getters/Setters
+    }
+
+    class Payment {
+        <<abstract>>
+        #id : int
+        #order : Order
+        #amount : double
+        #paymentDate : DateTime
+        #status : PaymentStatus
+        +processPayment() boolean
+        +getMethod() String
+        +Getters/Setters
+    }
+
+    class CODPayment {
+        +processPayment() boolean
+    }
+
+    class Category {
+        -id : int
+        -name : String
+        -description : String
         +Getters/Setters
     }
 
@@ -550,31 +599,48 @@ classDiagram
         FIXED_AMOUNT
     }
 
-    User <|-- Customer
-    User <|-- Admin
-    Payment <|-- CODPayment
-    Payment <|-- VNPayPayment
+    class PaymentStatus {
+        <<enumeration>>
+        PENDING
+        SUCCESS
+        FAILED
+    }
 
+    class VNPayPayment {
+        -transactionId : String
+        +processPayment() boolean
+        +buildPaymentUrl(order : Order) String
+        +verifyResponse(fields : Map) boolean
+        +Getters/Setters
+    }
+
+    User <|-- Admin
+    User <|-- Customer
+    Admin ..> AutoReply : manages
+    Admin ..> Customer : manages
+    Admin ..> Order : manages
+    Admin ..> Product : manages
+    Admin ..> Voucher : manages
+    Admin ..> Category : manages
     Customer "1" *-- "0..*" Address : owns
+    Customer "1" -- "0..*" Order : places
     Customer "1" *-- "1" Cart : owns
     Cart "1" *-- "0..*" CartItem : contains
     CartItem "0..*" o-- "1" Product : refers to
-    Category "1" o-- "0..*" Product : groups
     Order "1" *-- "1..*" OrderItem : contains
     OrderItem "0..*" o-- "1" Product : refers to
-    Order "1" *-- "1" Payment : has
-    Order ..> OrderStatus : <<use>>
-    Payment ..> PaymentStatus : <<use>>
-    Customer "1" --> "0..*" Order : places
-    Admin "1" --> "0..*" Product : manages
-    Admin "1" --> "0..*" Order : processes
-    Admin "1" --> "0..*" Voucher : manages
+    Order "1" *-- "1" Payment : paid by
+    Payment <|-- CODPayment
+    Payment <|-- VNPayPayment
     Order "0..*" --> "1" Address : ships to
+    Order "0..*" --> "0..1" Voucher : applies
+    Order ..> OrderStatus : use
+    Payment ..> PaymentStatus : use
+    Voucher ..> DiscountType : use
+    Category "1" o-- "0..*" Product : groups
     Product "1" *-- "0..*" Review : has
     Review "0..*" --> "1" Customer : written by
-    User "1" *-- "0..*" Notification : receives
-    Message "0..*" --> "1" Customer : belongs to
+    User "1" -- "0..*" Notification : receives
     Message "0..*" --> "1" User : sent by
-    Order "0..*" --> "0..1" Voucher : applies
-    Voucher ..> DiscountType : <<use>>
+    Message "0..*" --> "1" Customer : belongs to
 ```
