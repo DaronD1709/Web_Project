@@ -42,9 +42,10 @@
       </label>
 
       <%-- Loai giam: phan tram hoac so tien co dinh (khop DiscountType) --%>
-      <div>
+      <%-- form-control: xep nhan phia tren + khoang cach, giong cac o nhap khac (truoc day nhan nam sat ngay canh cum nut chon) --%>
+      <div class="form-control">
         <div class="label"><span class="label-text">Loại giảm giá</span></div>
-        <div class="join">
+        <div class="join self-start">
           <input class="join-item btn btn-sm" type="radio" name="type" value="percent" aria-label="Phần trăm (%)" ${isPercent ? 'checked' : ''}>
           <input class="join-item btn btn-sm" type="radio" name="type" value="fixed" aria-label="Số tiền cố định (₫)" ${isPercent ? '' : 'checked'}>
         </div>
