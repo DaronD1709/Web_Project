@@ -25,6 +25,62 @@ Thứ tự merge vào `dev` đúng như bảng (nhánh sau dựa trên nhánh tr
 
 ---
 
+## Luồng một request từ trình duyệt xuống database (chung cho cả khách và Admin)
+
+```
+Trình duyệt
+   │ (1) request GET / POST
+   ▼
+Servlet (doGet / doPost)   đọc tham số (ParamUtil), kiểm tra đăng nhập + quyền (SessionUtil.requireCustomer / requireAdmin)
+   │ (2) gọi
+   ▼
+Service                    luật nghiệp vụ + kiểm tra hợp lệ; vi phạm thì ném BusinessException
+   │ (3) gọi
+   ▼
+DAO                        viết JPQL, mở/đóng EntityManager, giao dịch (commit / rollback)
+   │ (4) truy vấn
+   ▼
+PostgreSQL ── (5) trả các dòng ──► Hibernate tự đổi mỗi dòng thành 1 đối tượng Entity (Product, Order, Message...)
+   │ (6) DAO trả Entity / List<Entity> ngược lên → Service (xử lý thêm nếu cần) → Servlet
+   ▼
+Servlet: req.setAttribute("tên", dữ liệu)  rồi  forward tới JSP   HOẶC   sendRedirect
+```
+
+**Ai làm gì (đọc để trả lời vấn đáp)**
+- **Không ai "hứng" dữ liệu thủ công.** DAO chỉ viết câu JPQL; Hibernate ánh xạ kết quả sang entity nhờ các annotation `@Entity`, `@Column`... DAO chỉ việc `return`.
+- **Servlet** đặt dữ liệu vào request bằng `setAttribute`; **Service** không biết gì về request hay JSP.
+- **JSP** là nơi lấy dữ liệu ra hiển thị, bằng EL: `${messages}`, `${p.name}`... (luôn bọc chuỗi người nhập bằng `<c:out>` để chống XSS).
+- Servlet **không gọi thẳng DAO**: luôn đi qua Service để luật nghiệp vụ chỉ nằm một chỗ.
+
+**`forward` và `sendRedirect` khác nhau**
+
+| | `forward` | `sendRedirect` |
+|---|---|---|
+| Ai thực hiện | Server, nội bộ | Trình duyệt gửi request mới |
+| Số request | 1 | 2 (request ban đầu + một GET mới) |
+| URL trên thanh địa chỉ | giữ nguyên | đổi sang URL mới |
+| Dữ liệu `setAttribute` | **còn**, JSP đọc được | **mất** (đã là request khác) |
+| Dùng khi | Hiện trang (GET), hoặc hiện lại form kèm lỗi | Sau khi POST thành công (mẫu Post/Redirect/Get: bấm F5 không gửi lại form) |
+
+Muốn báo thông báo qua redirect thì phải lưu tạm vào session (flash): `AdminView.flash` ở Admin, `reviewFlash` ở đánh giá sản phẩm.
+
+**Lỗi nghiệp vụ đi đường nào.** Service `throw new BusinessException(...)` → Servlet `catch` → hiện lại form kèm lỗi (`req.setAttribute("errors", e.getErrors())` rồi forward), hoặc với htmx: `resp.setStatus(422)` + `HtmxUtil.toast(...)` + header `HX-Reswap: none` (giữ nguyên giao diện, chỉ hiện toast đỏ).
+
+**Hai đặc thù của dự án cần nhớ**
+1. `AbstractDAO` đóng `EntityManager` ngay sau mỗi lần gọi, nên khi tới JSP entity đã "tách rời" database. Trường thường và `@ManyToOne` đọc được, còn **collection lazy** (`order.items`, `product.reviews`) sẽ lỗi `LazyInitializationException` → DAO phải `JOIN FETCH` sẵn thứ JSP cần.
+2. **htmx**: request có header `HX-Request` thì Servlet `forward` tới **fragment JSP** (một mẩu HTML trong `fragments/`) thay vì cả trang, hoặc trả header (`HX-Trigger` = toast, `HX-Redirect` = chuyển trang). Phần còn lại của luồng giữ nguyên.
+
+**Ví dụ: chat (polling mỗi 3 giây), đi theo đúng luồng trên**
+- Mở `/chat` lần đầu: `ChatServlet.doGet` → `ChatService.getMessagesAfter(khách, 0)` → `MessageDAO.findAfter` (JPQL `WHERE m.id > :afterId`) → `List<Message>` → `setAttribute("messages", ...)` + `setAttribute("lastId", ...)` → forward `chat.jsp`, trang này `<jsp:include>` fragment `chat-messages.jsp`. **Chưa có request polling nào.**
+- Cuối fragment là thẻ rỗng canh chừng:
+  `<div id="poll" data-after="${lastId}" hx-get="${ctx}/chat/messages?after=${lastId}" hx-trigger="every 3s" hx-swap="outerHTML">`.
+  Số sau `after=` **không phải số cứng**: JSP điền `${lastId}` = id tin cuối cùng trang đã có (trong ảnh chụp HTML có thể thấy `after=12`).
+- Cứ 3 giây htmx gửi `GET /chat/messages?after=<lastId>` → cùng luồng Servlet → Service → DAO, nhưng forward tới **fragment** chỉ chứa tin mới + một `#poll` mới với `lastId` mới. `hx-swap="outerHTML"` thay chính thẻ `#poll` cũ nên vòng sau hỏi tiếp từ tin mới nhất. Không có tin mới thì `lastId` giữ nguyên.
+- Form gửi tin lấy số này từ `data-after` của `#poll` để biết "sau khi gửi, cho tôi các tin có id lớn hơn".
+- Không dùng WebSocket: mỗi người mở trang chat gây 1 truy vấn nhỏ mỗi 3 giây (phía Admin: danh sách hội thoại 5 giây, khung chat 3 giây).
+
+---
+
 ## Cách một request đi (áp dụng cho mọi trang Admin)
 
 ```
@@ -36,6 +92,7 @@ Trình duyệt ──► Servlet (đọc tham số, kiểm tra quyền) ──�
 - Danh sách có ô lọc: htmx chỉ thay phần bảng nằm trong `fragments/` (Servlet nhận ra nhờ header `HX-Target`).
 - Hành động ghi (thêm/sửa/xoá/đổi trạng thái): form POST → Service → **redirect** về danh sách kèm thông báo "flash" (`AdminView.flash`) → hiện toast.
 - Đọc code theo đúng chiều: **Servlet → Service → DAO → JSP**.
+- Luồng tổng quát (kèm forward/redirect, lỗi nghiệp vụ, ví dụ chat) nằm ở mục ngay phía trên.
 
 ---
 
