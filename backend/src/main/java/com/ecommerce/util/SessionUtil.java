@@ -173,6 +173,15 @@ public class SessionUtil {
             }
         }
 
+        // Request htmx GET la "tho do" nen (vd /notifications/count moi 30 giay) tra ve MANH HTML, khong phai trang.
+        // Het phien thi next phai la TRANG khach dang xem (header HX-Current-URL), neu khong login xong se hien manh "3".
+        if (HtmxUtil.isHtmx(req) && "GET".equals(req.getMethod())) {
+            String current = currentPagePath(req);
+            if (current != null) {
+                path = current;
+            }
+        }
+
         // URLEncoder: next chua "?", "=", "#" ... phai ma hoa de khong bi lan voi tham so cua chinh URL dang nhap.
         String login = req.getContextPath() + loginPath + "?next="
                 + URLEncoder.encode(path, StandardCharsets.UTF_8);
@@ -182,6 +191,36 @@ public class SessionUtil {
             HtmxUtil.redirect(resp, login);
         } else {
             resp.sendRedirect(login);
+        }
+    }
+
+    /**
+     * Lay duong dan (khong gom contextPath, kem query) cua TRANG ma trinh duyet dang mo, tu header HX-Current-URL
+     * do htmx gui kem moi request. Tra null neu thieu/khong hop le/khac may chu, de dung duong dan cua request hien tai.
+     * Gia tri nay van duoc kiem tra lai o trang dang nhap (chi nhan duong dan noi bo), nen khong mo ra open redirect.
+     */
+    private static String currentPagePath(HttpServletRequest req) {
+        String header = req.getHeader("HX-Current-URL");
+        if (header == null || header.isBlank()) {
+            return null;
+        }
+        try {
+            java.net.URI uri = new java.net.URI(header);
+            String path = uri.getRawPath();
+            String ctx = req.getContextPath();
+            if (path == null || !path.startsWith(ctx + "/") && !path.equals(ctx)) {
+                return null;
+            }
+            path = path.substring(ctx.length());
+            if (path.isEmpty()) {
+                path = "/";
+            }
+            if (path.startsWith("//") || path.contains("\\")) {
+                return null;
+            }
+            return uri.getRawQuery() == null ? path : path + "?" + uri.getRawQuery();
+        } catch (java.net.URISyntaxException e) {
+            return null;
         }
     }
 }
