@@ -1,0 +1,127 @@
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<fmt:setLocale value="vi_VN" />
+<%--
+  Trang /products. Du lieu do ProductServlet truyen qua request attribute:
+    filter      : ProductFilter (bo loc dang chon)
+    result      : PageResult<Product> (result.items, result.totalCount, result.page, result.totalPages)
+    categories  : List<Category>
+  Chuyen tu mockup/products.html: du lieu JS gia -> vong <c:forEach> doc du lieu that.
+  QUAN TRONG: du lieu nguoi dung/admin nhap (ten SP, tu khoa) luon di qua <c:out> de chong XSS.
+--%>
+<!doctype html>
+<html lang="vi" data-theme="nongnghiep">
+<head>
+  <title>Sản phẩm — Nông Việt</title>
+  <%@ include file="/WEB-INF/views/common/head.jspf" %>
+</head>
+<body class="bg-base-200 min-h-screen">
+<%@ include file="/WEB-INF/views/common/header.jspf" %>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+  <div class="grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] gap-6">
+
+    <%-- Bo loc: gui GET /products, cac o input trung ten tham so ma ProductServlet doc --%>
+    <aside>
+      <%-- Tu loc ngay khi doi o chon (change) hoac Enter (submit), khong can bam nut: htmx gui GET /products roi chi thay vung #product-results
+         (hx-select lay dung vung do tu trang day du server tra ve) va doi URL (hx-push-url) de Back/Forward va chia se link van dung. Khong co JS thi nut "Ap dung" van chay nhu form thuong. --%>
+      <form id="filter" method="get" action="${ctx}/products" class="card bg-base-100 border border-base-300 p-4 space-y-5"
+            hx-get="${ctx}/products" hx-trigger="change, submit" hx-target="#product-results" hx-select="#product-results" hx-swap="outerHTML" hx-push-url="true">
+        <%-- Tim nhanh trong trang: tu loc sau 400ms ngung go. Doi DANH MUC thi xoa o nay (xem onchange cua nut chon danh muc) de danh muc moi hien du san pham,
+             o tim tren header co the van con chu cu - khong anh huong. --%>
+        <label class="input input-sm w-full">
+          <i data-lucide="search" class="size-4 opacity-60"></i>
+          <input id="filter-q" type="search" name="q" value="<c:out value='${filter.keyword}'/>" placeholder="Tìm trong trang này…" autocomplete="off"
+                 hx-get="${ctx}/products" hx-trigger="input changed delay:400ms" hx-include="#filter" />
+        </label>
+        <div>
+          <div class="font-semibold mb-2">Danh mục</div>
+          <label class="flex items-center gap-2 py-1 cursor-pointer">
+            <input type="radio" name="cat" value="" onchange="document.getElementById('filter-q').value=''" class="radio radio-primary radio-sm" ${empty filter.categoryId ? 'checked' : ''}> Tất cả
+          </label>
+          <c:forEach var="cat" items="${categories}">
+            <label class="flex items-center gap-2 py-1 cursor-pointer">
+              <input type="radio" name="cat" value="${cat.id}" onchange="document.getElementById('filter-q').value=''" class="radio radio-primary radio-sm" ${filter.categoryId == cat.id ? 'checked' : ''}>
+              <c:out value="${cat.name}"/>
+            </label>
+          </c:forEach>
+        </div>
+        <div>
+          <div class="font-semibold mb-2">Khoảng giá (₫)</div>
+          <div class="flex items-center gap-2">
+            <input name="min" type="number" min="0" placeholder="Từ" value="${filter.minPrice != null ? filter.minPrice.longValue() : ''}" class="input input-sm w-full">
+            <span>–</span>
+            <input name="max" type="number" min="0" placeholder="Đến" value="${filter.maxPrice != null ? filter.maxPrice.longValue() : ''}" class="input input-sm w-full">
+          </div>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="instock" value="on" class="checkbox checkbox-primary checkbox-sm" ${filter.inStockOnly ? 'checked' : ''}> Chỉ hiện còn hàng
+        </label>
+        <button class="btn btn-primary btn-block btn-sm">Áp dụng bộ lọc</button>
+        <a href="${ctx}/products" class="btn btn-ghost btn-block btn-xs">Xoá bộ lọc</a>
+      </form>
+    </aside>
+
+    <section id="product-results">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+          <h1 class="text-xl font-bold">
+  <c:choose>
+    <c:when test="${not empty filter.keyword and not empty selectedCategory}">
+      Kết quả cho “<c:out value="${filter.keyword}"/>” trong <c:out value="${selectedCategory.name}"/>
+    </c:when>
+    <c:when test="${not empty filter.keyword}">
+      Kết quả cho “<c:out value="${filter.keyword}"/>”
+    </c:when>
+    <c:when test="${not empty selectedCategory}">
+      Sản phẩm: <c:out value="${selectedCategory.name}"/>
+    </c:when>
+    <c:otherwise>Tất cả sản phẩm</c:otherwise>
+  </c:choose>
+</h1>
+          <div class="text-sm text-base-content/60">${result.totalCount} sản phẩm</div>
+        </div>
+        <%-- Select nam ngoai <form> nhung thuoc ve form#filter (thuoc tinh form=) va tu gui khi doi gia tri --%>
+        <label class="select select-sm w-56"><span class="label">Sắp xếp</span>
+          <select name="sort" form="filter" onchange="this.form.requestSubmit()">
+            <option value="new" ${filter.sort == 'new' ? 'selected' : ''}>Mới nhất</option>
+            <option value="asc" ${filter.sort == 'asc' ? 'selected' : ''}>Giá: thấp → cao</option>
+            <option value="desc" ${filter.sort == 'desc' ? 'selected' : ''}>Giá: cao → thấp</option>
+          </select>
+        </label>
+      </div>
+
+      <c:choose>
+        <c:when test="${empty result.items}">
+          <div class="card bg-base-100 border border-dashed border-base-300 p-12 text-center">
+            <div class="text-5xl"><i data-lucide="search" class="size-12 text-primary"></i></div>
+            <div class="font-semibold mt-2">Không tìm thấy sản phẩm phù hợp</div>
+            <p class="text-sm text-base-content/60">Thử bỏ bớt bộ lọc hoặc đổi từ khoá khác.</p>
+          </div>
+        </c:when>
+        <c:otherwise>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <c:forEach var="p" items="${result.items}">
+              <%@ include file="/WEB-INF/views/common/product-card.jspf" %>
+            </c:forEach>
+          </div>
+
+          <%-- Phan trang: giu nguyen bo loc hien tai nho filter.toQueryString() --%>
+          <c:if test="${result.totalPages > 1}">
+            <div class="join flex justify-center mt-8">
+              <c:forEach begin="1" end="${result.totalPages}" var="i">
+                <a href="${ctx}/products?${filter.toQueryString()}&page=${i}"
+                   class="join-item btn btn-sm ${i == result.page ? 'btn-primary' : ''}">${i}</a>
+              </c:forEach>
+            </div>
+          </c:if>
+        </c:otherwise>
+      </c:choose>
+    </section>
+  </div>
+</main>
+
+<%@ include file="/WEB-INF/views/common/footer.jspf" %>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.git
+**/target
+**/node_modules
+docs
+*.docx
+*.pdf
+backend/src/main/resources/db.properties
+backend/src/main/resources/mail.properties
+backend/src/main/resources/vnpay.properties

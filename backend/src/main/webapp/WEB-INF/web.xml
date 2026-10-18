@@ -3,7 +3,48 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
-    <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
+    <!-- Session chi di qua cookie (HttpOnly): khong gan ";jsessionid=..." len URL, tranh lo ma session. -->
+    <session-config>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
+    <!-- Moi file JSP/JSPF doc bang UTF-8. Thieu muc nay thi file .jspf (header/footer) bi loi font tieng Viet
+         vi Tomcat doc no bang ISO-8859-1. -->
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <url-pattern>*.jspf</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
+        </jsp-property-group>
+    </jsp-config>
+
+    <!-- Trang loi rieng (views/common/error.jsp) thay cho trang mac dinh cua Tomcat: khi Servlet goi sendError(403/404...) hoac
+         nem exception, Tomcat forward noi bo toi trang nay va giu nguyen ma trang thai. Throwable = moi loi chua duoc bat (500). -->
+    <error-page>
+        <error-code>400</error-code>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>405</error-code>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/WEB-INF/views/common/error.jsp</location>
+    </error-page>
 </web-app>

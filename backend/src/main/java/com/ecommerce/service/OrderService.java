@@ -1,0 +1,339 @@
+package com.ecommerce.service;
+
+import com.ecommerce.dao.CheckoutDAO;
+import com.ecommerce.dto.PageResult;
+import com.ecommerce.entity.Address;
+import com.ecommerce.entity.Cart;
+import com.ecommerce.entity.CartItem;
+import com.ecommerce.entity.Customer;
+import com.ecommerce.entity.Product;
+import com.ecommerce.entity.CODPayment;
+import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderItem;
+import com.ecommerce.entity.OrderStatus;
+import com.ecommerce.dao.OrderDAO;
+import com.ecommerce.entity.Payment;
+import com.ecommerce.entity.VNPayPayment;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/** Nghiệp vụ đặt hàng, thanh toán và đọc đơn của Customer. */
+public class OrderService {
+
+    private final CheckoutDAO checkoutDAO = new CheckoutDAO();
+
+    private static final Logger LOG =
+        Logger.getLogger(OrderService.class.getName());
+
+    private final CartService cartService = new CartService();
+    private final VoucherService voucherService = new VoucherService();
+    private final EmailService emailService = new EmailService();
+
+    private final OrderDAO orderDAO = new OrderDAO();
+
+    private final VNPayService vnPayService = new VNPayService();
+
+    public List<Address> getAddresses(Integer customerId) {
+        return checkoutDAO.findAddressesByCustomer(customerId);
+    }
+
+    private void validateCheckout(Customer customer,
+                                  Cart cart,
+                                  Address address) {
+        // Kiểm tra lại tài khoản sau khi DAO đã lấy khoá.
+        if (customer == null || !customer.isActive()) {
+            throw new BusinessException(
+                    "Tài khoản không tồn tại hoặc đã bị khoá.");
+        }
+
+        if (cart == null || cart.getItems().isEmpty()) {
+            throw new BusinessException("Giỏ hàng của bạn đang trống.");
+        }
+
+        // DAO chỉ trả địa chỉ thuộc đúng khách đang đặt hàng.
+        if (address == null) {
+            throw new BusinessException(
+                    "Địa chỉ giao hàng không hợp lệ.");
+        }
+
+        String[] addressParts = {
+            address.getRecipientName(),
+            address.getPhone(),
+            address.getStreet(),
+            address.getCity()
+        };
+
+        for (String part : addressParts) {
+            if (part == null || part.isBlank()) {
+                throw new BusinessException(
+                        "Địa chỉ giao hàng chưa đầy đủ thông tin.");
+            }
+        }
+
+        // Gom số lượng theo sản phẩm, kể cả giỏ cũ có dòng trùng.
+        Map<Integer, Long> quantities = new HashMap<>();
+
+        for (CartItem item : cart.getItems()) {
+            Product product = item.getProduct();
+            int qty = item.getQuantity();
+            double price = item.getPriceAtAdd();
+
+            if (product == null || qty < 1) {
+                throw new BusinessException(
+                        "Giỏ hàng có sản phẩm hoặc số lượng không hợp lệ.");
+            }
+
+            if (!Double.isFinite(price) || price < 0) {
+                throw new BusinessException(
+                        "Giá sản phẩm trong giỏ không hợp lệ.");
+            }
+
+            long totalQty = quantities.getOrDefault(product.getId(), 0L)
+                    + qty;
+
+            if (totalQty > product.getStockQuantity()) {
+                throw new BusinessException(
+                        "Chỉ còn " + product.getStockQuantity()
+                        + " sản phẩm \"" + product.getName()
+                        + "\" trong kho.");
+            }
+
+            quantities.put(product.getId(), totalQty);
+        }
+    }
+
+    public Order checkout(Customer user,
+                        Integer addressId,
+                        String method,
+                        String voucherCode) {
+        if (user == null || user.getId() == null) {
+            throw new BusinessException("Vui lòng đăng nhập để đặt hàng.");
+        }
+
+        if (addressId == null || addressId < 1) {
+            throw new BusinessException("Vui lòng chọn địa chỉ giao hàng.");
+        }
+
+        boolean onlinePayment = "VNPAY".equals(method);
+
+        if (!onlinePayment && !"COD".equals(method)) {
+            throw new BusinessException(
+                    "Phương thức thanh toán không hợp lệ.");
+        }
+
+        // Kiểm tra trước khi tạo đơn hoặc giữ tồn kho.
+        if (onlinePayment) {
+            vnPayService.requireReady();
+        }
+
+        boolean hasVoucher = voucherCode != null && !voucherCode.isBlank();
+
+        Order order = checkoutDAO.createOrder(
+                user.getId(),
+                addressId,
+                voucherCode,
+                onlinePayment
+                    ? "Đơn hàng đã được tạo, đang chờ thanh toán VNPay."
+                    : "Đơn hàng của bạn đã được tiếp nhận.",
+                (customer, cart, address, voucher) -> {
+                    // Chạy trong transaction, sau khi DAO đã lấy khoá.
+                    validateCheckout(customer, cart, address);
+
+                    double subtotal = cart.calculateTotal();
+                    if (!Double.isFinite(subtotal) || subtotal < 0) {
+                        throw new BusinessException(
+                                "Tổng tiền giỏ hàng không hợp lệ.");
+                    }
+
+                    // Kiểm tra lại voucher đang được khoá.
+                    double discount = hasVoucher
+                            ? voucherService.calculateDiscount(voucher, subtotal)
+                            : 0;
+                    double shipping = cartService.getShippingFee(subtotal);
+                    double total = subtotal - discount + shipping;
+
+                    if (!Double.isFinite(total) || total < 0) {
+                        throw new BusinessException(
+                                "Tổng thanh toán không hợp lệ.");
+                    }
+
+                    // Kiểm tra số tiền trước khi trừ kho, dùng voucher và xoá giỏ.
+                    if (onlinePayment) {
+                        vnPayService.toGatewayAmount(total);
+                    }
+
+                    Order created = new Order();
+                    created.setCustomer(customer);
+                    created.setShippingAddress(address);
+                    created.setOrderDate(
+                        LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+                    created.setStatus(OrderStatus.PENDING);
+                    created.setVoucher(voucher);
+                    created.setDiscountAmount(discount);
+                    created.setShippingFee(shipping);
+                    created.setTotalAmount(total);
+
+                    for (CartItem cartItem : cart.getItems()) {
+                        OrderItem orderItem = new OrderItem();
+                        orderItem.setOrder(created);
+                        orderItem.setProduct(cartItem.getProduct());
+                        orderItem.setQuantity(cartItem.getQuantity());
+
+                        // Snapshot giá: đơn giữ giá đã chốt trong giỏ.
+                        orderItem.setPriceAtOrder(cartItem.getPriceAtAdd());
+                        created.getItems().add(orderItem);
+
+                        cartItem.getProduct().updateStock(
+                                -cartItem.getQuantity());
+                    }
+
+                    Payment payment = onlinePayment
+                            ? new VNPayPayment() : new CODPayment();
+
+                    payment.setOrder(created);
+                    payment.setAmount(total);
+                    payment.processPayment(); // Khởi tạo PENDING, chưa ghi nhận thu tiền.
+                    created.setPayment(payment);
+
+                    if (voucher != null) {
+                        voucher.setQuantityUsed(voucher.getQuantityUsed() + 1);
+                    }
+
+                    // orphanRemoval xoá các dòng giỏ khi transaction lưu.
+                    cart.getItems().clear();
+
+                    return created;
+                });
+
+        // COD gửi ngay sau commit.
+        // VNPay gửi khi IPN hoặc QueryDr xác nhận thanh toán thành công.
+        if (!onlinePayment) {
+            try {
+                emailService.sendOrderConfirmation(order);
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING,
+                        "Không thể gửi email xác nhận cho đơn #" + order.getId(),
+                        e);
+            }
+        }
+
+        return order;
+    }
+
+    public Order getOwnOrder(Customer user, Integer orderId) {
+        if (user == null || user.getId() == null) {
+            throw new BusinessException("Vui lòng đăng nhập để xem đơn hàng.");
+        }
+
+        if (orderId == null || orderId < 1) {
+            throw new BusinessException("Mã đơn hàng không hợp lệ.");
+        }
+
+        // DAO đã fetch các dòng hàng, thanh toán và địa chỉ
+        // để JSP đọc được sau khi EntityManager đóng.
+        Order order = orderDAO.findDetail(orderId);
+
+        if (order == null) {
+            throw new BusinessException("Đơn hàng không tồn tại.");
+        }
+
+        // Đổi orderId trên URL cũng không xem được đơn người khác.
+        if (!user.getId().equals(order.getCustomer().getId())) {
+            throw new SecurityException(
+                    "Bạn không có quyền xem đơn hàng này.");
+        }
+
+        return order;
+    }
+
+    public String normalizeHistoryStatus(String rawStatus) {
+        if (rawStatus == null || rawStatus.isBlank() || "ALL".equalsIgnoreCase(rawStatus.trim())) {
+            return "ALL";
+        }
+        try {
+            return OrderStatus.valueOf(rawStatus.trim().toUpperCase(java.util.Locale.ROOT)).name();
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("Trạng thái đơn hàng không hợp lệ.");
+        }
+    }
+
+    public void cancelOwnOrder(Customer user, Integer orderId) {
+        changeOwnStatus(user, orderId, OrderStatus.CANCELLED, null,
+                "Đơn hàng #" + orderId + " đã được huỷ theo yêu cầu của bạn.");
+    }
+
+    public void requestOwnReturn(Customer user, Integer orderId, String reason) {
+        changeOwnStatus(user, orderId, OrderStatus.RETURN_REQUESTED, reason,
+                "Yêu cầu hoàn hàng của đơn #" + orderId + " đang chờ cửa hàng duyệt.");
+    }
+
+    private void changeOwnStatus(Customer user, Integer orderId, OrderStatus next,
+            String reason, String notificationText) {
+        if (user == null || user.getId() == null || !user.isActive()) {
+            throw new BusinessException("Vui lòng đăng nhập để thao tác đơn hàng.");
+        }
+        if (orderId == null || orderId < 1) throw new BusinessException("Mã đơn hàng không hợp lệ.");
+        orderDAO.changeCustomerStatus(orderId, next, notificationText, order -> {
+            if (order == null) throw new BusinessException("Đơn hàng không tồn tại.");
+            if (!user.getId().equals(order.getCustomer().getId())) {
+                throw new SecurityException("Bạn không có quyền thao tác đơn hàng này.");
+            }
+            if (!order.getCustomer().isActive()) {
+                throw new BusinessException("Tài khoản của bạn đã bị khoá.");
+            }
+            // Luật chuyển trạng thái dùng chính Order.canMoveTo của Admin.
+            if (!order.canMoveTo(next)) {
+                throw new BusinessException(next == OrderStatus.CANCELLED
+                        ? "Chỉ được huỷ đơn đang chờ xác nhận hoặc đã xác nhận."
+                        : "Chỉ được yêu cầu hoàn đơn đã hoàn tất.");
+            }
+            if (next == OrderStatus.RETURN_REQUESTED) {
+                String text = reason == null ? "" : reason.trim();
+                if (text.isBlank()) throw new BusinessException("Vui lòng nhập lý do hoàn hàng.");
+                if (text.length() > 255) throw new BusinessException("Lý do hoàn hàng tối đa 255 ký tự.");
+                order.setReturnReason(text);
+            }
+        });
+    }
+
+    public PageResult<Order> getOwnHistory(Customer user, String rawStatus, int page) {
+        if (user == null || user.getId() == null || !user.isActive()) {
+            throw new BusinessException("Vui lòng đăng nhập để xem đơn hàng.");
+        }
+        if (page < 1) throw new BusinessException("Trang đơn hàng không hợp lệ.");
+        String status = normalizeHistoryStatus(rawStatus);
+        // Nhóm tab theo mockup; badge từng đơn vẫn dùng trạng thái thật.
+        List<OrderStatus> statuses = switch (status) {
+            case "ALL" -> List.of();
+            case "PENDING" -> List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED);
+            case "RETURN_REQUESTED" -> List.of(OrderStatus.RETURN_REQUESTED, OrderStatus.RETURNED);
+            default -> List.of(OrderStatus.valueOf(status));
+        };
+        return orderDAO.findHistory(user.getId(), statuses, page, 10);
+    }
+
+    public boolean isVNPayAvailable() {
+        return vnPayService.isAvailable();
+    }
+
+    public boolean isVNPaySandbox() {
+        return vnPayService.isSandbox();
+    }
+
+    public String getVNPayPaymentUrl(
+            Customer user, Integer orderId, String clientIp) {
+        // Kiểm tra quyền sở hữu trước khi tạo URL thanh toán.
+        Order order = getOwnOrder(user, orderId);
+        return vnPayService.buildPaymentUrl(order, clientIp);
+    }
+
+    public void reconcileVNPay(Customer user, Integer orderId) {
+        Order ownOrder = getOwnOrder(user, orderId);
+        vnPayService.reconcile(ownOrder, user.getId());
+    }
+}

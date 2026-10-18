@@ -1,0 +1,5 @@
+# Copy file nay thanh "db.properties" (cung thu muc) roi sua cho dung PostgreSQL tren MAY CUA BAN.
+# db.properties da nam trong .gitignore - KHONG commit mat khau that len repo.
+db.url=jdbc:postgresql://localhost:5432/ecommerce_db
+db.user=postgres
+db.password=doi_mat_khau_cua_ban

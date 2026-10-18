@@ -22,6 +22,11 @@ backend/nbproject/private/
 # OS
 .DS_Store
 
+# Cau hinh DB rieng moi may (mau: backend/src/main/resources/db.properties.example)
+backend/src/main/resources/db.properties
+backend/src/main/resources/mail.properties
+backend/src/main/resources/vnpay.properties
+
 # Tai lieu noi bo va file huong dan cho Claude Code: chi giu tren may, khong dua len GitHub
 CLAUDE.md
 docs/

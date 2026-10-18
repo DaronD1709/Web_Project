@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+// Moi khach chi co 1 danh gia cho 1 san pham (gui lai = cap nhat). Rang buoc o DB giu dung ngay ca khi bam gui 2 lan cung luc.
+@Table(name = "reviews", uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "customer_id"}))
 public class Review {
 
     @Id
@@ -39,4 +40,10 @@ public class Review {
     public void setComment(String comment) { this.comment = comment; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    /** Ngay danh gia dang "05/10/2026" cho JSP (JSTL khong doc duoc LocalDateTime). */
+    @Transient
+    public String getCreatedAtText() {
+        return createdAt == null ? "" : createdAt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
 }
