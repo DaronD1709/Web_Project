@@ -12,7 +12,7 @@ import java.util.UUID;
  * Chi nhan JPG/PNG/WEBP, nhan dien bang BYTE DAU cua file (khong tin ten file/Content-Type nguoi dung gui), ten file luu
  * la UUID ngau nhien -> khong ghi de, khong lo duong dan.
  *
- * Luong di cua mot anh (de tra loi van dap):
+ * Luong di cua mot anh:
  *   Form Admin (multipart) -> AdminProductService.save:
  *       1. kiem tra dung luong  (> MAX_BYTES thi bao loi)
  *       2. detectExtension(bytes)  (khong nhan ra la anh -> bao loi)

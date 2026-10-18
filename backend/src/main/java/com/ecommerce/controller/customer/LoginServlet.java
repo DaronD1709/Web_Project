@@ -61,6 +61,35 @@ public class LoginServlet extends HttpServlet {
     }
 
     // Chi cho chuyen huong toi duong dan NOI BO (vd "/orders"); chan "//evil.com", "https://evil.com" (open redirect).
+    /*
+     * Kiem tra tham so "next" (trang khach dinh vao truoc khi bi chuyen toi /login) co phai DUONG DAN NOI BO an toan khong.
+     * Dung o doPost: resp.sendRedirect(contextPath + (isSafeInternalPath(next) ? next : "/")) -> dung thi quay lai next, sai thi ve trang chu.
+     *
+     * VI SAO CAN: "next" nam tren URL nen ai cung sua duoc (vd /login?next=https://trang-gia-mao.com). Neu cu redirect theo no thi sau
+     * khi khach dang nhap THAT se bi dua sang trang gia ("open redirect"). Phong bang cach chi nhan duong dan cua chinh site nay.
+     * Khac AdminLoginServlet.safeNext: o day cho moi duong dan noi bo (khach co the quay lai /orders, /cart, /product?id=...),
+     * con ben Admin chi cho duong dan bat dau bang /admin.
+     *
+     * Tra ve true khi THOA CA nam dieu kien:
+     *   next != null                       co tham so
+     *   startsWith("/")                    la duong dan tuyet doi trong site (loai "https://evil.com", "evil.com", "javascript:...")
+     *   !startsWith("//")                  loai "//evil.com" (protocol-relative URL: trinh duyet hieu la sang ten mien khac;
+     *                                      dac biet nguy hiem khi app chay o goc vi contextPath rong, "" + "//evil.com" = "//evil.com")
+     *   !contains("\\")                    loai dau gach cheo nguoc ("/\evil.com": nhieu trinh duyet coi "\" nhu "/")
+     *   noneMatch(isISOControl)            loai ky tu dieu khien (xuong dong, tab, NUL...). Trinh duyet bo qua tab/xuong dong trong URL nen
+     *                                      "/<tab>/evil.com" bi doc thanh "//evil.com"; ky tu xuong dong con co the dung de chen header gia
+     *                                      vao phan hoi ("HTTP response splitting")
+     *
+     *   VI DU                              KET QUA
+     *   "/orders"  ,  "/product?id=7"      true  (quay lai dung trang)
+     *   "/orders/detail?id=12"             true  (giu ca query)
+     *   null  ,  ""                        false (ve trang chu)
+     *   "https://evil.com"                 false
+     *   "//evil.com"                       false
+     *   "/\\evil.com"                      false
+     *   "/orders\\nSet-Cookie: x=1"        false (co ky tu xuong dong)
+     * (Day chi loc DICH DEN sau dang nhap; viec quyet dinh trang nao can dang nhap nam o SessionUtil.requireCustomer.)
+     */
     private static boolean isSafeInternalPath(String next) {
         return next != null && next.startsWith("/") && !next.startsWith("//") && !next.contains("\\")
                 && next.chars().noneMatch(Character::isISOControl);

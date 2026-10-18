@@ -65,6 +65,33 @@ public class AdminLoginServlet extends HttpServlet {
     }
 
     // Chi cho quay lai trang NOI BO cua CMS (bat dau bang "/admin"); chan "//evil.com", "https://evil.com" (open redirect).
+    /*
+     * Loc tham so "next" truoc khi redirect sau dang nhap. Tra ve chinh next neu an toan, nguoc lai tra ve DEFAULT_AFTER_LOGIN ("/admin").
+     *
+     * VI SAO CAN: "next" nam tren URL (/admin/login?next=...) nen AI CUNG SUA DUOC. Neu cu redirect theo no, ke xau gui Admin duong link
+     * /admin/login?next=https://trang-gia-mao.com ; Admin dang nhap THAT xong bi dua sang trang gia (de lua nhap lai mat khau).
+     * Day la loi "open redirect". Cach phong: chi nhan duong dan NOI BO cua khu quan tri.
+     *
+     * Dung o: doGet (da dang nhap Admin roi thi bo qua form) va doPost (dang nhap thanh cong). Luon ghep: req.getContextPath() + safeNext(next).
+     * Luu y: ket qua duoc NOI sau contextPath, nen "/admin/orders" -> "/ecommerce/admin/orders" (hoac "/admin/orders" khi app chay o goc,
+     * nhu khi deploy bang Docker). Chinh khi chay o goc moi nguy hiem: contextPath rong nen "//evil.com" tro thanh dia chi tuyet doi.
+     *
+     * 4 dieu kien (phai dung CA BON):
+     *   next != null               co tham so (khong co thi dung mac dinh)
+     *   startsWith("/admin")       chi vao khu quan tri cua chinh site. Loai "https://evil.com", "/login", "/orders"...
+     *   !startsWith("//")          loai "//evil.com": khong co "http:" nhung trinh duyet hieu la sang ten mien khac (protocol-relative URL)
+     *   !contains("\\")            loai dau gach cheo nguoc: nhieu trinh duyet coi "\" nhu "/" nen "/\evil.com" thanh "//evil.com"
+     *
+     *   VI DU                          KET QUA
+     *   "/admin/orders?status=PENDING" giu nguyen (hop le, kem ca query)
+     *   "/admin"                       giu nguyen
+     *   null  /  ""                    "/admin"
+     *   "https://evil.com"             "/admin"  (khong bat dau bang /admin)
+     *   "//evil.com"                   "/admin"
+     *   "/orders"                      "/admin"  (la trang cua khach, khong phai khu quan tri)
+     *   "/admin\\evil"                 "/admin"  (co dau gach cheo nguoc)
+     * (Khong thay the viec Admin phai dang nhap: day chi la loc DICH DEN sau khi da dang nhap xong.)
+     */
     private static String safeNext(String next) {
         boolean ok = next != null && next.startsWith("/admin") && !next.startsWith("//") && !next.contains("\\");
         return ok ? next : DEFAULT_AFTER_LOGIN;
