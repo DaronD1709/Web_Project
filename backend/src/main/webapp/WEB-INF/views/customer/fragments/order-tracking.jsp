@@ -7,7 +7,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <section id="order-detail-body" class="space-y-5 min-w-0" hx-history="false"
          hx-get="${ctx}/orders/detail?id=${order.id}"
-         hx-trigger="every 15s [!document.querySelector('#order-detail-body dialog[open]')]"
+         hx-trigger="every 5s [!document.querySelector('#order-detail-body dialog[open]')]"
          hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">
     <c:if test="${not empty trackingMessage}"><div class="alert alert-success alert-soft"><c:out value="${trackingMessage}"/></div></c:if>
     <c:if test="${not empty trackingError}"><div class="alert alert-error alert-soft"><c:out value="${trackingError}"/></div></c:if>
