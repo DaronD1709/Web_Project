@@ -5,8 +5,8 @@
          version="6.0">
     <!-- Session chi di qua cookie (HttpOnly): khong gan ";jsessionid=..." len URL, tranh lo ma session. -->
     <session-config>
-        <!-- Phien song 4 gio khong hoat dong (mac dinh cua Tomcat chi 30 phut: Admin de trang dang mo mot luc la bi dang xuat). -->
-        <session-timeout>240</session-timeout>
+        <!-- Phien song 24 gio khong hoat dong (mac dinh cua Tomcat chi 30 phut: Admin de trang dang mo mot luc la bi dang xuat). -->
+        <session-timeout>1440</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>
