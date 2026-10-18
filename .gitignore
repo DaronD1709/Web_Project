@@ -21,3 +21,7 @@ backend/nbproject/private/
 
 # OS
 .DS_Store
+
+# Tai lieu noi bo va file huong dan cho Claude Code: chi giu tren may, khong dua len GitHub
+CLAUDE.md
+docs/
