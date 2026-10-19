@@ -6,9 +6,11 @@
   NOI DUNG trang Admin > Chi tiet don hang. AdminOrderServlet.showDetail truyen: order (Order da JOIN FETCH day du: khach, cac dong hang + san pham,
   thanh toan, dia chi, voucher). Chuyen tu mockup/admin/order-detail.html.
 --%>
+<%-- st: trang thai hien tai cua don; admin-order-badge.jspf (nhan mau) va cac dieu kien hien/an nut ben duoi doc bien nay --%>
 <c:set var="st" value="${order.status}" />
 <%-- stepNo: don di toi buoc may tren thanh tien trinh (1 Dat hang, 2 Xac nhan, 3 Dang giao, 4 Hoan tat); don huy khong dung --%>
 <c:set var="stepNo" value="${st == 'PENDING' ? 1 : st == 'CONFIRMED' ? 2 : st == 'SHIPPING' ? 3 : 4}" />
+<%-- back: URL de server redirect ve sau khi doi trang thai (chinh trang nay). AdminOrderServlet.safeBack chi chap nhan duong dan bat dau bang /admin/orders --%>
 <c:set var="back" value="/admin/orders/detail?id=${order.id}" />
 
 <div class="max-w-6xl mx-auto space-y-4">
@@ -80,7 +82,10 @@
         </div>
       </section>
 
-      <%-- ===== VUNG 5: NUT HANH DONG (tuy trang thai). Moi nut la form POST /admin/orders/status (hx-boost + hx-confirm), xong ve lai trang nay ===== --%>
+      <%-- ===== VUNG 5: NUT HANH DONG (tuy trang thai). Moi nut la form POST /admin/orders/status (hx-boost + hx-confirm), xong ve lai trang nay =====
+           hx-confirm: hop thoai xac nhan tu viet (confirm.js), chu "Huy"/"Tu choi" hien kieu nguy hiem mau do. Chi gui request khi Admin dong y.
+           Luu y: giao dien chi AN/HIEN nut theo trang thai cho de dung; viec cho phep hay khong van do server quyet (Order.canMoveTo),
+           vi du don VNPay chua thanh toan thanh cong se bi tu choi khi xac nhan va hien thong bao loi bang toast. --%>
       <div class="flex flex-wrap gap-2 justify-end">
         <c:if test="${st == 'PENDING' or st == 'CONFIRMED'}">
           <form method="post" action="${ctx}/admin/orders/status" hx-confirm="Huỷ đơn #${order.id}? Số lượng sản phẩm được cộng lại vào kho, khách hàng nhận thông báo. Không thể hoàn tác.">
@@ -100,7 +105,8 @@
             <button class="btn btn-primary">${nextLabel}</button>
           </form>
         </c:if>
-        <%-- Khach da yeu cau hoan hang: Admin tu choi (quay lai Hoan tat) hoac duyet (Da hoan hang, cong lai kho) --%>
+        <%-- Khach da yeu cau hoan hang: Admin tu choi (quay lai Hoan tat) hoac duyet (Da hoan hang, cong lai kho).
+             Ca hai deu la POST /admin/orders/status, chi khac gia tri "status": COMPLETED = tu choi, RETURNED = duyet. --%>
         <c:if test="${st == 'RETURN_REQUESTED'}">
           <form method="post" action="${ctx}/admin/orders/status" hx-confirm="Từ chối hoàn hàng? Đơn quay lại trạng thái Hoàn tất.">
             <input type="hidden" name="id" value="${order.id}"><input type="hidden" name="status" value="COMPLETED"><input type="hidden" name="back" value="${back}">

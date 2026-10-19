@@ -24,7 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/** Đọc đơn của Customer/Admin; đổi trạng thái và hoàn kho trong một transaction. */
+/**
+ * Đọc đơn của Customer/Admin; đổi trạng thái và hoàn kho trong một transaction.
+ *
+ * Các nhóm method (theo đúng thứ tự trong file):
+ *   1. Danh sách: findHistory (khách) · search / countSearch / countByStatus / countItems (Admin) · findRecentByCustomer
+ *   2. Chi tiết: findDetail (JOIN FETCH đủ để JSP đọc được sau khi EntityManager đóng)
+ *   3. Đổi trạng thái: applyStatusChange (Admin) · changeCustomerStatus (Khách) → cùng gọi changeStatusInTransaction
+ *
+ * Lưu ý chung: AbstractDAO đóng EntityManager sau mỗi lần gọi, nên mọi collection mà JSP cần
+ * (items, product, payment...) phải được JOIN FETCH ngay trong query, nếu không sẽ bị LazyInitializationException.
+ */
 public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     public OrderDAO() {
@@ -33,7 +43,12 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     // ------------------------------------------------------------------ danh sach
 
-    /** Chỉ đọc đơn của khách; phân trang ID trước rồi fetch collection để không mất dòng hàng. */
+    /**
+     * Lịch sử đơn của KHÁCH (trang "Đơn hàng của tôi"). Chỉ lấy đơn có customer.id = customerId nên khách không đọc được đơn người khác.
+     * Làm 3 bước: (1) đếm tổng để biết số trang  (2) lấy ID của đúng trang cần xem  (3) nạp đầy đủ các đơn theo danh sách ID đó.
+     * Vì sao tách bước 2 và 3: nếu vừa JOIN FETCH items vừa setMaxResults thì Hibernate phân trang trong bộ nhớ (chậm, dễ sai),
+     * còn phân trang trên ID rồi mới fetch thì đúng và nhanh.
+     */
     public PageResult<Order> findHistory(Integer customerId,
             List<OrderStatus> statuses, int page, int pageSize) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
@@ -44,6 +59,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
                     .setParameter("customerId", customerId);
             if (!statuses.isEmpty()) count.setParameter("statuses", statuses);
             long total = count.getSingleResult();
+            // Kẹp số trang vào [1, trang cuối] để người dùng gõ page=999 vẫn ra trang hợp lệ thay vì trang trống.
             int currentPage = (int) Math.min(page, Math.max(1L, (total + pageSize - 1) / pageSize));
 
             var idQuery = em.createQuery("SELECT o.id FROM Order o" + where + " ORDER BY o.id DESC", Integer.class)
@@ -68,7 +84,12 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         }
     }
 
-    /** 1 trang don hang khop bo loc, moi nhat truoc. JOIN FETCH khach + thanh toan de JSP doc duoc sau khi EntityManager dong. */
+    /**
+     * ADMIN: 1 trang don hang khop bo loc, moi nhat truoc (ORDER BY o.id DESC).
+     * JOIN FETCH khach + thanh toan de JSP doc duoc ${order.customer.fullName} / ${order.payment.method} sau khi EntityManager dong.
+     * Dieu kien WHERE do buildWhere() dung, gia tri that gan bang setParams() (khong noi chuoi nguoi dung vao JPQL).
+     * setFirstResult/setMaxResults an toan o day vi chi JOIN FETCH quan he *-1 (customer, payment), khong fetch danh sach items.
+     */
     public List<Order> search(AdminOrderFilter f) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
@@ -86,7 +107,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         }
     }
 
-    /** Tong so don khop bo loc (khong phan trang) de tinh so trang. */
+    /** ADMIN: tong so don khop bo loc (khong phan trang) de tinh so trang. Dung CHUNG buildWhere/setParams voi search() nen 2 con so luon khop nhau. */
     public long countSearch(AdminOrderFilter f) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
@@ -99,6 +120,8 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
     }
 
     // Chi noi cac DIEU KIEN CO DINH vao chuoi; gia tri nguoi dung nhap luon qua setParameter (chong JPQL injection).
+    // "WHERE 1=1" la meo de moi dieu kien phia sau deu bat dau bang " AND ..." ma khong phai kiem tra "da co WHERE chua".
+    // Ten tham so (:status, :kw, :from...) phai trung voi ten trong setParams() ben duoi.
     private String buildWhere(AdminOrderFilter f) {
         StringBuilder w = new StringBuilder(" WHERE 1=1");
         switch (f.getStatus()) {
@@ -118,6 +141,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         return w.toString();
     }
 
+    // Gan gia tri cho dung cac tham so ma buildWhere() da khai bao; dieu kien nao khong dung thi KHONG gan (JPA bao loi neu gan thua).
     private void setParams(Query q, AdminOrderFilter f) {
         switch (f.getStatus()) {
             case "all" -> { }
@@ -136,6 +160,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         if (f.getTo() != null) q.setParameter("toExclusive", f.getTo().plusDays(1).atStartOfDay()); // het ngay "to" = dau ngay ke tiep
     }
 
+    // Neu tu khoa la so ("1042" hoac "#1042") thi tra ve ma don de tim them theo o.id; khong phai so thi null (chi tim theo ten/email).
     private Integer keywordAsId(AdminOrderFilter f) {
         try {
             return Integer.valueOf(f.getKeyword().replace("#", "").trim());
@@ -207,19 +232,25 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
 
     // ------------------------------------------------------------------ doi trang thai
 
-    /** Customer: kiểm tra chủ đơn/trạng thái dưới cùng khoá Order với Admin/IPN. */
+    /**
+     * KHÁCH tự huỷ đơn / xin hoàn hàng. Điểm khác với applyStatusChange: việc kiểm tra "đơn có phải của khách này không" và
+     * "trạng thái hiện tại có cho phép không" được làm TRONG transaction, SAU khi đã khoá dòng đơn (hàm validate do Service truyền vào).
+     * Nhờ vậy khách bấm huỷ cùng lúc Admin bấm xác nhận thì chỉ một bên thắng, bên còn lại thấy trạng thái mới và bị từ chối.
+     */
     public void changeCustomerStatus(Integer orderId, OrderStatus next,
             String notificationText, Consumer<Order> validate) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
+            // Khoá ghi dòng đơn (SELECT ... FOR UPDATE): giao dịch khác muốn đổi cùng đơn phải đợi giao dịch này xong.
             List<Order> matches = em.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
                     .setParameter("id", orderId)
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                     .getResultList();
             Order order = matches.isEmpty() ? null : matches.get(0);
             if (order != null) {
+                // refresh = đọc lại từ DB để chắc chắn thấy dữ liệu MỚI NHẤT (đề phòng entity còn trong bộ nhớ đệm của EntityManager).
                 em.refresh(order.getCustomer());
                 if (order.getPayment() != null) em.refresh(order.getPayment());
             }
@@ -244,6 +275,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
      */
     public void applyStatusChange(
             Integer orderId, OrderStatus next, String notificationText) {
+        // Gọi từ AdminOrderService.changeStatus. Service đã kiểm tra luật chuyển; transaction này khoá đơn và kiểm tra lại lần nữa.
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         EntityTransaction tx = em.getTransaction();
 
@@ -251,6 +283,9 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
             tx.begin();
 
             // Khoá đơn trước khi kiểm tra và thay đổi trạng thái.
+            // PHẢI viết bằng JPQL + setLockMode: em.find(..., PESSIMISTIC_WRITE) có thể đọc dòng trước khi khoá nên không đủ an toàn.
+            // Nếu 4 Admin cùng bấm "Huỷ" một đơn: người đầu giữ khoá và huỷ xong; 3 người sau đợi, rồi thấy đơn đã CANCELLED
+            // nên canMoveTo trả false và bị từ chối → kho chỉ được cộng lại ĐÚNG MỘT LẦN.
             Order order = em.createQuery(
                     "SELECT o FROM Order o WHERE o.id = :id",
                     Order.class)
@@ -260,8 +295,9 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
 
             changeStatusInTransaction(em, order, next, notificationText);
 
-            tx.commit();
+            tx.commit(); // ghi đồng thời: trạng thái, kho, voucher, thanh toán, thông báo
         } catch (RuntimeException e) {
+            // Bất kỳ lỗi nào (đơn đã đổi trạng thái, thiếu hàng...) → rollback, DB giữ nguyên như trước khi bấm.
             if (tx.isActive()) {
                 tx.rollback();
             }
@@ -280,9 +316,10 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
             OrderStatus next, String notificationText) {
         Integer orderId = order.getId();
 
-        // Luật chuyển trạng thái vẫn nằm trong Order.
+        // Bước 1 - Đổi trạng thái. Luật chuyển trạng thái vẫn nằm trong Order; sai luật thì ném IllegalStateException và rollback.
         order.updateStatus(next);
 
+        // Bước 2 - Huỷ đơn hoặc duyệt hoàn hàng: cộng lại kho cho từng dòng hàng (dễ quên nhất, quên là bán vượt tồn khi demo).
         if (next == OrderStatus.CANCELLED
                 || next == OrderStatus.RETURNED) {
             List<Integer> productIds = em.createQuery(
@@ -307,11 +344,13 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
                 }
             }
 
+            // Product.updateStock(+qty): cộng số lượng của dòng hàng vào tồn kho (sản phẩm đã được khoá + refresh ở trên).
             for (OrderItem item : order.getItems()) {
                 item.getProduct().updateStock(item.getQuantity());
             }
         }
 
+        // Bước 3 - Huỷ đơn có voucher: trả lại 1 lượt dùng (quantityUsed - 1) để voucher không bị "hết lượt" oan.
         if (next == OrderStatus.CANCELLED
                 && order.getVoucher() != null) {
             // Khoá voucher sau sản phẩm, rồi đọc lại số lượt đã dùng.
@@ -329,6 +368,8 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
             }
         }
 
+        // Bước 4 - Thanh toán COD: giao xong (COMPLETED) = đã thu tiền → SUCCESS; huỷ khi còn chờ → FAILED.
+        // VNPay thì KHÔNG đụng vào ở đây vì kết quả do IPN đã xác thực chữ ký ghi nhận.
         Payment payment = order.getPayment();
 
         if (payment instanceof CODPayment) {
@@ -344,6 +385,7 @@ public class OrderDAO extends AbstractDAO<Order, Integer> {
         }
 
         // VNPay giữ kết quả do IPN đã xác thực ghi nhận.
+        // Bước 5 - Tạo thông báo cho khách (hiện ở chuông thông báo). Cùng transaction nên đổi trạng thái thành công thì chắc chắn có thông báo.
         Notification notification = new Notification();
         notification.setUser(order.getCustomer());
         notification.setMessage(notificationText);

@@ -5,6 +5,7 @@
   NOI DUNG trang Admin > Tra loi tu dong. AdminAutoReplyServlet truyen: rules (List<AutoReply>, so uu tien nho truoc).
   Moi luat: tu khoa -> cau tra loi (+ co chuyen nhan vien khong). ChatBotService xet theo thu tu, luat dau tien khop thang.
 --%>
+<%-- back: URL de server redirect ve sau khi bat/tat hoac xoa (AdminAutoReplyServlet.safeBack chi nhan duong dan bat dau bang /admin/auto-replies) --%>
 <c:set var="back" value="/admin/auto-replies" />
 <div class="max-w-6xl mx-auto space-y-4">
 
@@ -26,7 +27,8 @@
     <div id="test-result"><div class="text-sm text-base-content/50">Gõ một câu khách có thể hỏi để xem chatbot sẽ trả lời thế nào.</div></div>
   </section>
 
-  <%-- ===== VUNG 3: BANG LUAT ===== --%>
+  <%-- ===== VUNG 3: BANG LUAT. Moi dong 1 luat theo thu tu uu tien (so nho truoc). Luat dang tat hien mo di (opacity-60).
+       Cot Tu khoa: moi tu khoa 1 nhan; "*" duoc to mau vang va ghi "(moi cau)" vi no la luat mac dinh bat moi tin. ===== --%>
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
     <c:choose>
       <c:when test="${empty rules}"><div class="p-12 text-center text-base-content/60"><div class="text-4xl"><i data-lucide="bot" class="size-10 text-primary"></i></div>Chưa có câu trả lời tự động nào.</div></c:when>
@@ -42,6 +44,7 @@
                     <c:forEach var="k" items="${r.keywordList}"><span class="badge badge-sm badge-soft ${k == '*' ? 'badge-warning' : 'badge-primary'} mr-1 mb-1"><c:out value="${k == '*' ? '* (mọi câu)' : k}"/></span></c:forEach>
                   </td>
                   <td class="max-w-md text-sm"><span class="line-clamp-2"><c:out value="${r.replyText}"/></span></td>
+                  <%-- Cot "Chuyen NV": co dau = sau khi tra loi theo luat nay, cuoc tro chuyen chuyen sang nhan vien (chatbot ngung) --%>
                   <td><c:if test="${r.handoff}"><span class="badge badge-sm badge-warning whitespace-nowrap"><i data-lucide="user" class="size-4"></i> Có</span></c:if></td>
                   <%-- Cong tac bat/tat. htmx: gat la form tu POST /admin/auto-replies/toggle (hx-trigger="change"); "active" la gia tri MONG MUON
                        (nguoc voi hien tai) nen bam nhanh nhieu lan khong bi lech. Server redirect ve "back" kem toast. --%>
@@ -51,6 +54,7 @@
                       <input type="checkbox" class="toggle toggle-primary toggle-sm" ${r.active ? 'checked' : ''} aria-label="Bật/tắt luật ${r.id}">
                     </form>
                   </td>
+                  <%-- Cot thao tac: Sua = mo form (GET /edit); Xoa = form POST nho, hx-confirm hoi truoc (chu "Xoa" hien hop thoai kieu nguy hiem mau do) --%>
                   <td class="text-right whitespace-nowrap">
                     <a class="btn btn-ghost btn-xs" href="${ctx}/admin/auto-replies/edit?id=${r.id}">Sửa</a>
                     <form method="post" action="${ctx}/admin/auto-replies/delete" class="inline" hx-confirm="Xoá câu trả lời tự động này?">
@@ -67,6 +71,7 @@
     </c:choose>
   </div>
 
+  <%-- ===== VUNG 4: GHI CHU HUONG DAN cach xet luat (uu tien, khop nguyen tu, luat "*" lam mac dinh) ===== --%>
   <p class="text-xs text-base-content/50">Luật có số ưu tiên nhỏ được xét trước, luật đầu tiên khớp sẽ trả lời. Từ khoá khớp theo từ/cụm từ, không phân biệt hoa thường và dấu tiếng Việt.
     Từ khoá <b>*</b> khớp mọi câu, nên đặt ưu tiên lớn nhất để làm câu trả lời mặc định.</p>
 </div>

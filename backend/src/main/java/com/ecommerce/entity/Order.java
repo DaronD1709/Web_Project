@@ -5,6 +5,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Don hang (bang "orders"). Day la thuc the TRUNG TAM cua chuc nang Quan ly don hang:
+ *   - Admin xem/loc/doi trang thai don (AdminOrderServlet -> AdminOrderService -> OrderDAO);
+ *   - Khach dat don, theo doi, huy hoac xin hoan hang (OrderService).
+ * Don KHONG tu nhan tien/nhan hang; no chi giu trang thai (OrderStatus) va cac moi quan he den khach, dong hang, thanh toan, dia chi, voucher.
+ * LUAT chuyen trang thai nam DUY NHAT o canMoveTo()/updateStatus() ben duoi, de Admin va Khach khong the doi tuy y.
+ */
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -13,33 +20,43 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Khach da dat don. @ManyToOne mac dinh EAGER nen JSP doc duoc ${order.customer.fullName} ma khong can JOIN FETCH rieng.
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
+    // Thoi diem dat don (dung de sap xep danh sach, loc theo ngay va ve bieu do doanh thu).
     @Column(name = "order_date")
     private LocalDateTime orderDate;
 
+    // Luu theo TEN enum (EnumType.STRING) chu khong theo so thu tu, de them/sap xep lai gia tri enum sau nay khong lam sai du lieu cu.
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    // Tong tien khach phai tra (da gom phi ship, da tru voucher); duoc ghi 1 lan luc dat don, khong tinh lai khi xem.
     @Column(name = "total_amount")
     private double totalAmount;
 
+    // Cac dong hang. Composition: xoa don thi xoa luon dong hang (cascade ALL + orphanRemoval).
+    // LAZY: JSP chi doc duoc khi DAO da JOIN FETCH (OrderDAO.findDetail), neu khong bi LazyInitializationException.
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    // Thanh toan cua don: CODPayment hoac VNPayPayment (chung bang "payments", phan biet bang cot discriminator).
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Payment payment;
 
+    // Don chi GIU THAM CHIEU toi Address (khong sao chep), nen dia chi da dung trong don bi khoa khong cho sua.
     @ManyToOne
     @JoinColumn(name = "address_id")
     private Address shippingAddress;
 
+    // Voucher da ap (co the null). Vi la khoa ngoai nen khong xoa duoc voucher da co don dung.
     @ManyToOne
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
+    // Ly do khach xin hoan hang (chi co gia tri khi status la RETURN_REQUESTED hoac RETURNED).
     @Column(name = "return_reason")
     private String returnReason;
 
@@ -80,14 +97,18 @@ public class Order {
     public double getShippingFee() { return shippingFee; }
     public void setShippingFee(double shippingFee) { this.shippingFee = shippingFee; }
 
+    /** Admin xac nhan don: PENDING -> CONFIRMED. Sai luat thi khong lam gi (khong nem loi). */
     public void confirmOrder() {
         if (canMoveTo(OrderStatus.CONFIRMED)) updateStatus(OrderStatus.CONFIRMED);
     }
 
+    /**
+     * Huy don: PENDING/CONFIRMED -> CANCELLED. Phuong thuc nay CHI doi trang thai; viec cong lai ton kho cho tung OrderItem
+     * do tang DAO/Service lam trong cung transaction (OrderDAO.applyStatusChange), vi entity khong duoc phep tu ghi DB.
+     */
     public void cancelOrder() {
         if (canMoveTo(OrderStatus.CANCELLED)) {
             updateStatus(OrderStatus.CANCELLED);
-            // TODO: goi Product.updateStock(+qty) cho tung OrderItem o tang Service
         }
     }
 
@@ -137,6 +158,7 @@ public class Order {
         this.status = next;
     }
 
+    /** Khach xin hoan hang: COMPLETED -> RETURN_REQUESTED, kem ly do. Admin se duyet (RETURNED) hoac tu choi (quay lai COMPLETED). */
     public void requestReturn(String reason) {
         if (canMoveTo(OrderStatus.RETURN_REQUESTED)) {
             updateStatus(OrderStatus.RETURN_REQUESTED);
@@ -144,6 +166,7 @@ public class Order {
         }
     }
 
+    /** Tong tien HANG (gia luc dat x so luong), CHUA tru voucher va CHUA cong phi ship; dung hien "Tam tinh" o trang chi tiet don. */
     public double calculateTotal() {
         return items.stream().mapToDouble(i -> i.getPriceAtOrder() * i.getQuantity()).sum();
     }

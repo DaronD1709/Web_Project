@@ -25,9 +25,18 @@ import java.util.List;
 //   GET  /admin/chat/messages        tin moi cua 1 khach (htmx polling moi 3 giay): c, after
 //   POST /admin/chat/send            c, content, after -> gui tin; tra ve tin moi + dau do che do "nhan vien" cap nhat (hx-swap-oob)
 //   POST /admin/chat/mode            c, human (true|false) -> bat/tat che do nhan vien tiep quan
+//
+// CACH HOAT DONG (doc phan nay de giai thich khi van dap):
+//   1. Admin mo /admin/chat -> showPage dung CA TRANG (admin-chat.jsp): cot trai = danh sach khach, giua = khung chat, phai = thong tin khach.
+//   2. Cot trai tu hoi /admin/chat/list moi 5 giay; khung chat tu hoi /admin/chat/messages?after=<id tin cuoi> moi 3 giay.
+//      Moi lan hoi, server chi tra cac tin CO ID LON HON "after" (xem MessageDAO.findAfter) nen rat nhe.
+//   3. Admin go tin -> POST /admin/chat/send -> luu tin, tu chuyen khach sang che do nhan vien, tra ve cac tin moi (gom ca tin vua gui).
+//   4. Cong tac "Nhan vien tiep quan" -> POST /admin/chat/mode bat/tat Customer.handledByHuman (bat = chatbot im lang).
+// Servlet chi dieu phoi; nghiep vu o AdminChatService, du lieu o MessageDAO.
 @WebServlet("/admin/chat/*")
 public class AdminChatServlet extends HttpServlet {
 
+    // Thu muc chua cac manh JSP (fragment) tra ve cho htmx: admin-chat-list / admin-chat-messages / admin-chat-head.
     private static final String VIEWS = "/WEB-INF/views/admin/fragments/";
 
     private final AdminChatService chatService = new AdminChatService();
@@ -40,6 +49,7 @@ public class AdminChatServlet extends HttpServlet {
         switch (path) {
             case "", "/" -> showPage(req, resp);
             case "/list" -> {
+                // Chi tra manh danh sach hoi thoai (khong phai ca trang) de htmx thay vao cot trai khi polling hoac khi go o tim kiem.
                 String filter = filterOf(req), q = ParamUtil.trimOrNull(req.getParameter("q"));
                 req.setAttribute("conversations", chatService.conversations(filter, q));
                 req.setAttribute("selectedId", ParamUtil.intOrNull(req.getParameter("c")));
@@ -47,6 +57,7 @@ public class AdminChatServlet extends HttpServlet {
                 req.setAttribute("q", q);
                 req.getRequestDispatcher(VIEWS + "admin-chat-list.jsp").forward(req, resp);
             }
+            // Polling khung chat: after = id tin cuoi ma trinh duyet da hien; withHead = false vi chi can tin moi, khong doi dau khung.
             case "/messages" -> forwardMessages(req, resp, ParamUtil.intOrNull(req.getParameter("c")),
                     ParamUtil.intOr(req.getParameter("after"), 0), false);
             default -> resp.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -65,6 +76,8 @@ public class AdminChatServlet extends HttpServlet {
                 try {
                     chatService.send(admin, customerId, req.getParameter("content"));
                 } catch (BusinessException e) {
+                    // Loi nhap lieu (tin rong/qua dai): bao bang toast; "HX-Reswap: none" bao htmx KHONG thay noi dung nao,
+                    // nen khung chat va o dang go van nguyen, Admin khong bi mat chu.
                     HtmxUtil.toast(resp, e.getMessage(), "error");
                     resp.setHeader("HX-Reswap", "none"); // giu nguyen khung chat, chi hien thong bao loi
                     return;
@@ -73,6 +86,7 @@ public class AdminChatServlet extends HttpServlet {
                 forwardMessages(req, resp, customerId, ParamUtil.intOr(req.getParameter("after"), 0), true);
             }
             case "/mode" -> {
+                // Bat/tat che do nhan vien: human=true -> Admin tiep quan; human=false -> tra lai cho chatbot.
                 try {
                     String message = chatService.setHuman(customerId, "true".equals(req.getParameter("human")));
                     HtmxUtil.toast(resp, message, "success");
@@ -90,6 +104,9 @@ public class AdminChatServlet extends HttpServlet {
 
     // ------------------------------------------------------------------ trang chat
 
+    // GET /admin/chat: dung trang chat day du. Cac attribute duoi day la du lieu cho admin-chat.jsp:
+    //   conversations (cot trai) · selected/selectedId (khach dang mo) · messages + lastId (khung chat, lastId de polling) ·
+    //   orders (3 don gan nhat o panel phai) · filter/q (giu lai o loc) · botEmail (de nhan ra tin cua tro ly tu dong).
     private void showPage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String filter = filterOf(req), q = ParamUtil.trimOrNull(req.getParameter("q"));
         List<Message> conversations = chatService.conversations(filter, q);
@@ -122,6 +139,7 @@ public class AdminChatServlet extends HttpServlet {
     }
 
     // Tin moi cua 1 khach (sau `after`) + the #poll hoi tiep. withHead = true khi vua gui tin: kem dau do che do de cap nhat o khung tren.
+    // lastId la id tin cuoi vua tra: fragment dat no vao URL cua the #poll de lan polling sau chi xin tin moi hon (khong gui trung tin).
     private void forwardMessages(HttpServletRequest req, HttpServletResponse resp, Integer customerId, int after, boolean withHead)
             throws ServletException, IOException {
         Customer customer;

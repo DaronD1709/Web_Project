@@ -10,12 +10,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Nghiep vu QUAN LY DON HANG cua Admin: xem danh sach/chi tiet, xac nhan, giao, hoan tat, huy, duyet hoac tu choi hoan hang. */
+/**
+ * Nghiep vu QUAN LY DON HANG cua Admin: xem danh sach/chi tiet, xac nhan, giao, hoan tat, huy, duyet hoac tu choi hoan hang.
+ * Lop nay la "cua kiem tra" truoc khi ghi: kiem tra trang thai dich hop le, Admin duoc phep chuyen khong, soan cau thong bao cho khach.
+ * Phan GHI that (doi trang thai + hoan kho + COD + thong bao, tat ca trong 1 transaction co khoa dong don) nam o OrderDAO.applyStatusChange.
+ * Luat "tu trang thai A sang B co hop le khong" nam DUY NHAT o Order.canMoveTo, o day chi goi lai, khong viet lai.
+ */
 public class AdminOrderService {
 
     private final OrderDAO orderDAO = new OrderDAO();
 
     /** 1 trang don hang khop bo loc: 1 query lay don cua trang + 1 query dem tong de tinh so trang. */
+    // 2 query rieng (lay du lieu + dem tong) cung dung 1 bo loc nen luon khop nhau; PageResult gom lai thanh "1 trang" de JSP ve phan trang.
     public PageResult<Order> search(AdminOrderFilter filter) {
         long total = orderDAO.countSearch(filter);
         List<Order> items = orderDAO.search(filter);
@@ -24,6 +30,7 @@ public class AdminOrderService {
 
     /** So don cho tung tab: khoa "all", "pending", ... , "return" (= yeu cau hoan + da hoan). JSP doc bang ${tabCounts['pending']}. */
     public Map<String, Long> tabCounts() {
+        // Dem tren TOAN BO don (khong theo bo loc dang chon) de so tren tab khong nhay khi Admin go tim kiem.
         Map<String, Long> counts = new HashMap<>();
         long all = 0;
         for (Map.Entry<OrderStatus, Long> e : orderDAO.countByStatus().entrySet()) {
@@ -40,6 +47,7 @@ public class AdminOrderService {
         return orderDAO.countItems(orders.stream().map(Order::getId).toList());
     }
 
+    // Don day du (JOIN FETCH). Khong ton tai thi bao loi nghiep vu; ca trang chi tiet lan thao tac doi trang thai deu dung ham nay.
     public Order getDetail(Integer id) {
         Order order = id == null ? null : orderDAO.findDetail(id);
         if (order == null) throw new BusinessException("Đơn hàng không tồn tại.");

@@ -1,8 +1,11 @@
-<%-- Header dung chung (chuyen tu mockup/layout.js). Can head.jspf da duoc include truoc (dinh nghia ${ctx}). --%>
+<%-- Header dung chung (chuyen tu mockup/layout.js). Can head.jspf da duoc include truoc (dinh nghia ${ctx}).
+     CHONG "NHAY" CHIEU RONG O TIM KIEM: chieu rong o tim kiem = cho con lai sau khi tru logo va cum nut ben phai, nen moi thu quyet dinh
+     kich thuoc cua logo/nut/ten tai khoan phai co SAN trong design.css (tai truoc khi ve). Cac lop .nv-label, .nv-username, .nv-brand va kich thuoc icon
+     deu nam o do; KHONG dung lop Tailwind CDN (hidden, md:inline-block, text-lg...) cho cac chi tiet nay vi Tailwind CDN sinh CSS bang JS SAU khi trang ve. --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <header class="nv-header bg-base-100 border-b border-base-300">
   <div class="nv-header-inner">
-    <a href="${ctx}/" class="nv-brand text-lg sm:text-xl text-primary"><i data-lucide="wheat" class="size-5"></i> Nông Việt</a>
+    <a href="${ctx}/" class="nv-brand text-primary"><i data-lucide="wheat" class="size-5"></i> Nông Việt</a>
 
     <%-- Tim kiem + goi y: go >= 2 ky tu thi htmx goi GET /search/suggest roi nhet danh sach (anh + gia) vao #search-suggest; Enter van sang /products?q=. Man hinh nho: xuong dong rieng. --%>
     <form id="header-search" action="${ctx}/products" method="get" autocomplete="off" class="nv-search">
@@ -16,13 +19,14 @@
 
     <div class="nv-actions">
       <c:if test="${not empty sessionScope.currentUser and sessionScope.currentUser.customer}">
-        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Đơn hàng của tôi"><span aria-hidden="true"><i data-lucide="package" class="size-4"></i></span><span class="hidden sm:inline">Đơn hàng</span></a>
-        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Thông báo"><span aria-hidden="true"><i data-lucide="bell" class="size-4"></i></span><jsp:include page="/WEB-INF/views/customer/fragments/notification-count.jsp" /></a>
+        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Đơn hàng của tôi"><span aria-hidden="true"><i data-lucide="package" class="size-4"></i></span><span class="nv-label">Đơn hàng</span></a>
+        <%-- Chuong thong bao: huy hieu so chua doc nam trong .indicator (xuat hien o goc tren, KHONG chiem cho) nen nut khong gian/co lai khi so doi --%>
+        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Thông báo"><span class="indicator"><span aria-hidden="true"><i data-lucide="bell" class="size-5"></i></span><jsp:include page="/WEB-INF/views/customer/fragments/notification-count.jsp" /></span></a>
       </c:if>
-      <a href="${ctx}/chat" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Chat với shop"><span aria-hidden="true"><i data-lucide="message-circle" class="size-4"></i></span><span class="hidden sm:inline">Chat</span></a>
+      <a href="${ctx}/chat" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Chat với shop"><span aria-hidden="true"><i data-lucide="message-circle" class="size-4"></i></span><span class="nv-label">Chat</span></a>
       <a href="${ctx}/cart" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Giỏ hàng">
         <span class="indicator"><span aria-hidden="true"><i data-lucide="shopping-cart" class="size-5"></i></span><jsp:include page="/WEB-INF/views/customer/fragments/cart-count.jsp" /></span>
-        <span class="hidden sm:inline">Giỏ hàng</span></a>
+        <span class="nv-label">Giỏ hàng</span></a>
       <c:choose>
         <c:when test="${not empty sessionScope.currentUser}">
           <c:choose>
@@ -30,7 +34,7 @@
               <jsp:include page="/WEB-INF/views/common/customer-account-menu.jsp" />
             </c:when>
             <c:otherwise>
-              <span class="text-sm hidden md:inline-block max-w-32 lg:max-w-48 truncate"><c:out value="${sessionScope.currentUser.fullName}"/></span>
+              <span class="nv-username"><c:out value="${sessionScope.currentUser.fullName}"/></span>
               <form action="${ctx}/logout" method="post" class="inline"><button class="btn btn-ghost btn-sm px-2 sm:px-3 text-error">Đăng xuất</button></form>
             </c:otherwise>
           </c:choose>

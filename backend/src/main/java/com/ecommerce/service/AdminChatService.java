@@ -12,7 +12,13 @@ import com.ecommerce.entity.User;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** Nghiep vu CHAT phia Admin: xem cac cuoc tro chuyen, doc/gui tin, bat/tat che do nhan vien tiep quan. Khong dung WebSocket (xem docs/api-spec.md). */
+/**
+ * Nghiep vu CHAT phia Admin: xem cac cuoc tro chuyen, doc/gui tin, bat/tat che do nhan vien tiep quan. Khong dung WebSocket (xem docs/api-spec.md).
+ * Quy tac cot loi: moi khach co 1 co Customer.handledByHuman.
+ *   false (mac dinh) = chatbot tra loi tu dong;  true = nhan vien tiep quan, chatbot im lang.
+ * Admin gui tin la tu dong bat che do nhan vien (send), va co the bam cong tac de tra lai cho chatbot (setHuman).
+ * Lop nay chi bao boc: truy van do MessageDAO lo, viec doi co do ChatService.setHandledByHuman lo (dung chung voi phia khach).
+ */
 public class AdminChatService {
 
     private static final int MAX_LENGTH = 1000;
@@ -27,6 +33,7 @@ public class AdminChatService {
         return messageDAO.findLatestPerCustomer(mode, keyword);
     }
 
+    // Tim khach theo id, id sai/thieu/khong phai Customer thi bao loi nghiep vu (Servlet bat va hien cho Admin).
     public Customer getCustomer(Integer customerId) {
         User user = customerId == null ? null : userDAO.findById(customerId);
         if (!(user instanceof Customer customer)) throw new BusinessException("Khách hàng không tồn tại.");
@@ -50,6 +57,7 @@ public class AdminChatService {
         if (text.length() > MAX_LENGTH) throw new BusinessException("Tin nhắn tối đa " + MAX_LENGTH + " ký tự.");
         Customer customer = getCustomer(customerId);
 
+        // sender = Admin dang dang nhap; customer = chu cuoc chat. Khach se thay tin nay trong khung chat o lan polling ke tiep.
         Message m = new Message();
         m.setCustomer(customer);
         m.setSender(admin);
@@ -57,6 +65,7 @@ public class AdminChatService {
         m.setSentAt(LocalDateTime.now());
         messageDAO.save(m);
 
+        // Luu tin xong moi chuyen che do, de neu luu loi thi khong bi chuyen nham.
         chatService.setHandledByHuman(customerId, true);
     }
 
