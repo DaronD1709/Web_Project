@@ -2,6 +2,11 @@ package com.ecommerce.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * 1 dong hang trong don (bang "order_items"): san pham nao, so luong bao nhieu, gia luc dat.
+ * Order va OrderItem la Composition (xoa don thi xoa dong hang). Khi huy don / duyet hoan hang, OrderDAO duyet qua cac OrderItem
+ * de cong lai kho: Product.updateStock(+quantity). Lazy: JSP chi doc duoc khi DAO da JOIN FETCH (xem OrderDAO.findDetail).
+ */
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
@@ -19,6 +24,7 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    // So luong khach dat; khi huy / hoan hang chinh so nay duoc cong lai vao ton kho.
     private int quantity;
 
     // Snapshot gia luc dat hang - khong doi du Product doi gia sau nay.

@@ -17,6 +17,17 @@
   <%-- ===== VUNG 2: THANH LOC (tu tim khi go / doi o chon, khong tai lai trang) =====
        htmx: form tu gui GET /admin/orders khi go o tim kiem (cho 0,3s), doi o chon/ngay, hoac nhan Enter. Servlet thay HX-Target = order-list
        nen chi tra phan tab + bang. Tab dang chon khong nam o day ma o the <input hidden form="order-filter"> trong vung 3 (xem fragment). --%>
+  <%-- GIAI THICH CAC THUOC TINH HTMX CUA FORM LOC:
+       - method="get" action=...    : cach gui truyen thong, chi dung khi trinh duyet khong co JavaScript (phuong an du phong).
+       - hx-get="/admin/orders"     : khi duoc kich hoat, gui GET kem TOAN BO cac o cua form lam tham so (?q=..&pay=..&from=..&to=..&status=..).
+       - hx-target="#order-list"    : ket qua (chi phan tab + bang) duoc nhet vao <div id="order-list"> chu khong thay ca trang.
+       - hx-push-url="true"         : dong thoi doi thanh dia chi + lich su trinh duyet thanh URL vua gui -> bam F5, Back hoac gui link van ra dung bo loc.
+       - hx-trigger="..."           : GOM 4 DIEU KIEN kich hoat, cach nhau dau phay (dieu kien nao xay ra cung gui):
+           1. input[target.type=='search'] delay:300ms  -> go vao O TIM KIEM (target = o vua go); cho 300ms sau ky tu cuoi roi moi gui (debounce: go "nguyen" chi gui 1 lan, khong gui 6 lan)
+           2. change[target.tagName=='SELECT']          -> chon xong O CHON (thanh toan COD/VNPay) thi gui ngay
+           3. change[target.type=='date']               -> chon xong O NGAY (tu ngay / den ngay) thi gui ngay
+           4. submit                                    -> bam Enter trong o tim kiem
+         Phan trong [...] la bo loc JavaScript: chi cho su kien di tiep neu dung loai o, de moi loai o chi kich hoat dung 1 lan (neu khong, o ngay vua phat "input" vua phat "change" se gui trung). --%>
   <form id="order-filter" method="get" action="${ctx}/admin/orders"
         hx-get="${ctx}/admin/orders" hx-target="#order-list" hx-push-url="true"
         hx-trigger="input[target.type=='search'] delay:300ms, change[target.tagName=='SELECT'], change[target.type=='date'], submit"
