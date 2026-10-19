@@ -97,6 +97,13 @@ public class OrderService {
                     + qty;
 
             if (totalQty > product.getStockQuantity()) {
+                // Hết hẳn (vd người đặt trước vừa mua món cuối) thì báo "đã hết hàng", như CartService;
+                // còn một ít nhưng không đủ số khách muốn thì báo số còn lại.
+                if (product.getStockQuantity() <= 0) {
+                    throw new BusinessException(
+                            "Sản phẩm \"" + product.getName()
+                            + "\" đã hết hàng.");
+                }
                 throw new BusinessException(
                         "Chỉ còn " + product.getStockQuantity()
                         + " sản phẩm \"" + product.getName()
