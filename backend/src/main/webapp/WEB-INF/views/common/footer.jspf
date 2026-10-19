@@ -54,3 +54,71 @@
     setTimeout(function () { el.remove(); }, 3000);
   });
 </script>
+
+<%-- ===== BONG BONG CHAT (goc phai moi trang khach) =====
+     Bam bong bong -> mo khung chat nho ngay tren trang dang xem, khong phai chuyen sang /chat. Chi hien voi khach (chua dang nhap hoac Customer),
+     khong hien voi Admin va khong hien tren chinh trang /chat (trang do dat hideChatWidget).
+     Cach hoat dong (htmx, khong WebSocket, dung lai ChatServlet/ChatService nhu trang /chat):
+       1. Bam bong bong -> htmx.ajax GET /chat/widget, ket qua (cac tin nhan + o nhap, hoac o nhap ten cho khach vang lai) nhet vao #nvw-body.
+       2. Khung tin nhan tu hoi /chat/messages moi 3 giay (the #poll trong fragment chat-messages.jsp) CHI khi khung dang mo.
+       3. Dong khung thi xoa #nvw-body de ngung polling; mo lai se nap lai toan bo tin tu server (tin luu trong DB nen khong mat).
+     Trang thai mo/dong duoc nho bang sessionStorage de khung van mo khi khach chuyen trang. --%>
+<c:if test="${(empty sessionScope.currentUser or sessionScope.currentUser.customer) and empty hideChatWidget}">
+  <%-- ----- Khung chat (an mac dinh; them lop is-open de hien). Kich thuoc va vi tri o design.css (.nv-chatbox) ----- --%>
+  <section id="nvw-box" class="nv-chatbox card bg-base-100 border border-base-300 shadow-2xl" role="dialog" aria-label="Chat với shop">
+    <%-- Dau khung: tieu de + nut mo trang chat day du + nut dong --%>
+    <div class="flex items-center gap-2 px-4 py-3 bg-primary text-primary-content">
+      <i data-lucide="message-circle-more" class="size-5"></i>
+      <div class="flex-1 min-w-0"><div class="font-semibold leading-tight">Chat với shop</div><div class="text-xs opacity-80">Nhân viên phản hồi trong giờ làm việc</div></div>
+      <a href="${ctx}/chat" class="btn btn-ghost btn-xs btn-circle" aria-label="Mở trang chat đầy đủ" title="Mở rộng"><i data-lucide="maximize-2" class="size-4"></i></a>
+      <button type="button" id="nvw-close" class="btn btn-ghost btn-xs btn-circle" aria-label="Đóng khung chat"><i data-lucide="x" class="size-4"></i></button>
+    </div>
+    <%-- Than khung: noi dung do server tra ve (fragments/chat-widget.jsp), de trong cho den khi khach mo --%>
+    <div id="nvw-body" class="nv-chatbox-body"></div>
+  </section>
+
+  <%-- ----- Nut bong bong tron o goc phai duoi ----- --%>
+  <button type="button" id="nvw-fab" class="nv-chatfab btn btn-primary btn-circle shadow-xl" data-url="${ctx}/chat/widget"
+          aria-label="Chat với shop" aria-expanded="false" aria-controls="nvw-box"><i data-lucide="message-circle-more" class="size-7"></i></button>
+
+  <script>
+    (function () {
+      var fab = document.getElementById('nvw-fab'), box = document.getElementById('nvw-box'), body = document.getElementById('nvw-body');
+      if (!fab || !box || !body) return;
+      var KEY = 'nvChatOpen', shown = 0; // shown = so bong bong da hien, de chi cuon xuong khi co tin MOI
+
+      // sessionStorage co the bi chan (che do rieng tu...) -> boc try/catch, khong nho duoc thi thoi
+      function remember(open) { try { sessionStorage.setItem(KEY, open ? '1' : '0'); } catch (e) { } }
+
+      function openChat() {
+        box.classList.add('is-open');
+        fab.setAttribute('aria-expanded', 'true');
+        remember(true);
+        shown = 0;
+        // Nap noi dung khung chat tu server vao #nvw-body (header HX-Target = nvw-body de ChatServlet biet day la yeu cau cua bong bong)
+        htmx.ajax('GET', fab.getAttribute('data-url'), { target: '#nvw-body', swap: 'innerHTML' });
+      }
+
+      function closeChat() {
+        box.classList.remove('is-open');
+        fab.setAttribute('aria-expanded', 'false');
+        remember(false);
+        body.innerHTML = ''; // go noi dung -> the #poll bien mat -> htmx ngung hoi server
+      }
+
+      fab.addEventListener('click', function () { box.classList.contains('is-open') ? closeChat() : openChat(); });
+      document.getElementById('nvw-close').addEventListener('click', closeChat);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && box.classList.contains('is-open')) closeChat(); });
+
+      // Co tin moi (hoac vua nap khung) thi cuon khung tin xuong cuoi; khong co tin moi thi giu nguyen de khach doc tin cu
+      document.body.addEventListener('htmx:afterSwap', function () {
+        var msgs = document.getElementById('nvw-msgs');
+        if (!msgs) return;
+        var n = msgs.querySelectorAll('.chat').length;
+        if (n !== shown) { shown = n; msgs.scrollTop = msgs.scrollHeight; }
+      });
+
+      try { if (sessionStorage.getItem(KEY) === '1') openChat(); } catch (e) { }
+    })();
+  </script>
+</c:if>

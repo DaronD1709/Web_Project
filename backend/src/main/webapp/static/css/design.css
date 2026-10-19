@@ -85,3 +85,54 @@ body:has(> .site-footer) > main { width: 100%; padding-bottom: 3rem; }
   .nv-actions { gap: .5rem; margin-left: 0; }
   .nv-actions .btn { padding-inline: .75rem; }
 }
+
+/* ---- Chong "nhay" chieu rong thanh tim kiem o header khach (bo sung cho khoi .nv-header o tren) ----
+   Chieu rong o tim kiem = cho con lai sau khi tru logo va cum nut ben phai. Truoc day cac chi tiet sau chi duoc dinh kich thuoc boi Tailwind CDN
+   (sinh CSS bang JS sau khi trang ve) nen luc dau logo/nut/ten tai khoan chiem cho khac luc sau -> o tim kiem dai roi ngan lai moi lan doi trang.
+   Dat het kich thuoc vao CSS nay (link render-blocking) de bo cuc dung ngay tu khung hinh dau tien. */
+
+/* Luon chua san cho thanh cuon doc: trang ngan (khong co thanh cuon) va trang dai (co thanh cuon) co cung chieu rong khung nhin,
+   nen o tim kiem khong lech ~15px khi chuyen giua 2 loai trang. */
+html { scrollbar-gutter: stable; }
+
+/* Icon Lucide: the <i data-lucide> chua doi thanh <svg> van chiem san dung o 1rem (svg mac dinh 24px se bi ep ve 1rem) -> khong nhay khi icon duoc ve */
+.nv-header i[data-lucide], .nv-header svg.lucide { display: inline-block; width: 1rem; height: 1rem; flex: none; }
+.nv-brand i[data-lucide], .nv-brand svg.lucide,
+.nv-actions .indicator i[data-lucide], .nv-actions .indicator svg.lucide { width: 1.25rem; height: 1.25rem; }
+
+/* Logo: co chu 1.125rem, tu 640px tro len 1.25rem (tuong duong text-lg sm:text-xl) */
+.nv-brand { font-size: 1.125rem; line-height: 1.75rem; }
+@media (min-width: 640px) { .nv-brand { font-size: 1.25rem; } }
+
+/* Nhan chu cua cac nut (Don hang, Chat, Gio hang): chi hien tu 1024px tro len. Man hinh hep hon chi hien icon (nut van co aria-label) de cum nut gon lai
+   va o tim kiem khong bi ep con rat ngan o khoang may tinh bang (640-1023px). */
+.nv-label { display: none; }
+@media (min-width: 1024px) { .nv-label { display: inline; } }
+
+/* Ten tai khoan canh avatar: an duoi 768px, tu 768px hien toi da 8rem, tu 1024px toi da 12rem, dai hon thi cat "..." (tuong duong hidden md:inline-block max-w-32 lg:max-w-48 truncate) */
+.nv-username { display: none; font-size: .875rem; line-height: 1.25rem; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 768px) { .nv-username { display: inline-block; } }
+@media (min-width: 1024px) { .nv-username { max-width: 12rem; } }
+
+/* Nut tai khoan: avatar tron rong 2rem (tuong duong w-8) va khoang cach/le cua nut (gap-2 px-2). Neu chi dua vao Tailwind CDN thi luc dau avatar chi rong bang chu cai
+   (~20px) roi dan ra 32px khi Tailwind tai xong -> cum nut ben phai rong them 12px va o tim kiem bi ep ngan lai. */
+.nv-actions .avatar > div { width: 2rem; }
+#customer-account-menu > [role="button"] { gap: .5rem; padding-inline: .5rem; }
+
+/* Huy hieu so (gio hang, thong bao) khi bang 0 phai an NGAY, khong cho Tailwind CDN dinh nghia lop "hidden" */
+#cart-count.hidden, #notification-count.hidden { display: none; }
+
+/* ---- Bong bong chat o goc phai moi trang khach (xem common/footer.jspf, fragments/chat-widget.jsp) ---- */
+.nv-chatfab { position: fixed; right: 1rem; bottom: 1rem; z-index: 40; width: 3.5rem; height: 3.5rem; transition: transform .15s ease; }
+.nv-chatfab:hover { transform: scale(1.08); }
+/* Vong sang nhe lan ra vai lan khi moi vao trang de khach de thay bong bong; tat neu nguoi dung chon "giam chuyen dong" */
+.nv-chatfab::after { content: ""; position: absolute; inset: 0; border-radius: 9999px; box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 55%, transparent); animation: nv-chat-ping 2s ease-out 3; pointer-events: none; }
+@keyframes nv-chat-ping { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 55%, transparent); } 100% { box-shadow: 0 0 0 .9rem transparent; } }
+@media (prefers-reduced-motion: reduce) { .nv-chatfab::after { animation: none; } .nv-chatfab { transition: none; } }
+.nv-chatbox { position: fixed; right: 1rem; bottom: 5.25rem; z-index: 40; display: none; flex-direction: column;
+              width: min(22rem, calc(100vw - 2rem)); height: min(32rem, calc(100vh - 7rem)); overflow: hidden; }
+.nv-chatbox.is-open { display: flex; }
+.nv-chatbox-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.nv-chatbox-msgs { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+/* Thong bao toast nam goc duoi phai: day len tren de khong de len bong bong chat */
+#toast-box { margin-bottom: 4.75rem; }

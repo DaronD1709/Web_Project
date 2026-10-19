@@ -49,6 +49,8 @@
   </div>
 </main>
 
+<%-- Dang o trang chat day du thi khong hien bong bong chat (footer.jspf doc bien nay) --%>
+<c:set var="hideChatWidget" value="true" scope="request" />
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>
 <%-- ===== SCRIPT NHO: cuon khung chat xuong cuoi luc mo trang va khi co tin moi; ham dien cau goi y vao o nhap ===== --%>
 <script>

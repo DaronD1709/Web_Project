@@ -11,7 +11,7 @@
 <div id="customer-account-menu" class="dropdown dropdown-end" <c:if test="${updateHeader}">hx-swap-oob="outerHTML"</c:if>>
   <div tabindex="0" role="button" aria-label="Mở menu tài khoản" aria-haspopup="menu" class="btn btn-ghost gap-2 px-2">
     <div class="avatar avatar-placeholder"><div class="bg-primary text-primary-content w-8 rounded-full"><span><c:out value="${empty accountInitials ? 'KH' : accountInitials}"/></span></div></div>
-    <span id="current-user-name" class="hidden md:inline-block text-sm max-w-32 lg:max-w-48 truncate" title="<c:out value='${accountUser.fullName}'/>"><c:out value="${accountUser.fullName}"/></span>
+    <span id="current-user-name" class="nv-username" title="<c:out value='${accountUser.fullName}'/>"><c:out value="${accountUser.fullName}"/></span>
   </div>
   <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow-lg border border-base-300 mt-2">
     <li><a href="${ctx}/account/profile">Hồ sơ của tôi</a></li>
