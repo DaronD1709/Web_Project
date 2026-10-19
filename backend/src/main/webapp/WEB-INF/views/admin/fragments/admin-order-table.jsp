@@ -11,7 +11,11 @@
 <%-- Tab dang chon gui kem moi lan loc: the hidden nay thuoc form#order-filter (thuoc tinh form=) du nam ngoai the <form> --%>
 <input type="hidden" name="status" value="${filter.status}" form="order-filter">
 
-<%-- ===== TAB TRANG THAI: bam tab -> GET kem toan bo o loc (hx-include), rieng "status" bi ghi de bang gia tri cua tab (hx-vals) ===== --%>
+<%-- ===== TAB TRANG THAI: bam tab -> GET kem toan bo o loc (hx-include), rieng "status" bi ghi de bang gia tri cua tab (hx-vals) =====
+     - hx-include="#order-filter": them cac o cua form loc (tu khoa, thanh toan, ngay) vao request, de doi tab khong lam mat bo loc dang chon.
+     - hx-vals='{"status":"..."}': them/ghi de tham so status bang gia tri cua tab vua bam.
+     - hx-target="#order-list" + hx-push-url="true": chi thay phan tab + bang, va doi URL tren thanh dia chi.
+     - So tren moi tab (badge) lay tu tabCounts (dem tren TOAN BO don, khong theo bo loc); tab "Hoan hang" to mau do khi co don dang cho duyet. --%>
 <div role="tablist" class="tabs tabs-border bg-base-100 rounded-box border border-base-300 px-2 overflow-x-auto">
   <c:forEach var="t" items="${tabs}">
     <button type="button" role="tab" class="tab gap-2 ${filter.status == t[0] ? 'tab-active' : ''}"
@@ -87,7 +91,8 @@
       </c:choose>
     </span>
     <c:if test="${result.totalPages > 1}">
-      <%-- Link phan trang la link thuong; nam trong khung hx-boost nen htmx tu bien thanh request ngam, hx-target doi vung can thay thanh #order-list --%>
+      <%-- Link phan trang la link thuong; nam trong khung hx-boost nen htmx tu bien thanh request ngam, hx-target doi vung can thay thanh #order-list.
+           filter.toQueryString() noi san bo loc hien tai (status, q, pay, from, to) de chuyen trang van giu nguyen bo loc; &page=N la trang can xem. --%>
       <div class="join">
         <c:forEach begin="1" end="${result.totalPages}" var="i">
           <a href="${ctx}/admin/orders?${filter.toQueryString()}&page=${i}" hx-target="#order-list"

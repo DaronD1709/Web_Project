@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Thong bao gui cho nguoi dung (bang "notifications"). Trong chuc nang Quan ly don hang, MOI LAN Admin doi trang thai don,
  * OrderDAO.applyStatusChange tao 1 Notification cho khach cua don do (trong cung transaction doi trang thai).
- * Khach xem o trang Thong bao (huy hieu chuong cap nhat moi 30 giay bang htmx); isRead = da doc hay chua.
+ * Khach xem o trang Thong bao (huy hieu chuong cap nhat moi 5 giay bang htmx); isRead = da doc hay chua.
  */
 @Entity
 @Table(name = "notifications")

@@ -12,6 +12,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 
+// Thong bao cua KHACH (phia khach cua chuc nang Quan ly don hang: Admin doi trang thai don -> OrderDAO tao Notification -> khach xem o day).
+//   GET  /notifications         trang danh sach (loc Tat ca / Chua doc, phan trang); htmx (HX-Target = notification-list) chi tra manh danh sach
+//   GET  /notifications/count   huy hieu so thong bao chua doc tren chuong o header (htmx hoi lai moi 5 giay)
+//   POST /notifications/read    danh dau 1 hoac tat ca da doc (co ma CSRF)
+// Servlet chi dieu phoi; nghiep vu o NotificationService, du lieu o NotificationDAO.
 @WebServlet({"/notifications", "/notifications/count", "/notifications/read"})
 public class NotificationServlet extends HttpServlet {
     private final NotificationService service = new NotificationService();

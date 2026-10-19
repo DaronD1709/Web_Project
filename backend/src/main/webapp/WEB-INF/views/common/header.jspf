@@ -1,16 +1,19 @@
 <%-- Header dung chung (chuyen tu mockup/layout.js). Can head.jspf da duoc include truoc (dinh nghia ${ctx}).
      CHONG "NHAY" CHIEU RONG O TIM KIEM: chieu rong o tim kiem = cho con lai sau khi tru logo va cum nut ben phai, nen moi thu quyet dinh
      kich thuoc cua logo/nut/ten tai khoan phai co SAN trong design.css (tai truoc khi ve). Cac lop .nv-label, .nv-username, .nv-brand va kich thuoc icon
-     deu nam o do; KHONG dung lop Tailwind CDN (hidden, md:inline-block, text-lg...) cho cac chi tiet nay vi Tailwind CDN sinh CSS bang JS SAU khi trang ve. --%>
+     deu nam o do; KHONG dung lop Tailwind CDN (hidden, md:inline-block, text-lg...) cho cac chi tiet nay vi Tailwind CDN sinh CSS bang JS SAU khi trang ve.
+     ICON TRONG HEADER la <svg> VIET THANG (khong dung <i data-lucide>): the <i data-lucide> chi thanh hinh sau khi thu vien lucide (tai tu CDN, defer) chay,
+     nen moi lan chuyen trang icon "hien muon" (nhay). SVG viet san thi hien ngay o khung hinh dau tien. Noi dung SVG lay tu bo icon Lucide 0.469 (giay phep ISC,
+     xem docs/credits.md); class "lucide" de design.css dat kich thuoc (.nv-header svg.lucide). Icon o cac vung khac (khong nam o dau trang) van dung <i data-lucide>. --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <header class="nv-header bg-base-100 border-b border-base-300">
   <div class="nv-header-inner">
-    <a href="${ctx}/" class="nv-brand text-primary"><i data-lucide="wheat" class="size-5"></i> Nông Việt</a>
+    <a href="${ctx}/" class="nv-brand text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wheat size-5" aria-hidden="true"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/></svg> Nông Việt</a>
 
     <%-- Tim kiem + goi y: go >= 2 ky tu thi htmx goi GET /search/suggest roi nhet danh sach (anh + gia) vao #search-suggest; Enter van sang /products?q=. Man hinh nho: xuong dong rieng. --%>
     <form id="header-search" action="${ctx}/products" method="get" autocomplete="off" class="nv-search">
       <label class="input w-full">
-        <i data-lucide="search" class="size-4 opacity-60"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search size-4 opacity-60" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" name="q" value="<c:out value='${filter.keyword}'/>" placeholder="Tìm hạt giống, phân bón, máy móc…"
                hx-get="${ctx}/search/suggest" hx-trigger="input changed delay:250ms, focus" hx-target="#search-suggest" hx-swap="innerHTML" hx-sync="this:replace" />
       </label>
@@ -19,13 +22,13 @@
 
     <div class="nv-actions">
       <c:if test="${not empty sessionScope.currentUser and sessionScope.currentUser.customer}">
-        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Đơn hàng của tôi"><span aria-hidden="true"><i data-lucide="package" class="size-4"></i></span><span class="nv-label">Đơn hàng</span></a>
+        <a href="${ctx}/orders" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Đơn hàng của tôi"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package size-4" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg></span><span class="nv-label">Đơn hàng</span></a>
         <%-- Chuong thong bao: huy hieu so chua doc nam trong .indicator (xuat hien o goc tren, KHONG chiem cho) nen nut khong gian/co lai khi so doi --%>
-        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Thông báo"><span class="indicator"><span aria-hidden="true"><i data-lucide="bell" class="size-5"></i></span><jsp:include page="/WEB-INF/views/customer/fragments/notification-count.jsp" /></span></a>
+        <a href="${ctx}/notifications" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Thông báo"><span class="indicator"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell size-5" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></span><jsp:include page="/WEB-INF/views/customer/fragments/notification-count.jsp" /></span></a>
       </c:if>
-      <a href="${ctx}/chat" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Chat với shop"><span aria-hidden="true"><i data-lucide="message-circle" class="size-4"></i></span><span class="nv-label">Chat</span></a>
+      <a href="${ctx}/chat" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Chat với shop"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle size-4" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span><span class="nv-label">Chat</span></a>
       <a href="${ctx}/cart" class="btn btn-ghost btn-sm px-2 sm:px-3" aria-label="Giỏ hàng">
-        <span class="indicator"><span aria-hidden="true"><i data-lucide="shopping-cart" class="size-5"></i></span><jsp:include page="/WEB-INF/views/customer/fragments/cart-count.jsp" /></span>
+        <span class="indicator"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart size-5" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span><jsp:include page="/WEB-INF/views/customer/fragments/cart-count.jsp" /></span>
         <span class="nv-label">Giỏ hàng</span></a>
       <c:choose>
         <c:when test="${not empty sessionScope.currentUser}">

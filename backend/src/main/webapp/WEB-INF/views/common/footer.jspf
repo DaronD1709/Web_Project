@@ -68,7 +68,7 @@
   <section id="nvw-box" class="nv-chatbox card bg-base-100 border border-base-300 shadow-2xl" role="dialog" aria-label="Chat với shop">
     <%-- Dau khung: tieu de + nut mo trang chat day du + nut dong --%>
     <div class="flex items-center gap-2 px-4 py-3 bg-primary text-primary-content">
-      <i data-lucide="message-circle-more" class="size-5"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more size-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>
       <div class="flex-1 min-w-0"><div class="font-semibold leading-tight">Chat với shop</div><div class="text-xs opacity-80">Nhân viên phản hồi trong giờ làm việc</div></div>
       <a href="${ctx}/chat" class="btn btn-ghost btn-xs btn-circle" aria-label="Mở trang chat đầy đủ" title="Mở rộng"><i data-lucide="maximize-2" class="size-4"></i></a>
       <button type="button" id="nvw-close" class="btn btn-ghost btn-xs btn-circle" aria-label="Đóng khung chat"><i data-lucide="x" class="size-4"></i></button>
@@ -79,7 +79,7 @@
 
   <%-- ----- Nut bong bong tron o goc phai duoi ----- --%>
   <button type="button" id="nvw-fab" class="nv-chatfab btn btn-primary btn-circle shadow-xl" data-url="${ctx}/chat/widget"
-          aria-label="Chat với shop" aria-expanded="false" aria-controls="nvw-box"><i data-lucide="message-circle-more" class="size-7"></i></button>
+          aria-label="Chat với shop" aria-expanded="false" aria-controls="nvw-box"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more size-7" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg></button>
 
   <script>
     (function () {

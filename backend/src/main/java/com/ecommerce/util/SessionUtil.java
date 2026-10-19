@@ -173,7 +173,7 @@ public class SessionUtil {
             }
         }
 
-        // Request htmx GET la "tho do" nen (vd /notifications/count moi 30 giay) tra ve MANH HTML, khong phai trang.
+        // Request htmx GET la "tho do" nen (vd /notifications/count moi 5 giay) tra ve MANH HTML, khong phai trang.
         // Het phien thi next phai la TRANG khach dang xem (header HX-Current-URL), neu khong login xong se hien manh "3".
         if (HtmxUtil.isHtmx(req) && "GET".equals(req.getMethod())) {
             String current = currentPagePath(req);

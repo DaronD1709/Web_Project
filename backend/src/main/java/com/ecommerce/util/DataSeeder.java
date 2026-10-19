@@ -88,6 +88,10 @@ public class DataSeeder {
     }
 
     // Cac luat tra loi tu dong mac dinh cua chatbot (Admin sua/them/xoa o Admin > Tra loi tu dong). Chi nap khi bang auto_replies trong.
+    // THU TU (so uu tien nho duoc xet truoc) co chu y:
+    //   10   "gap nhan vien..."  dat TRUOC het va co handoff=true: khach xin gap nguoi that thi chuyen ngay, khong bi luat khac chen vao.
+    //   20-90 cac luat theo chu de (ship, thanh toan, hoan hang, voucher, phan bon, hat giong, may moc, chao hoi), handoff=false: bot tra loi roi tiep tuc.
+    //   1000 "*" (khop moi cau) dat CUOI CUNG lam cau mac dinh + chuyen nhan vien: chi duoc dung khi khong luat nao o tren khop (xem ChatBotService.match).
     private static void seedAutoReplies() {
         if (autoReplyDAO.count() > 0) return;
         rule(10, "nhân viên, gặp người, tư vấn viên, gặp shop, gọi cho",
