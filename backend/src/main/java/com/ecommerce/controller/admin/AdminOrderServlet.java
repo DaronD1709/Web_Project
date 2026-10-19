@@ -16,6 +16,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 // Quan ly don hang (Admin). Xem docs/api-spec.md muc 7.
+//
+// Servlet nay la tang CONTROLLER (mong): chi doc tham so request, goi AdminOrderService, dat ket qua vao request attribute roi chon JSP de ve.
+// Moi luat nghiep vu (duoc doi trang thai nao, hoan kho, tao thong bao) nam o Service/DAO/Entity, KHONG nam o day.
+// Luong tong the cua 1 thao tac doi trang thai:
+//   Trinh duyet (nut "Xac nhan" trong admin-order-detail.jsp / admin-order-table.jsp, co hx-confirm)
+//     -> POST /admin/orders/status -> changeStatus() -> AdminOrderService.changeStatus -> OrderDAO.applyStatusChange (transaction)
+//     -> flash thanh cong/loi -> redirect (PRG) ve trang truoc do -> trang hien toast.
 //   GET  /admin/orders            danh sach (status, q, pay, from, to, page); htmx tu o loc/tab -> chi tra bang (#order-list)
 //   GET  /admin/orders/detail?id= chi tiet 1 don
 //   POST /admin/orders/status     id, status (ten OrderStatus), back -> doi trang thai (xac nhan/giao/hoan tat/huy/duyet hoac tu choi hoan hang)
@@ -23,6 +30,7 @@ import java.io.IOException;
 public class AdminOrderServlet extends HttpServlet {
 
     private static final String LIST_URL = "/admin/orders";
+    // LIST_URL vua la duong dan trang danh sach, vua la "tien to" an toan de kiem tra tham so back (xem safeBack).
 
     // Cac tab tren danh sach: {khoa gui len server, nhan hien thi}
     private static final String[][] TABS = {
@@ -31,6 +39,7 @@ public class AdminOrderServlet extends HttpServlet {
 
     private final AdminOrderService orderService = new AdminOrderService();
 
+    // doGet: moi yeu cau xem. "/admin/orders/*" nen getPathInfo() la phan sau "/admin/orders": "" (danh sach) hoac "/detail" (chi tiet).
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (SessionUtil.requireAdmin(req, resp) == null) return; // chua dang nhap -> /admin/login, khach hang -> 403
@@ -43,6 +52,7 @@ public class AdminOrderServlet extends HttpServlet {
         }
     }
 
+    // doPost: chi co 1 thao tac ghi la "/status" (doi trang thai). Cung phai la Admin; cac duong dan khac -> 404.
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (SessionUtil.requireAdmin(req, resp) == null) return;
@@ -65,7 +75,9 @@ public class AdminOrderServlet extends HttpServlet {
         filter.setTo(ParamUtil.dateOrNull(req.getParameter("to")));
         filter.setPage(ParamUtil.intOr(req.getParameter("page"), 1));
 
+        // filter.setXxx() tu "lam sach" gia tri (vd status la gia tri la thi ve "all"), nen tham so la tu URL van an toan.
         var result = orderService.search(filter);
+        // Cac attribute duoi day la du lieu ma admin-order-list.jsp va fragment admin-order-table.jsp doc:
         req.setAttribute("filter", filter);
         req.setAttribute("result", result);
         req.setAttribute("itemCounts", orderService.countItems(result.getItems())); // id don -> so mat hang
@@ -83,6 +95,8 @@ public class AdminOrderServlet extends HttpServlet {
 
     // ------------------------------------------------------------------ chi tiet
 
+    // GET /admin/orders/detail?id=N: nap 1 don day du (JOIN FETCH) vao attribute "order" cho admin-order-detail.jsp.
+    // Trang chi tiet luon ve ca khung (khong co fragment rieng) nen goi thang AdminView.render.
     private void showDetail(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             req.setAttribute("order", orderService.getDetail(ParamUtil.intOrNull(req.getParameter("id"))));

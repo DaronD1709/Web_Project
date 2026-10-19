@@ -23,7 +23,8 @@
     <div class="border-b lg:border-b-0 lg:border-r border-base-300 flex flex-col min-h-0 min-w-0 max-h-72 lg:max-h-none">
       <div class="px-5 pt-5 pb-4 space-y-3 border-b border-base-300">
         <div class="flex items-center justify-between"><h2 class="font-semibold">Hội thoại</h2><span class="text-xs text-base-content/50">${fn:length(conversations)} cuộc</span></div>
-        <%-- Tim khach: go xong cho 0,3s thi chi thay lai danh sach #chat-list (khong tai lai trang nen o tim kiem giu nguyen con tro) --%>
+        <%-- Tim khach: go xong cho 0,3s thi chi thay lai danh sach #chat-list (khong tai lai trang nen o tim kiem giu nguyen con tro)
+             onsubmit="return false": chan Enter gui form theo kieu thuong (tai lai ca trang); viec tim da do htmx dam nhan khi go. --%>
         <form id="chat-search" method="get" action="${ctx}/admin/chat" onsubmit="return false">
           <input type="hidden" name="c" value="${selectedId}"><input type="hidden" name="filter" value="${filter}">
           <label class="input input-sm w-full">
@@ -38,6 +39,7 @@
           <a href="${ctx}/admin/chat?filter=ai" class="join-item btn btn-sm flex-1 ${filter == 'ai' ? 'btn-primary' : ''}">Tự động</a>
         </div>
       </div>
+      <%-- Danh sach hoi thoai la 1 fragment rieng (admin-chat-list.jsp) vi no vua duoc include o day, vua duoc server tra rieng khi polling moi 5 giay --%>
       <jsp:include page="/WEB-INF/views/admin/fragments/admin-chat-list.jsp" />
     </div>
 
@@ -67,7 +69,11 @@
             </c:forEach>
           </div>
 
-          <%-- O nhap + nut gui. htmx: POST /admin/chat/send kem id khach va id tin cuoi dang co (after); server tra tin moi thay vao #poll --%>
+          <%-- O nhap + nut gui. htmx: POST /admin/chat/send kem id khach va id tin cuoi dang co (after); server tra tin moi thay vao #poll
+               - hx-vals='js:{...}': tinh gia tri "after" TAI THOI DIEM bam gui bang JavaScript (doc data-after cua the #poll hien tai),
+                 vi id tin cuoi thay doi lien tuc do polling nen khong the viet cung vao HTML.
+               - hx-swap="outerHTML" tren #poll: thay luon ca the #poll bang cac tin moi + the #poll moi (co after moi).
+               - hx-on::after-request: gui thanh cong thi xoa trong o nhap; gui loi (tin rong/qua dai) thi giu nguyen chu de Admin sua. --%>
           <form class="px-6 py-4 flex items-center gap-3" hx-post="${ctx}/admin/chat/send" hx-target="#poll" hx-swap="outerHTML"
                 hx-vals='js:{after: document.getElementById("poll").dataset.after}'
                 hx-on::after-request="if (event.detail.successful) this.reset()">

@@ -5,7 +5,9 @@
     draft : AutoReply dang hien tren form (mac dinh khi them, luat that khi sua, gia tri vua go khi bi loi)
     errors : Map<ten o, loi> (chi co khi POST bi tu choi)     formError : loi chung khong gan voi o nao
 --%>
+<%-- editing: co id nghia la dang SUA luat da co, khong co id la THEM moi. Quyet dinh tieu de, URL gui form (/edit?id=N hay /new) va thong bao thanh cong. --%>
 <c:set var="editing" value="${not empty draft.id}" />
+<%-- action: URL ma form POST toi. Servlet dung chung 1 ham save() cho ca /new va /edit. --%>
 <c:set var="action" value="${ctx}/admin/auto-replies/${editing ? 'edit?id=' : 'new'}${draft.id}" />
 
 <div class="max-w-3xl mx-auto space-y-4">
@@ -16,6 +18,7 @@
     <h1 class="text-2xl font-bold">${editing ? 'Sửa câu trả lời tự động' : 'Thêm câu trả lời tự động'}</h1>
   </div>
 
+  <%-- Loi chung khong thuoc o nao (vd luat khong con ton tai khi dang sua) hien o dau form; loi tung o hien ngay duoi o do (errors.keywords...) --%>
   <c:if test="${not empty formError}"><div class="alert alert-error text-sm"><c:out value="${formError}"/></div></c:if>
 
   <%-- Form gui bang htmx (hx-boost ke thua tu khung): thanh cong -> redirect ve danh sach; loi -> tra lai form kem loi --%>
@@ -47,6 +50,7 @@
         <c:if test="${not empty errors.priority}"><div class="label"><span class="label-text-alt text-error">${errors.priority}</span></div></c:if>
       </label>
     </div>
+    <%-- 2 cong tac checkbox: chi duoc GUI len server khi duoc tick (nen Servlet doc "req.getParameter(...) != null" la biet bat hay tat) --%>
     <label class="flex items-center gap-3"><input name="handoff" type="checkbox" class="toggle toggle-primary" ${draft.handoff ? 'checked' : ''}>
       <span class="text-sm">Sau khi trả lời, <b>chuyển cuộc trò chuyện sang nhân viên</b> (chatbot ngừng trả lời)</span></label>
     <label class="flex items-center gap-3"><input name="active" type="checkbox" class="toggle toggle-primary" ${draft.active ? 'checked' : ''}>

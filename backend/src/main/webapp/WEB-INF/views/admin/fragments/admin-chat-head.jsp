@@ -6,6 +6,7 @@
   MANH: dau khung chat (ten khach + che do dang tra loi + 2 nut Tu dong / Nhan vien). Attr: selected (Customer), oob (true khi tra kem sau khi gui tin
   de htmx tu thay #chat-head o noi khac bang hx-swap-oob). Bam nut -> POST /admin/chat/mode, server tra lai chinh manh nay thay vao #chat-head.
 --%>
+<%-- id="chat-head": diem neo de 2 nut ben duoi va cac lan tra kem (oob) thay dung vung nay. Dau cham mau: xanh = nhan vien, vang = tro ly tu dong. --%>
 <div id="chat-head" ${oob ? 'hx-swap-oob="true"' : ''} class="px-6 py-4 border-b border-base-300 flex items-center gap-4">
   <div class="avatar avatar-online avatar-placeholder"><div class="bg-primary/15 text-primary w-11 rounded-full font-semibold"><span>${fn:toUpperCase(fn:substring(selected.fullName, 0, 1))}</span></div></div>
   <div class="flex-1 min-w-0">

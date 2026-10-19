@@ -21,10 +21,13 @@ import java.io.IOException;
 //   GET  /admin/auto-replies/edit?id=   form sua        POST cung URL: cap nhat
 //   POST /admin/auto-replies/toggle     id, active (true|false), back -> bat/tat
 //   POST /admin/auto-replies/delete     id, back -> xoa
+//
+// Servlet nay chi dieu phoi (controller mong): doc tham so form -> AdminAutoReplyService kiem tra + luu -> chon trang. Luat khop cau hoi o ChatBotService.
+// Cac thao tac ghi (tao/sua/bat tat/xoa) deu theo mau POST -> flash -> redirect (PRG) nen bam F5 khong gui lai form.
 @WebServlet("/admin/auto-replies/*")
 public class AdminAutoReplyServlet extends HttpServlet {
 
-    private static final String LIST_URL = "/admin/auto-replies";
+    private static final String LIST_URL = "/admin/auto-replies"; // trang danh sach; cung la tien to an toan cho tham so back (xem safeBack)
 
     private final AdminAutoReplyService service = new AdminAutoReplyService();
 
@@ -73,6 +76,8 @@ public class AdminAutoReplyServlet extends HttpServlet {
         switch (path) {
             // /new va /edit dung chung save(): id == null la tao moi, co id la cap nhat
             case "/new", "/edit" -> save(req, resp, "/edit".equals(path) ? ParamUtil.intOrNull(req.getParameter("id")) : null);
+            // Cong tac bat/tat tren moi dong cua danh sach. Gui trang thai MONG MUON (active=true|false), khong dao nguoc,
+            // nen bam nhanh nhieu lan van ra dung ket qua cuoi.
             case "/toggle" -> {
                 try {
                     String message = service.setActive(ParamUtil.intOrNull(req.getParameter("id")), "true".equals(req.getParameter("active")));
@@ -82,6 +87,7 @@ public class AdminAutoReplyServlet extends HttpServlet {
                 }
                 resp.sendRedirect(req.getContextPath() + safeBack(req.getParameter("back")));
             }
+            // Xoa luat (da co hop thoai xac nhan o JSP). Thanh cong hay loi deu flash roi redirect ve trang truoc do.
             case "/delete" -> {
                 try {
                     service.delete(ParamUtil.intOrNull(req.getParameter("id")));

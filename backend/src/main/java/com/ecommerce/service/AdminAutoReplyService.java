@@ -11,9 +11,10 @@ import java.util.Map;
 /** Nghiep vu QUAN LY CAU TRA LOI TU DONG cua chatbot (Admin): xem, tao, sua, bat/tat, xoa, thu cau hoi. Luat khop nam o ChatBotService. */
 public class AdminAutoReplyService {
 
-    private static final int MAX_KEYWORDS = 20;
-    private static final int MAX_KEYWORD_LENGTH = 40;
-    private static final int MAX_REPLY_LENGTH = 1000;
+    // Gioi han kiem tra du lieu nhap: du de soan luat hop ly, du nho de khong lam day DB hoac lam ham so khop cham.
+    private static final int MAX_KEYWORDS = 20;         // so tu khoa toi da cua 1 luat
+    private static final int MAX_KEYWORD_LENGTH = 40;   // do dai toi da 1 tu khoa
+    private static final int MAX_REPLY_LENGTH = 1000;   // do dai toi da cau tra loi
 
     private final AutoReplyDAO autoReplyDAO = new AutoReplyDAO();
     private final ChatBotService chatBot = new ChatBotService();
@@ -23,6 +24,7 @@ public class AdminAutoReplyService {
         return autoReplyDAO.findAllOrdered();
     }
 
+    // Lay 1 luat; id thieu/sai/khong ton tai thi bao loi nghiep vu (Servlet bat va hien cho Admin, khong de lo ra trang 500).
     public AutoReply getById(Integer id) {
         AutoReply r = id == null ? null : autoReplyDAO.findById(id);
         if (r == null) throw new BusinessException("Câu trả lời tự động không tồn tại.");
@@ -64,6 +66,8 @@ public class AdminAutoReplyService {
         Integer priorityValue = ParamUtil.intOrNull(priority);
         if (priorityValue == null || priorityValue < 1 || priorityValue > 9999) errors.put("priority", "Mức ưu tiên từ 1 đến 9999");
 
+        // Neu sua thi nap ban cu tu DB (giu nguyen id va cac truong khac); tao moi thi dung doi tuong rong.
+        // Phai kiem tra loi XONG roi moi ghi, de loi o bat ky o nao thi KHONG co gi bi luu.
         AutoReply rule = new AutoReply();
         if (id != null) rule = getById(id);
         if (!errors.isEmpty()) throw new BusinessException(errors);
@@ -84,6 +88,7 @@ public class AdminAutoReplyService {
         return active ? "Đã bật câu trả lời tự động" : "Đã tắt câu trả lời tự động";
     }
 
+    // Xoa han (khong the khoi phuc). Neu chi muon tam ngung thi dung setActive(false) thay vi xoa.
     public void delete(Integer id) {
         getById(id); // khong ton tai thi bao loi
         autoReplyDAO.deleteById(id);

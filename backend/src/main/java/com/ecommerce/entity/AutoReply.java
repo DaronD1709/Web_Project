@@ -17,15 +17,18 @@ public class AutoReply {
     private Integer id;
 
     // Cac tu khoa/cum tu cach nhau bang dau phay hoac xuong dong, vd "ship, giao hang, van chuyen". Dau "*" (dung 1 minh) = khop moi cau.
+    // Luu 1 chuoi trong 1 cot (khong tach bang rieng) cho don gian; getKeywordList() tach lai khi can.
     @Column(columnDefinition = "TEXT", nullable = false)
     private String keywords;
 
+    // Cau chatbot se gui cho khach khi luat nay khop (cot reply_text, kieu TEXT, toi da 1000 ky tu do Service kiem tra).
     @Column(name = "reply_text", columnDefinition = "TEXT", nullable = false)
     private String replyText;
 
     // true = sau khi tra loi, chuyen cuoc tro chuyen sang NHAN VIEN (chatbot ngung tra loi)
     private boolean handoff;
 
+    // Cong tac bat/tat luat (cot is_active): tat thi chatbot BO QUA luat nay nhung van giu lai de bat lai sau. Luat moi mac dinh bat.
     @Column(name = "is_active")
     private boolean active = true;
 

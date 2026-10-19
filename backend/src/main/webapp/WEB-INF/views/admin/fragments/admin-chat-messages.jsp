@@ -9,6 +9,9 @@
   #poll tu hoi /admin/chat/messages?c=..&after=lastId moi 3 giay (polling); ket qua thay chinh no bang tin moi + #poll moi.
   3 kieu nguoi gui: khach (trang, ben trai), tro ly tu dong (vang nhat, ben phai), nhan vien (xanh dam, ben phai).
 --%>
+<%-- ===== CAC BONG BONG CHAT: moi tin 1 dong. Phan loai nguoi gui bang 2 so sanh don gian:
+       fromCustomer = nguoi gui chinh la khach so huu cuoc chat; fromBot = nguoi gui la tai khoan he thong "Tro ly tu dong" (so email voi botEmail).
+       Khong phai khach cung khong phai bot thi la nhan vien (Admin) ===== --%>
 <c:forEach var="m" items="${messages}">
   <c:set var="fromCustomer" value="${m.sender.id == m.customer.id}" />
   <c:set var="fromBot" value="${m.sender.email == botEmail}" />
@@ -33,5 +36,10 @@
     </div>
   </div>
 </c:forEach>
+<%-- ===== THE #poll: phan tu rong lam nhiem vu "hoi server dinh ky". data-after luu id tin cuoi (admin-chat.jsp doc de gui kem khi bam Gui).
+     Moi 3 giay htmx goi /admin/chat/messages?after=lastId; ket qua (tin moi + #poll moi voi after moi) thay chinh the nay (outerHTML),
+     nen vong lap tiep tuc va tin cu khong bi gui lai. hx-target="this" bat buoc de khong ke thua hx-target cua khung ngoai. ===== --%>
 <div id="poll" data-after="${lastId}" hx-get="${ctx}/admin/chat/messages?c=${selected.id}&after=${lastId}" hx-trigger="every 3s" hx-target="this" hx-swap="outerHTML"></div>
+<%-- Vua gui tin: Admin tu duoc chuyen sang che do Nhan vien, nen tra kem dau khung chat moi (hx-swap-oob="true" trong admin-chat-head.jsp)
+     de nhan "Nhan vien dang tra loi" cap nhat ngay ma khong phai doi lan polling ke tiep. --%>
 <c:if test="${withHead}"><c:set var="oob" value="${true}" scope="request" /><jsp:include page="/WEB-INF/views/admin/fragments/admin-chat-head.jsp" /></c:if>

@@ -26,13 +26,18 @@ import java.util.List;
 @WebServlet({"/chat", "/chat/*"})
 public class ChatServlet extends HttpServlet {
 
+    // 3 view cua khach: PAGE = trang chat day du; START_PAGE = trang nhap ten (khach vang lai); FRAGMENT = chi cac tin moi (htmx polling/gui tin).
     private static final String PAGE = "/WEB-INF/views/customer/chat.jsp";
     private static final String START_PAGE = "/WEB-INF/views/customer/chat-start.jsp";
     private static final String FRAGMENT = "/WEB-INF/views/customer/fragments/chat-messages.jsp";
+    // Ten khoa trong session luu id khach vang lai; het phien (dong trinh duyet) la mat khoa nay va mat cuoc chat.
     private static final String GUEST_SESSION_KEY = "guestChatId";
 
     private final ChatService chatService = new ChatService();
 
+    // doGet: 2 duong. "/chat" -> ve CA TRANG (lan dau, after = 0 nen chatbot chao neu chua co tin).
+    //                 "/chat/messages?after=N" -> chi tra tin moi hon N (polling moi 3 giay, trang ve manh HTML).
+    // Xac dinh "ai la chu cuoc chat": dang nhap thi la Customer cua session, chua dang nhap thi tim khach vang lai trong session.
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         boolean loggedIn = SessionUtil.currentUser(req) != null;
@@ -49,6 +54,8 @@ public class ChatServlet extends HttpServlet {
         }
     }
 
+    // doPost: 2 thao tac ghi: "/guest" (khach vang lai nhap ten de bat dau) va "/send" (gui 1 tin).
+    // Gui tin: ChatService luu tin + (neu khong co nhan vien tiep quan) chatbot tra loi ngay, roi tra ve cac tin moi de htmx chen vao khung chat.
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -71,6 +78,7 @@ public class ChatServlet extends HttpServlet {
         try {
             chatService.sendFromCustomer(owner.getId(), req.getParameter("content"));
         } catch (BusinessException e) {
+            // Tin rong/qua dai: chi hien toast loi; "HX-Reswap: none" de khung chat va o nhap giu nguyen.
             HtmxUtil.toast(resp, e.getMessage(), "error");
             resp.setHeader("HX-Reswap", "none");
             return;
@@ -113,6 +121,8 @@ public class ChatServlet extends HttpServlet {
         req.getRequestDispatcher(START_PAGE).forward(req, resp);
     }
 
+    // Lay tin moi hon `after` roi chuyen cho view (PAGE hoac FRAGMENT). lastId = id tin cuoi, JSP gan vao the #poll de lan hoi sau chi xin tin moi.
+    // chatOwnerId: JSP so sanh voi sender.id de biet tin nao la "cua minh" (khach vang lai khong co currentUser trong session nen khong dung duoc).
     private void forwardMessages(HttpServletRequest req, HttpServletResponse resp, Customer owner, int after, String view)
             throws ServletException, IOException {
         List<Message> messages = chatService.getMessagesAfter(owner.getId(), after);

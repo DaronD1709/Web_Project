@@ -13,7 +13,7 @@ public class AutoReplyDAO extends AbstractDAO<AutoReply, Integer> {
         super(AutoReply.class);
     }
 
-    /** Tat ca luat (ca dang tat) cho trang quan ly. */
+    /** Tat ca luat (ca dang tat) cho trang quan ly. ORDER BY priority roi id: so uu tien nho hien truoc, bang nhau thi luat tao truoc hien truoc. */
     public List<AutoReply> findAllOrdered() {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
@@ -23,7 +23,10 @@ public class AutoReplyDAO extends AbstractDAO<AutoReply, Integer> {
         }
     }
 
-    /** Chi cac luat dang BAT, chatbot dung khi tra loi khach. */
+    /**
+     * Chi cac luat dang BAT, chatbot dung khi tra loi khach. Goi LAI tu DB moi lan khach gui tin (1 query),
+     * nen Admin sua/bat/tat luat la co hieu luc ngay, khong can khoi dong lai ung dung.
+     */
     public List<AutoReply> findActiveOrdered() {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
