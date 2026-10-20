@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /**
  * Mot tin nhan chat (bang "messages"). KHONG co bang "cuoc tro chuyen" rieng: ca cuoc chat cua 1 khach la tap hop moi Message
  * co cung customer_id. Nho vay don gian (vua de giai thich khi van dap): mo chat = loc theo khach, tin moi nhat = id lon nhat.
- * Nguoi gui (sender) co the la: chinh khach, nhan vien Admin, hoac tai khoan he thong "Tro ly tu dong" (chatbot).
+ * Nguoi gui (sender) la chinh khach hoac nhan vien Admin (shop tra loi bang tay, khong co chatbot).
  * Dung chung cho phia khach (ChatServlet) va phia Admin (AdminChatServlet).
  */
 @Entity
@@ -17,14 +17,13 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Khach SO HUU luong chat nay: moi tin (cua khach lan cua shop/chatbot) deu gan voi 1 khach.
+    // Khach SO HUU luong chat nay: moi tin (cua khach lan cua shop) deu gan voi 1 khach.
     // Khach chi thay tin co customer la minh; Admin loc theo khach de xem/tra loi.
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    // User, khong phai Customer/Admin cu the - polymorphism: la Customer (khach nhan) hoac Admin (nhan vien shop,
-    // hoac tai khoan he thong "Tro ly tu dong" cua chatbot - khong co class AIBot rieng).
+    // User, khong phai Customer/Admin cu the - polymorphism: la Customer (khach nhan) hoac Admin (nhan vien shop tra loi).
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;

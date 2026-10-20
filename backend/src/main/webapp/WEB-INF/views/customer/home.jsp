@@ -75,7 +75,7 @@
   <section class="mt-12 grid gap-4 md:grid-cols-3">
     <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="truck" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Giao tận vườn toàn quốc</div><p class="text-sm text-base-content/70">Đóng gói chắc chắn, theo dõi đơn từng bước.</p></div>
     <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="receipt-text" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Chính hãng, rõ nguồn gốc</div><p class="text-sm text-base-content/70">Có hạn sử dụng, hoá đơn; lỗi do shop được đổi trả 7 ngày.</p></div>
-    <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="message-circle" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Tư vấn kỹ thuật miễn phí</div><p class="text-sm text-base-content/70">Hỏi cách bón phân, phòng sâu bệnh qua chat hoặc trợ lý tự động.</p></div>
+    <div class="card bg-base-100 border border-base-300 p-5"><div aria-hidden="true"><i data-lucide="message-circle" class="size-8 text-primary"></i></div><div class="font-semibold mt-2">Tư vấn kỹ thuật miễn phí</div><p class="text-sm text-base-content/70">Hỏi cách bón phân, phòng sâu bệnh qua chat với nhân viên shop.</p></div>
   </section>
 </main>
 

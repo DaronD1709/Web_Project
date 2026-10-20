@@ -13,11 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Nghiep vu CHAT phia Admin: xem cac cuoc tro chuyen, doc/gui tin, bat/tat che do nhan vien tiep quan. Khong dung WebSocket (xem docs/api-spec.md).
- * Quy tac cot loi: moi khach co 1 co Customer.handledByHuman.
- *   false (mac dinh) = chatbot tra loi tu dong;  true = nhan vien tiep quan, chatbot im lang.
- * Admin gui tin la tu dong bat che do nhan vien (send), va co the bam cong tac de tra lai cho chatbot (setHuman).
- * Lop nay chi bao boc: truy van do MessageDAO lo, viec doi co do ChatService.setHandledByHuman lo (dung chung voi phia khach).
+ * Nghiep vu CHAT phia Admin: xem cac cuoc tro chuyen, doc tin cua khach va tra loi bang tay. Khong dung WebSocket (xem docs/api-spec.md).
+ * Khong co chatbot: moi tin cua khach chi duoc luu lai de nhan vien doc va tra loi (polling moi 3-5 giay).
+ * Lop nay chi bao boc: truy van do MessageDAO lo.
  */
 public class AdminChatService {
 
@@ -26,11 +24,10 @@ public class AdminChatService {
     private final MessageDAO messageDAO = new MessageDAO();
     private final UserDAO userDAO = new UserDAO();
     private final OrderDAO orderDAO = new OrderDAO();
-    private final ChatService chatService = new ChatService();
 
-    /** Moi khach co chat = 1 dong (tin cuoi cung), moi nhat truoc. mode: "all" | "human" | "ai"; keyword tim theo ten/email khach. */
-    public List<Message> conversations(String mode, String keyword) {
-        return messageDAO.findLatestPerCustomer(mode, keyword);
+    /** Moi khach co chat = 1 dong (tin cuoi cung), moi nhat truoc. keyword tim theo ten/email khach (null = khong tim). */
+    public List<Message> conversations(String keyword) {
+        return messageDAO.findLatestPerCustomer(keyword);
     }
 
     // Tim khach theo id, id sai/thieu/khong phai Customer thi bao loi nghiep vu (Servlet bat va hien cho Admin).
@@ -40,7 +37,7 @@ public class AdminChatService {
         return customer;
     }
 
-    /** Tin nhan cua khach moi hon `afterId` (0 = tu dau). Khong chen loi chao cua chatbot nhu phia khach. */
+    /** Tin nhan cua khach moi hon `afterId` (0 = tu dau). */
     public List<Message> messagesAfter(Integer customerId, int afterId) {
         return messageDAO.findAfter(customerId, afterId);
     }
@@ -50,7 +47,7 @@ public class AdminChatService {
         return orderDAO.findRecentByCustomer(customerId, 3);
     }
 
-    /** Admin gui tin. Gui tin nghia la nhan vien da vao cuoc nen tu chuyen sang che do NHAN VIEN (chatbot ngung tra loi). */
+    /** Admin gui 1 tin tra loi khach (kiem tra noi dung roi luu). */
     public void send(Admin admin, Integer customerId, String content) {
         String text = content == null ? "" : content.trim();
         if (text.isEmpty()) throw new BusinessException("Vui lòng nhập nội dung tin nhắn.");
@@ -64,15 +61,5 @@ public class AdminChatService {
         m.setContent(text);
         m.setSentAt(LocalDateTime.now());
         messageDAO.save(m);
-
-        // Luu tin xong moi chuyen che do, de neu luu loi thi khong bi chuyen nham.
-        chatService.setHandledByHuman(customerId, true);
-    }
-
-    /** Bat/tat che do nhan vien tiep quan thu cong. Tra ve cau thong bao. */
-    public String setHuman(Integer customerId, boolean human) {
-        getCustomer(customerId); // khong ton tai thi bao loi
-        chatService.setHandledByHuman(customerId, human);
-        return human ? "Bạn đã tiếp quản cuộc trò chuyện" : "Đã chuyển lại cho trợ lý tự động";
     }
 }

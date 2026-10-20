@@ -19,19 +19,16 @@ public class MessageDAO extends AbstractDAO<Message, Integer> {
     }
 
     /**
-     * Moi khach co chat = 1 dong: TIN CUOI CUNG cua cuoc tro chuyen (moi nhat truoc). mode: "all" | "human" (nhan vien dang tiep quan) | "ai".
+     * Moi khach co chat = 1 dong: TIN CUOI CUNG cua cuoc tro chuyen (moi nhat truoc).
      * keyword: tim theo ten/email khach (null = khong tim). JOIN FETCH khach + nguoi gui de JSP doc duoc sau khi EntityManager dong.
      */
-    public List<Message> findLatestPerCustomer(String mode, String keyword) {
+    public List<Message> findLatestPerCustomer(String keyword) {
         EntityManager em = JPAUtil.getEmFactory().createEntityManager();
         try {
             // Truy van con "SELECT MAX(id) ... GROUP BY customer" = id tin CUOI CUNG cua tung khach; truy van ngoai lay ra dung cac tin do.
             // Cach nay gon hon nap het tin nhan roi tu loc, va chi tra 1 dong cho moi khach.
             StringBuilder jpql = new StringBuilder("SELECT m FROM Message m JOIN FETCH m.customer c JOIN FETCH m.sender "
                     + "WHERE m.id IN (SELECT MAX(m2.id) FROM Message m2 GROUP BY m2.customer.id)");
-            // mode chi nhan 3 gia tri co dinh nen noi chuoi nay an toan; "IS NULL" de cac khach cu (cot moi them, chua co gia tri) van tinh la chatbot.
-            if ("human".equals(mode)) jpql.append(" AND c.handledByHuman = true");
-            if ("ai".equals(mode)) jpql.append(" AND (c.handledByHuman = false OR c.handledByHuman IS NULL)");
             // Tu khoa di qua tham so :kw (setParameter ben duoi), khong noi thang vao chuoi -> chong JPQL injection.
             if (keyword != null) jpql.append(" AND (LOWER(c.fullName) LIKE :kw OR LOWER(c.email) LIKE :kw)");
             jpql.append(" ORDER BY m.sentAt DESC, m.id DESC"); // hoi thoai co tin moi nhat len dau

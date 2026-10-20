@@ -36,7 +36,7 @@ public class AdminDashboardServlet extends HttpServlet {
         // (1) Viec can xu ly ngay: don cho xac nhan, yeu cau hoan hang, khach dang cho nhan vien tra loi
         req.setAttribute("pending", statsService.countStatus(OrderStatus.PENDING));
         req.setAttribute("returnRequests", statsService.countStatus(OrderStatus.RETURN_REQUESTED));
-        long chatWaiting = chatService.conversations("all", null).stream()
+        long chatWaiting = chatService.conversations(null).stream()
                 .filter((Message m) -> m.getSender().getId().equals(m.getCustomer().getId())) // tin cuoi la cua khach = shop chua tra loi
                 .count();
         req.setAttribute("chatWaiting", chatWaiting);

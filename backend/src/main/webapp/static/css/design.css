@@ -137,3 +137,6 @@ html { scrollbar-gutter: stable; }
 .nv-chatbox-msgs { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 /* Thong bao toast nam goc duoi phai: day len tren de khong de len bong bong chat */
 #toast-box { margin-bottom: 4.75rem; }
+
+/* Loi nhac "gui tin nhan dau tien" trong khung chat: an ngay khi xuat hien bong bong chat nao sau no */
+.nv-chat-empty:has(~ .chat) { display: none; }

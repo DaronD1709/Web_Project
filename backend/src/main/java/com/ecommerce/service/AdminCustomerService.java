@@ -47,7 +47,7 @@ public class AdminCustomerService {
 
     /**
      * Khoa (locked = true) hoac mo khoa tai khoan khach. Chi khoa duoc KHACH HANG, khong khoa duoc Admin (tranh Admin tu khoa minh
-     * hoac khoa tai khoan he thong cua chatbot). Dat theo trang thai MONG MUON (khong dao nguoc) nen bam nhanh 2 lan khong bi lech.
+     * hoac khoa tai khoan khac cua he thong). Dat theo trang thai MONG MUON (khong dao nguoc) nen bam nhanh 2 lan khong bi lech.
      * Don dang xu ly van tiep tuc binh thuong; khach bi khoa khong dang nhap duoc (AuthService.login) va dang dung thi bi dang xuat.
      */
     public String setLocked(Integer id, boolean locked) {
