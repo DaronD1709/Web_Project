@@ -39,7 +39,7 @@ public class ChatServlet extends HttpServlet {
 
     private final ChatService chatService = new ChatService();
 
-    // doGet: 2 duong. "/chat" -> ve CA TRANG (lan dau, after = 0 nen chatbot chao neu chua co tin).
+    // doGet: 2 duong. "/chat" -> ve CA TRANG (lan dau, after = 0 la lay tu dau).
     //                 "/chat/messages?after=N" -> chi tra tin moi hon N (polling moi 3 giay, trang ve manh HTML).
     // Xac dinh "ai la chu cuoc chat": dang nhap thi la Customer cua session, chua dang nhap thi tim khach vang lai trong session.
     @Override
@@ -63,7 +63,7 @@ public class ChatServlet extends HttpServlet {
     }
 
     // doPost: 2 thao tac ghi: "/guest" (khach vang lai nhap ten de bat dau) va "/send" (gui 1 tin).
-    // Gui tin: ChatService luu tin + (neu khong co nhan vien tiep quan) chatbot tra loi ngay, roi tra ve cac tin moi de htmx chen vao khung chat.
+    // Gui tin: ChatService luu tin (nhan vien tra loi bang tay), roi tra ve cac tin moi de htmx chen vao khung chat.
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -126,7 +126,7 @@ public class ChatServlet extends HttpServlet {
 
     // GET /chat/widget: than khung chat nho. Xac dinh chu cuoc chat nhu doGet: dang nhap thi la Customer cua session, chua thi tim khach vang lai trong session.
     //   - Chua co ai (chua dang nhap, chua nhap ten): hien o nhap ten (attr widgetStart = true).
-    //   - Co chu cuoc chat: nap tu dau (after = 0; cuoc chat rong thi chatbot chao) roi hien tin nhan + o nhap.
+    //   - Co chu cuoc chat: nap tu dau (after = 0) roi hien tin nhan + o nhap.
     // Admin goi vao day bi requireCustomer chan (403); bong bong cung khong hien voi Admin.
     private void showWidget(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         boolean loggedIn = SessionUtil.currentUser(req) != null;
@@ -166,7 +166,6 @@ public class ChatServlet extends HttpServlet {
         int lastId = messages.isEmpty() ? after : messages.get(messages.size() - 1).getId();
         req.setAttribute("messages", messages);
         req.setAttribute("lastId", lastId);
-        req.setAttribute("botEmail", ChatService.BOT_EMAIL); // JSP dung de nhan ra tin cua tro ly tu dong
         req.setAttribute("chatOwnerId", owner.getId());       // de JSP biet tin nao la CUA MINH (khach vang lai khong co currentUser trong session)
         req.setAttribute("isGuestChat", owner.isGuest());
         req.setAttribute("chatOwner", owner);

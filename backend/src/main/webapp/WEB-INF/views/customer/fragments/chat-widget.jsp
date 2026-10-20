@@ -5,7 +5,7 @@
   MANH: noi dung than khung chat nho (bong bong chat o goc phai moi trang, xem common/footer.jspf). ChatServlet (/chat/widget va /chat/guest) tra ve,
   htmx nhet vao <div id="nvw-body">. Co 2 che do:
     1. widgetStart = true: khach CHUA dang nhap va chua nhap ten -> hien o nhap ten (chat nhanh nhu khach vang lai). Attr kem: error, guestName.
-    2. nguoc lai: hien cac tin nhan + o nhap. Attr do ChatServlet.forwardMessages truyen: messages, lastId, botEmail, chatOwnerId.
+    2. nguoc lai: hien cac tin nhan + o nhap. Attr do ChatServlet.forwardMessages truyen: messages, lastId, chatOwnerId.
 --%>
 <c:choose>
 

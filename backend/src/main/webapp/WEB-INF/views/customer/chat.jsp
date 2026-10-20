@@ -10,7 +10,7 @@
 <body class="bg-base-200 min-h-screen">
 <%@ include file="/WEB-INF/views/common/header.jspf" %>
 
-<%-- ChatServlet.forwardMessages truyen: messages (tin cua cuoc chat), lastId (id tin cuoi, cho polling), botEmail (nhan ra tin cua tro ly tu dong),
+<%-- ChatServlet.forwardMessages truyen: messages (tin cua cuoc chat), lastId (id tin cuoi, cho polling),
      chatOwnerId (id nguoi dang chat, de biet tin nao la "cua minh"), isGuestChat + chatOwner (khach vang lai hay khong, va khach nao). --%>
 <main class="max-w-3xl mx-auto px-4 py-6">
   <div class="card bg-base-100 border border-base-300 overflow-hidden">
@@ -32,14 +32,13 @@
       <jsp:include page="/WEB-INF/views/customer/fragments/chat-messages.jsp" />
     </div>
 
-    <%-- ===== VUNG 4: CAU HOI GOI Y (bam de dien san vao o nhap, chua gui; ham useChip o cuoi trang). Cau thu 3 dung de thu chuyen sang nhan vien ===== --%>
+    <%-- ===== VUNG 4: CAU HOI GOI Y (bam de dien san vao o nhap, chua gui; ham useChip o cuoi trang). ===== --%>
     <div class="px-5 pt-3 flex flex-wrap gap-2">
       <button type="button" class="badge badge-outline cursor-pointer" onclick="useChip(this)">Rau màu nên bón phân gì?</button>
       <button type="button" class="badge badge-outline cursor-pointer" onclick="useChip(this)">Tư vấn hệ thống tưới 1000m²</button>
-      <button type="button" class="badge badge-outline cursor-pointer" onclick="useChip(this)">Gặp nhân viên</button>
     </div>
     <%-- ===== VUNG 5: O NHAP + NUT GUI. htmx: POST /chat/send kem "after" = id tin cuoi dang co (tinh bang JS luc bam gui, doc data-after cua #poll hien tai).
-         Server luu tin + chatbot tra loi, roi tra ve cac tin moi thay vao #poll (outerHTML). Gui thanh cong thi xoa o nhap, loi thi giu chu de sua. ===== --%>
+         Server luu tin, roi tra ve cac tin moi thay vao #poll (outerHTML). Gui thanh cong thi xoa o nhap, loi thi giu chu de sua. ===== --%>
     <form class="p-4 flex gap-2" hx-post="${ctx}/chat/send" hx-target="#poll" hx-swap="outerHTML"
           hx-vals='js:{after: document.getElementById("poll").dataset.after}'
           hx-on::after-request="if (event.detail.successful) this.reset()">

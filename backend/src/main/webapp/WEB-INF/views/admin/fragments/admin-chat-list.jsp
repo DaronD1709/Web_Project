@@ -4,12 +4,12 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%--
-  MANH: danh sach hoi thoai (moi khach 1 dong, tin cuoi cung). Attr: conversations (List<Message> = tin cuoi moi khach), selectedId, filter, q, botEmail.
+  MANH: danh sach hoi thoai (moi khach 1 dong, tin cuoi cung). Attr: conversations (List<Message> = tin cuoi moi khach), selectedId, q.
   Tu hoi lai moi 5 giay (polling) va khi go o tim kiem. QUAN TRONG hx-target="this": khung hx-boost ben ngoai dat hx-target="#adm-main"
   va thuoc tinh nay duoc ke thua -> neu khong chi dinh, ket qua polling se thay vao ca #adm-main va xoa mat trang.
 --%>
 <%-- c:url tu them context path va ma hoa tham so (tu khoa co dau cach, dau & ...) --%>
-<c:url var="listUrl" value="/admin/chat/list"><c:param name="c" value="${selectedId}" /><c:param name="filter" value="${filter}" /><c:param name="q" value="${q}" /></c:url>
+<c:url var="listUrl" value="/admin/chat/list"><c:param name="c" value="${selectedId}" /><c:param name="q" value="${q}" /></c:url>
 <ul id="chat-list" class="overflow-y-auto flex-1" hx-get="${listUrl}"
     hx-trigger="every 5s" hx-target="this" hx-swap="outerHTML">
   <c:if test="${empty conversations}"><li class="p-8 text-center text-sm text-base-content/50">Chưa có cuộc trò chuyện nào.</li></c:if>
@@ -18,7 +18,7 @@
     <%-- Tin cuoi la cua KHACH nghia la shop chua tra loi -> danh dau "cho phan hoi" --%>
     <c:set var="waiting" value="${m.sender.id == cu.id}" />
     <li>
-      <c:url var="openUrl" value="/admin/chat"><c:param name="c" value="${cu.id}" /><c:param name="filter" value="${filter}" /><c:param name="q" value="${q}" /></c:url>
+      <c:url var="openUrl" value="/admin/chat"><c:param name="c" value="${cu.id}" /><c:param name="q" value="${q}" /></c:url>
       <%-- Link mo hoi thoai nam TRONG <ul> co hx-target="this" + hx-swap="outerHTML" (de polling thay chinh danh sach) nen se KE THUA 2 thuoc tinh do:
            neu khong khai lai, bam vao se nhet CA TRANG chat vao trong danh sach (trang long trang). Vi vay phai tu dat lai dich la #adm-main. --%>
       <a href="${openUrl}" hx-target="#adm-main" hx-swap="innerHTML show:window:top"
@@ -33,10 +33,7 @@
             <span class="text-xs truncate ${waiting ? 'text-base-content font-medium' : 'text-base-content/60'}"><c:out value="${m.content}"/></span>
             <c:if test="${waiting}"><span class="badge badge-primary badge-xs rounded-full shrink-0">Chờ</span></c:if>
           </div>
-          <div class="flex flex-wrap items-center gap-1"><c:if test="${cu.guest}"><span class="badge badge-soft badge-neutral badge-sm"><i data-lucide="user-round" class="size-4"></i> Khách vãng lai</span></c:if><c:choose>
-            <c:when test="${cu.handledByHuman}"><span class="badge badge-soft badge-primary badge-sm"><i data-lucide="user" class="size-4"></i> Nhân viên</span></c:when>
-            <c:otherwise><span class="badge badge-soft badge-accent badge-sm"><i data-lucide="bot" class="size-4"></i> Tự động</span></c:otherwise>
-          </c:choose></div>
+          <c:if test="${cu.guest}"><div class="flex flex-wrap items-center gap-1"><span class="badge badge-soft badge-neutral badge-sm"><i data-lucide="user-round" class="size-4"></i> Khách vãng lai</span></div></c:if>
         </div>
       </a>
     </li>

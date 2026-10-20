@@ -1,11 +1,9 @@
 package com.ecommerce.util;
 
-import com.ecommerce.dao.AutoReplyDAO;
 import com.ecommerce.dao.CategoryDAO;
 import com.ecommerce.dao.ProductDAO;
 import com.ecommerce.dao.UserDAO;
 import com.ecommerce.entity.Admin;
-import com.ecommerce.entity.AutoReply;
 import com.ecommerce.entity.Cart;
 import com.ecommerce.entity.Category;
 import com.ecommerce.entity.Customer;
@@ -33,24 +31,7 @@ public class DataSeeder {
     private static final CategoryDAO categoryDAO = new CategoryDAO();
     private static final ProductDAO productDAO = new ProductDAO();
     private static final UserDAO userDAO = new UserDAO();
-    private static final AutoReplyDAO autoReplyDAO = new AutoReplyDAO();
 
-    // DB da seed tu truoc: bot ten "Tro ly AI" va cac tin chao cu nhac "tro ly AI" -> doi thanh "tu dong" (day la tra loi theo tu khoa, khong phai AI)
-    private static void renameBotLabel() {
-        User bot = userDAO.findByEmail("bot@nongviet.vn");
-        if (bot != null && "Trợ lý AI".equals(bot.getFullName())) {
-            bot.setFullName("Trợ lý tự động");
-            userDAO.update(bot);
-        }
-        jakarta.persistence.EntityManager em = com.ecommerce.util.JPAUtil.getEmFactory().createEntityManager();
-        try {
-            em.getTransaction().begin();
-            em.createQuery("UPDATE Message m SET m.content = REPLACE(m.content, 'trợ lý AI', 'trợ lý tự động') WHERE m.content LIKE '%trợ lý AI%'").executeUpdate();
-            em.getTransaction().commit();
-        } finally {
-            em.close();
-        }
-    }
 
     // Anh mau cua 12 san pham mau (file nam trong webapp/static/img/products/, nguon + giay phep ghi o docs/credits.md).
     // imageUrl la duong dan tuong doi so voi ung dung (JSP ghep "${ctx}/" + imageUrl), giong anh Admin tai len ("uploads/...").
@@ -73,7 +54,6 @@ public class DataSeeder {
         seedCatalog();
         backfillSampleImages();
         seedMoreProducts();
-        seedAutoReplies();
     }
 
     // DB da co san pham mau tu truoc khi co anh: gan anh cho san pham mau CHUA CO anh (khong de len anh Admin da tai len).
@@ -87,46 +67,6 @@ public class DataSeeder {
         }
     }
 
-    // Cac luat tra loi tu dong mac dinh cua chatbot (Admin sua/them/xoa o Admin > Tra loi tu dong). Chi nap khi bang auto_replies trong.
-    // THU TU (so uu tien nho duoc xet truoc) co chu y:
-    //   10   "gap nhan vien..."  dat TRUOC het va co handoff=true: khach xin gap nguoi that thi chuyen ngay, khong bi luat khac chen vao.
-    //   20-90 cac luat theo chu de (ship, thanh toan, hoan hang, voucher, phan bon, hat giong, may moc, chao hoi), handoff=false: bot tra loi roi tiep tuc.
-    //   1000 "*" (khop moi cau) dat CUOI CUNG lam cau mac dinh + chuyen nhan vien: chi duoc dung khi khong luat nao o tren khop (xem ChatBotService.match).
-    private static void seedAutoReplies() {
-        if (autoReplyDAO.count() > 0) return;
-        rule(10, "nhân viên, gặp người, tư vấn viên, gặp shop, gọi cho",
-                "Mình đã chuyển cuộc trò chuyện cho nhân viên shop. Bạn vui lòng chờ trong giây lát nhé!", true);
-        rule(20, "ship, giao hàng, vận chuyển, phí giao",
-                "Shop miễn phí vận chuyển cho đơn từ 500.000đ, đơn dưới mức này phí 30.000đ. Nội thành giao 1–2 ngày, tỉnh khác 2–4 ngày.", false);
-        rule(30, "thanh toán, trả tiền, cod, vnpay, chuyển khoản",
-                "Shop hỗ trợ thanh toán khi nhận hàng (COD) và thanh toán online qua VNPay. Bạn chọn khi đặt hàng nhé.", false);
-        rule(40, "hoàn hàng, đổi trả, trả hàng, bảo hành",
-                "Sau khi nhận hàng bạn có thể gửi yêu cầu hoàn hàng ở mục Đơn hàng, nhân viên sẽ xem xét và phản hồi. "
-                        + "Về bảo hành, bạn cho mình biết tên sản phẩm để nhân viên hỗ trợ chính xác nhé.", false);
-        rule(50, "mã giảm, voucher, khuyến mãi, giảm giá",
-                "Bạn nhập mã giảm giá ở bước thanh toán, hệ thống sẽ kiểm tra mã còn hạn, còn lượt và đạt giá trị đơn tối thiểu hay không.", false);
-        rule(60, "phân bón, bón phân, npk",
-                "Với rau màu, bạn có thể dùng phân NPK 20-20-15 để bón thúc kết hợp phân hữu cơ vi sinh bón lót. "
-                        + "Bạn xem nhóm Phân bón trong cửa hàng, hoặc nói rõ loại cây để nhân viên tư vấn kỹ hơn.", false);
-        rule(70, "hạt giống, gieo, giống",
-                "Shop có nhiều hạt giống rau củ (cà chua, cải xanh…) tỷ lệ nảy mầm cao. Bạn xem nhóm Hạt giống trong cửa hàng nhé.", false);
-        rule(80, "tưới, máy, dụng cụ, phun thuốc, cắt cỏ",
-                "Shop có máy móc, dụng cụ và hệ thống tưới tiêu cho nhà nông. Bạn cho mình biết diện tích hoặc nhu cầu để nhân viên tư vấn chi tiết nhé.", false);
-        rule(90, "xin chào, hello, chào bạn, alo",
-                "Chào bạn! Bạn cần tư vấn về hạt giống, phân bón, thuốc BVTV hay máy móc nông nghiệp ạ?", false);
-        rule(1000, "*", "Mình chưa trả lời được câu này nên đã chuyển cho nhân viên shop, bạn vui lòng chờ phản hồi nhé!", true); // mac dinh
-    }
-
-    private static void rule(int priority, String keywords, String replyText, boolean handoff) {
-        AutoReply r = new AutoReply();
-        r.setPriority(priority);
-        r.setKeywords(keywords);
-        r.setReplyText(replyText);
-        r.setHandoff(handoff);
-        r.setActive(true);
-        autoReplyDAO.save(r);
-    }
-
     private static void seedUsers() {
         if (userDAO.findByEmail("admin@nongviet.vn") == null) {
             Admin admin = new Admin();
@@ -138,17 +78,6 @@ public class DataSeeder {
             admin.setCreatedAt(LocalDateTime.now());
             userDAO.save(admin);
         }
-        if (userDAO.findByEmail("bot@nongviet.vn") == null) {
-            // Tai khoan he thong cho chatbot (Message.sender phai la User; khong co class AIBot rieng nen dung loai Admin).
-            // Khong ai dang nhap duoc: mat khau la chuoi ngau nhien bi bo di.
-            Admin bot = new Admin();
-            bot.setEmail("bot@nongviet.vn");
-            bot.setPasswordHash(PasswordUtil.hash(java.util.UUID.randomUUID().toString()));
-            bot.setFullName("Trợ lý tự động");
-            bot.setCreatedAt(LocalDateTime.now());
-            userDAO.save(bot);
-        }
-        renameBotLabel();
         if (userDAO.findByEmail("khach@nongviet.vn") == null) {
             Customer customer = new Customer();
             customer.setEmail("khach@nongviet.vn");
