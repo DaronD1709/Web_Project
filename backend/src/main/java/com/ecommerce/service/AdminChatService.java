@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * Nghiep vu CHAT phia Admin: xem cac cuoc tro chuyen, doc tin cua khach va tra loi bang tay. Khong dung WebSocket (xem docs/api-spec.md).
- * Khong co chatbot: moi tin cua khach chi duoc luu lai de nhan vien doc va tra loi (polling moi 3-5 giay).
+ * Khong co chatbot: moi tin cua khach chi duoc luu lai de nhan vien doc va tra loi (polling moi 1-3 giay).
  * Lop nay chi bao boc: truy van do MessageDAO lo.
  */
 public class AdminChatService {

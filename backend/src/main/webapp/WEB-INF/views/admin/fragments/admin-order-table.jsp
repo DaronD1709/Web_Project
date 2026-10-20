@@ -8,6 +8,16 @@
   AdminOrderServlet chi tra rieng file nay de htmx thay noi dung #order-list. Attribute: filter, result, tabs, tabCounts, itemCounts.
 --%>
 
+<%-- ===== TU LAM MOI MOI 1 GIAY (polling): don moi cua khach hien ra trong danh sach ma Admin khong phai F5 =====
+     The rong nay nam TRONG vung #order-list nen moi lan #order-list duoc thay (loc, doi tab, doi trang, hoac chinh lan polling) no cung duoc ve lai
+     voi so trang HIEN TAI (page=${result.page}), nen Admin dang o trang 3 thi polling van lay trang 3, khong nhay ve trang 1.
+     - hx-get + hx-include="#order-filter": hoi lai danh sach voi cac o loc dang chon (tu khoa, thanh toan, ngay, tab) va trang hien tai.
+     - hx-target="#order-list" + hx-swap="innerHTML": thay noi dung vung danh sach (Servlet thay HX-Target = order-list nen chi tra manh nay).
+     - Dieu kien [...]: KHONG hoi khi co hop thoai dang mo (hop thoai xac nhan "Xac nhan don?"), de khong thay mat dong dang duoc bam.
+     - Khong dat hx-push-url: tu lam moi khong doi dia chi tren thanh URL. hx-sync="this:drop": lan truoc chua xong thi bo lan moi. --%>
+<div hidden hx-get="${ctx}/admin/orders?page=${result.page}" hx-include="#order-filter" hx-target="#order-list" hx-swap="innerHTML"
+     hx-trigger="every 1s [!document.querySelector('dialog[open]')]" hx-sync="this:drop"></div>
+
 <%-- Tab dang chon gui kem moi lan loc: the hidden nay thuoc form#order-filter (thuoc tinh form=) du nam ngoai the <form> --%>
 <input type="hidden" name="status" value="${filter.status}" form="order-filter">
 

@@ -5,13 +5,13 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%--
   MANH: danh sach hoi thoai (moi khach 1 dong, tin cuoi cung). Attr: conversations (List<Message> = tin cuoi moi khach), selectedId, q.
-  Tu hoi lai moi 5 giay (polling) va khi go o tim kiem. QUAN TRONG hx-target="this": khung hx-boost ben ngoai dat hx-target="#adm-main"
+  Tu hoi lai moi 1 giay (polling) va khi go o tim kiem. QUAN TRONG hx-target="this": khung hx-boost ben ngoai dat hx-target="#adm-main"
   va thuoc tinh nay duoc ke thua -> neu khong chi dinh, ket qua polling se thay vao ca #adm-main va xoa mat trang.
 --%>
 <%-- c:url tu them context path va ma hoa tham so (tu khoa co dau cach, dau & ...) --%>
 <c:url var="listUrl" value="/admin/chat/list"><c:param name="c" value="${selectedId}" /><c:param name="q" value="${q}" /></c:url>
 <ul id="chat-list" class="overflow-y-auto flex-1" hx-get="${listUrl}"
-    hx-trigger="every 5s" hx-target="this" hx-swap="outerHTML">
+    hx-trigger="every 1s" hx-target="this" hx-swap="outerHTML">
   <c:if test="${empty conversations}"><li class="p-8 text-center text-sm text-base-content/50">Chưa có cuộc trò chuyện nào.</li></c:if>
   <c:forEach var="m" items="${conversations}">
     <c:set var="cu" value="${m.customer}" />

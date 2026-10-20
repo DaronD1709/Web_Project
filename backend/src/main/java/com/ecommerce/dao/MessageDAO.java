@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Truy van tin nhan chat. Co 2 truy van dac thu, ca hai deu phuc vu co che POLLING cua htmx (khong dung WebSocket):
- *   - findLatestPerCustomer: danh sach hoi thoai ben Admin (cot trai), duoc hoi lai moi 5 giay;
+ *   - findLatestPerCustomer: danh sach hoi thoai ben Admin (cot trai), duoc hoi lai moi 1 giay;
  *   - findAfter: chi nhung tin MOI hon id da biet, duoc hoi lai moi 3 giay o khung chat (ca khach lan Admin).
  * Cac thao tac CRUD thong thuong (luu tin moi) dung method save() ke thua tu AbstractDAO.
  */
