@@ -53,16 +53,29 @@ public class SessionUtil {
      * thay vi ghi de / xoa duoc cookie cu).
      */
     public static void writeSessionCookie(HttpServletRequest req, HttpServletResponse resp, String value, int maxAge) {
+        // Lay cau hinh cookie phien cua container (Tomcat): ten, duong dan, ten mien... Muc dich: cookie ta ghi phai TRUNG KHOP cookie Tomcat da tao.
         SessionCookieConfig config = req.getServletContext().getSessionCookieConfig();
+        // Ten cookie: dung ten da cau hinh, khong co thi dung ten mac dinh cua Servlet la "JSESSIONID".
         String name = config.getName() == null ? "JSESSIONID" : config.getName();
+        // Tao cookie moi: cap (ten, gia tri) = (JSESSIONID, ma phien). Gia tri la ma phien do session.getId() tra ve (xem tham so value).
         Cookie cookie = new Cookie(name, value);
+        // Duong dan ma trinh duyet se gui cookie kem: lay cau hinh san co; neu khong co thi dung context path cua ung dung
+        // ("/" khi deploy o goc nhu tren Render, "/ecommerce" khi chay local). Khac duong dan = tao cookie MOI chu khong de duoc cookie cu.
         String path = config.getPath();
         cookie.setPath(path != null ? path : (req.getContextPath().isEmpty() ? "/" : req.getContextPath()));
+        // Ten mien: chi dat khi co cau hinh; khong dat thi cookie chi gui lai cho dung may chu da cap no.
         if (config.getDomain() != null) cookie.setDomain(config.getDomain());
+        // HttpOnly: JavaScript khong doc duoc cookie nay -> neu trang bi XSS thi ke xau cung khong an cap duoc ma phien.
         cookie.setHttpOnly(true);
+        // Secure: chi gui cookie qua HTTPS. Bat khi request hien tai la HTTPS (req.isSecure()) hoac container da cau hinh Secure.
+        // (Sau reverse proxy cua Render, RemoteIpValve trong Dockerfile giup req.isSecure() tra ve dung.)
         cookie.setSecure(req.isSecure() || config.isSecure());
+        // SameSite=Lax: trinh duyet khong gui cookie kem cac request POST xuat phat tu trang web khac -> giam nguy co CSRF.
+        // (Class Cookie cu khong co ham rieng cho thuoc tinh nay nen dung setAttribute.)
         cookie.setAttribute("SameSite", "Lax");
+        // Thoi han (giay): -1 = cookie phien (mat khi dong trinh duyet); so duong (vd 7 ngay) = cookie luu lau ("Ghi nho toi"); 0 = bao trinh duyet XOA cookie.
         cookie.setMaxAge(maxAge);
+        // Gui cookie ve trinh duyet bang header "Set-Cookie" trong phan hoi.
         resp.addCookie(cookie);
     }
 
