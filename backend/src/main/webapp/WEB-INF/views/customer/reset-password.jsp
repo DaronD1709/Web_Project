@@ -44,6 +44,8 @@
   </div>
 </main>
 
+<%-- Trang xac thuc (dang nhap / dang ky / quen mat khau): khong hien bong bong chat (footer.jspf doc bien nay) --%>
+<c:set var="hideChatWidget" value="true" scope="request" />
 <%@ include file="/WEB-INF/views/common/footer.jspf" %>
 </body>
 </html>
