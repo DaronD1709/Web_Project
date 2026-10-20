@@ -196,7 +196,7 @@ public class SessionUtil {
         }
 
         // BUOC 3 - Truong hop dac biet: request htmx GET (polling).
-        // Request htmx GET la "tho do" nen (vd /notifications/count moi 5 giay) tra ve MANH HTML, khong phai trang.
+        // Request htmx GET la "tho do" nen (vd /notifications/count moi 1 giay) tra ve MANH HTML, khong phai trang.
         // Het phien thi next phai la TRANG khach dang xem (header HX-Current-URL), neu khong login xong se hien manh "3".
         // Vi du: khach dang xem /orders/detail?id=12, phien het, chuong thong bao tu goi /notifications/count -> request nay bi chan.
         // Neu lay duong dan cua request hien tai thi sau login khach bi dua toi /notifications/count (chi co so "3") thay vi don hang dang xem.

@@ -7,7 +7,7 @@
   NOI DUNG trang Admin > Chat voi khach. AdminChatServlet.showPage truyen:
     conversations : tin cuoi cung cua moi khach co chat (List<Message>)     selected : Customer dang mo (null neu chua co chat nao)     selectedId
     q : tu khoa tim khach     messages / lastId : tin cua khach dang mo va id tin cuoi     orders : 3 don gan nhat cua khach
-  Chuyen tu mockup/admin/chat.html. Khong WebSocket: danh sach tu hoi moi 5 giay, khung chat tu hoi moi 3 giay (htmx polling).
+  Chuyen tu mockup/admin/chat.html. Khong WebSocket: danh sach tu hoi moi 1 giay, khung chat tu hoi moi 3 giay (htmx polling).
 --%>
 <div class="max-w-7xl mx-auto">
 
@@ -33,7 +33,7 @@
           </label>
         </form>
       </div>
-      <%-- Danh sach hoi thoai la 1 fragment rieng (admin-chat-list.jsp) vi no vua duoc include o day, vua duoc server tra rieng khi polling moi 5 giay --%>
+      <%-- Danh sach hoi thoai la 1 fragment rieng (admin-chat-list.jsp) vi no vua duoc include o day, vua duoc server tra rieng khi polling moi 1 giay --%>
       <jsp:include page="/WEB-INF/views/admin/fragments/admin-chat-list.jsp" />
     </div>
 

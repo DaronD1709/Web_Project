@@ -4,12 +4,12 @@
 <%--
   MANH: danh sach thong bao cua khach (NotificationServlet truyen: result (PageResult<Notification>), selectedFilter (ALL | UNREAD), unreadCount, trackingCsrfToken).
   Thong bao do OrderDAO.changeStatusInTransaction tao ra moi khi Admin doi trang thai don (cung transaction doi trang thai).
-  - Toan vung tu lam moi moi 5 giay (hx-trigger="every 5s"); hx-sync="this:drop" bo qua lan hoi moi neu lan truoc chua xong.
+  - Toan vung tu lam moi moi 1 giay (hx-trigger="every 1s"); hx-sync="this:drop" bo qua lan hoi moi neu lan truoc chua xong.
   - Tab Tat ca / Chua doc va phan trang dung hx-push-url="true": doi URL de F5/Back/gui link van dung bo loc va trang.
   - Nut "Danh dau da doc" la form POST /notifications/read (kem ma CSRF), ket qua thay lai ca vung; dong cuoi dong bo huy hieu so tren chuong o header (hx-swap-oob).
 --%>
 <div id="notification-list" hx-history="false" hx-get="${ctx}/notifications?filter=${selectedFilter}&amp;page=${result.page}"
-     hx-trigger="every 5s" hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">
+     hx-trigger="every 1s" hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">
   <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
     <h1 class="text-2xl font-bold">Thông báo</h1>
     <form method="post" action="${ctx}/notifications/read" hx-post="${ctx}/notifications/read"

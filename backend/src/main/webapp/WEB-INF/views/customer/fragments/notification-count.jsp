@@ -2,6 +2,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <span id="notification-count" class="badge badge-xs badge-primary indicator-item ${empty unreadCount or unreadCount == 0 ? 'hidden' : ''}"
-      hx-get="${ctx}/notifications/count" hx-trigger="${notificationCountLoaded ? 'every 5s' : 'load, every 5s'}"
+      hx-get="${ctx}/notifications/count" hx-trigger="${notificationCountLoaded ? 'every 1s' : 'load, every 1s'}"
       hx-target="this" hx-swap="outerHTML" hx-sync="this:drop"
       <c:if test="${updateNotificationCount}">hx-swap-oob="outerHTML"</c:if>>${empty unreadCount ? 0 : unreadCount}</span>

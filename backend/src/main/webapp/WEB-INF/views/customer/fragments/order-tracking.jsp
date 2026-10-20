@@ -11,16 +11,16 @@
 <c:set var="st" value="${order.status}" />
 <c:set var="stepNo" value="${st == 'PENDING' ? 1 : st == 'CONFIRMED' ? 2 : st == 'SHIPPING' ? 3 : 4}" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<%-- ===== VUNG BAO NGOAI: tu lam moi moi 5 giay (polling) de khach thay trang thai moi khi Admin doi ma khong phai F5 =====
+<%-- ===== VUNG BAO NGOAI: tu lam moi moi 1 giay (polling) de khach thay trang thai moi khi Admin doi ma khong phai F5 =====
      - hx-get toi chinh trang nay; Servlet thay HX-Target = order-detail-body nen chi tra lai MANH nay (khong tra ca trang).
-     - hx-trigger="every 5s [dieu kien]": 5 giay hoi 1 lan, NHUNG chi khi KHONG co hop thoai (huy don / hoan hang) dang mo; neu dang mo thi bo qua lan do,
+     - hx-trigger="every 1s [dieu kien]": 1 giay hoi 1 lan, NHUNG chi khi KHONG co hop thoai (huy don / hoan hang) dang mo; neu dang mo thi bo qua lan do,
        de khach dang go ly do hoan hang khong bi mat chu.
      - hx-swap="outerHTML": thay chinh the <section> nay bang ban moi (ban moi lai co hx-trigger nen vong polling tiep tuc).
      - hx-sync="this:drop": neu lan hoi truoc chua xong thi bo lan hoi moi, khong chong chat request.
      - hx-history="false": khong luu manh nay vao lich su htmx (bam Back khong hien ban cu). --%>
 <section id="order-detail-body" class="space-y-5 min-w-0" hx-history="false"
          hx-get="${ctx}/orders/detail?id=${order.id}"
-         hx-trigger="every 5s [!document.querySelector('#order-detail-body dialog[open]')]"
+         hx-trigger="every 1s [!document.querySelector('#order-detail-body dialog[open]')]"
          hx-target="this" hx-swap="outerHTML" hx-sync="this:drop">
     <c:if test="${not empty trackingMessage}"><div class="alert alert-success alert-soft"><c:out value="${trackingMessage}"/></div></c:if>
     <c:if test="${not empty trackingError}"><div class="alert alert-error alert-soft"><c:out value="${trackingError}"/></div></c:if>
@@ -28,7 +28,7 @@
       <div><a href="${ctx}/orders" class="btn btn-outline btn-sm mb-2"><i data-lucide="arrow-left" class="size-4"></i> Đơn hàng của tôi</a><h1 class="text-2xl font-bold">Đơn hàng <span class="font-mono text-primary">#${order.id}</span></h1><div class="text-sm text-base-content/60">Đặt lúc <c:out value="${order.orderDateText}"/></div></div>
       <%@ include file="/WEB-INF/views/customer/fragments/order-badge.jspf" %>
     </div>
-    <%-- ===== THANH TIEN TRINH: Dat hang -> Xac nhan -> Dang giao -> Hoan tat (don huy chi co 2 buoc). Cap nhat theo stepNo moi 5 giay ===== --%>
+    <%-- ===== THANH TIEN TRINH: Dat hang -> Xac nhan -> Dang giao -> Hoan tat (don huy chi co 2 buoc). Cap nhat theo stepNo moi 1 giay ===== --%>
     <div class="card bg-base-100 border border-base-300 p-5 overflow-x-auto">
       <ul class="steps w-full text-sm">
         <c:choose><c:when test="${st == 'CANCELLED'}"><li class="step step-primary">Đặt hàng</li><li class="step step-error" data-content="✕">Đã huỷ</li></c:when><c:otherwise><li class="step step-primary">Đặt hàng</li><li class="step ${stepNo >= 2 ? 'step-primary' : ''}">Xác nhận</li><li class="step ${stepNo >= 3 ? 'step-primary' : ''}">Đang giao</li><li class="step ${stepNo >= 4 ? 'step-primary' : ''}">Hoàn tất</li></c:otherwise></c:choose>

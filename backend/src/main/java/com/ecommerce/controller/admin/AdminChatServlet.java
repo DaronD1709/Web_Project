@@ -20,13 +20,13 @@ import java.util.List;
 
 // Chat voi khach (Admin). Khong dung WebSocket: trinh duyet tu hoi server dinh ky bang htmx (xem docs/api-spec.md muc 7).
 //   GET  /admin/chat?c=&q=           trang chat: danh sach hoi thoai + khung chat + thong tin khach (c = khach dang mo, mac dinh hoi thoai moi nhat)
-//   GET  /admin/chat/list            danh sach hoi thoai (htmx polling moi 5 giay, hoac khi go o tim kiem)
+//   GET  /admin/chat/list            danh sach hoi thoai (htmx polling moi 1 giay, hoac khi go o tim kiem)
 //   GET  /admin/chat/messages        tin moi cua 1 khach (htmx polling moi 3 giay): c, after
 //   POST /admin/chat/send            c, content, after -> gui tin tra loi; tra ve cac tin moi (gom ca tin vua gui)
 //
 // CACH HOAT DONG (doc phan nay de giai thich khi van dap):
 //   1. Admin mo /admin/chat -> showPage dung CA TRANG (admin-chat.jsp): cot trai = danh sach khach, giua = khung chat, phai = thong tin khach.
-//   2. Cot trai tu hoi /admin/chat/list moi 5 giay; khung chat tu hoi /admin/chat/messages?after=<id tin cuoi> moi 3 giay.
+//   2. Cot trai tu hoi /admin/chat/list moi 1 giay; khung chat tu hoi /admin/chat/messages?after=<id tin cuoi> moi 3 giay.
 //      Moi lan hoi, server chi tra cac tin CO ID LON HON "after" (xem MessageDAO.findAfter) nen rat nhe.
 //   3. Admin go tin -> POST /admin/chat/send -> luu tin, tra ve cac tin moi (gom ca tin vua gui). Khach thay tin o lan polling ke tiep.
 // Khong co chatbot: shop tra loi bang tay. Servlet chi dieu phoi; nghiep vu o AdminChatService, du lieu o MessageDAO.
