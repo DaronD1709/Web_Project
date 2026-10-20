@@ -87,7 +87,7 @@
                 hx-sync="#order-detail-body:replace" hx-disabled-elt="find button">
             <input type="hidden" name="id" value="${order.id}">
             <input type="hidden" name="trackingCsrfToken" value="${trackingCsrfToken}">
-            <label class="label" for="return-reason">Lý do hoàn hàng</label>
+            <label class="label mb-2" for="return-reason">Lý do hoàn hàng</label><%-- mb-2: chua khoang cach duoi nhan, daisyUI 5 khong con tu cach nhan va o nhap --%>
             <textarea id="return-reason" name="reason" class="textarea textarea-bordered w-full" rows="3"
                       maxlength="255" required placeholder="Nhập lý do hoàn hàng..."><c:out value="${returnReason}"/></textarea>
             <c:if test="${not empty returnError}"><p class="text-error text-sm mt-1"><c:out value="${returnError}"/></p></c:if>
