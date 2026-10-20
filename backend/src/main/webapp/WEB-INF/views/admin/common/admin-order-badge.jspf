@@ -1,4 +1,28 @@
 <%-- Nhan trang thai don hang (mau theo trang thai). Dung bang <%@ include %>; truoc do phai c:set bien "st" = OrderStatus can hien. --%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<c:set var="badgeCls" value="${st == 'PENDING' ? 'badge-warning' : st == 'COMPLETED' ? 'badge-success' : st == 'RETURN_REQUESTED' ? 'badge-error' : (st == 'CANCELLED' or st == 'RETURNED') ? 'badge-neutral' : 'badge-info'}" />
+<%--
+  Chon mau nhan theo trang thai. Dung c:choose (nhu if / else if / else) thay cho toan tu 3 ngoi long nhau cho de doc:
+    PENDING                       -> badge-warning (vang)     cho xac nhan, can Admin xu ly
+    COMPLETED                     -> badge-success (xanh la)  giao xong
+    RETURN_REQUESTED              -> badge-error   (do)       khach xin hoan hang, can Admin duyet
+    CANCELLED hoac RETURNED       -> badge-neutral (xam)      da ket thuc (huy / da hoan)
+    con lai (CONFIRMED, SHIPPING) -> badge-info    (xanh duong) dang xu ly
+--%>
+<c:choose>
+  <c:when test="${st == 'PENDING'}">
+    <c:set var="badgeCls" value="badge-warning" />
+  </c:when>
+  <c:when test="${st == 'COMPLETED'}">
+    <c:set var="badgeCls" value="badge-success" />
+  </c:when>
+  <c:when test="${st == 'RETURN_REQUESTED'}">
+    <c:set var="badgeCls" value="badge-error" />
+  </c:when>
+  <c:when test="${st == 'CANCELLED' or st == 'RETURNED'}">
+    <c:set var="badgeCls" value="badge-neutral" />
+  </c:when>
+  <c:otherwise>
+    <c:set var="badgeCls" value="badge-info" />
+  </c:otherwise>
+</c:choose>
 <span class="badge ${badgeCls} badge-sm whitespace-nowrap"><c:out value="${st.label}"/></span>
